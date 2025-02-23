@@ -1,3 +1,4 @@
+
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
@@ -9,11 +10,12 @@ const router = express.Router();
 router.post("/create-task-handler", auth, async (req, res) => {
   if (req.user.role !== "admin") return res.status(403).json({ message: "Access Denied" });
 
-  const { username, email, password, role } = req.body;
+  const { username, email, password } = req.body;
+  const role = "taskhandler"; // Hardcoded role to ensure only one type of handler
 
-  if (role !== "bin_handler" && role !== "scan_handler") {
+  /*if (role !== "bin_handler" && role !== "scan_handler") {
     return res.status(400).json({ message: "Invalid task handler role" });
-  }
+  }*/
 
   try {
     let user = await User.findOne({ email });
@@ -26,6 +28,27 @@ router.post("/create-task-handler", auth, async (req, res) => {
     await user.save();
 
     res.status(201).json({ message: "Task Handler Created" });
+
+   /* res.status(201).json({ 
+      message: "Task Handler Created",
+      user: { 
+        id: user._id, 
+        username: user.username, 
+        role: user.role 
+      } 
+    });*/
+    
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+// Fetch the existing Task Handler
+router.get("/task-handlers", auth, async (req, res) => {
+  try {
+    const taskHandlers = await User.find({ role: "taskhandler" }); // Fetch all task handlers
+    if (!taskHandlers.length) return res.status(404).json({ message: "No Task Handlers found" });
+
+    res.json(taskHandlers);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

@@ -1,0 +1,12 @@
+// don't chage any feild  here , this stores manufacturer related data  you can add fields for your reqiurements but don't delete any feilds 
+// you don't need to add manufacturer id , when user login manufaturer id will create and stored here automatically 
+const mongoose = require("mongoose");
+
+const manufacturerSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  totalBottlesProduced: { type: Number, default: 0 },
+  totalBottlesRecycled: { type: Number, default: 0 },
+});
+
+const Manufacturer = mongoose.model("Manufacturer", manufacturerSchema);
+module.exports = Manufacturer;

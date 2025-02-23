@@ -3,7 +3,7 @@ import { createTaskHandler, getTaskHandlers } from "../services/api";
 
 export default function AdminDashboard() {
   const [taskHandlers, setTaskHandlers] = useState([]);
-  const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "bin_handler" });
+  const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "taskhandler" });
 
   useEffect(() => {
     const fetchHandlers = async () => {
@@ -39,10 +39,7 @@ export default function AdminDashboard() {
         <input type="text" name="username" placeholder="Username" value={formData.username} onChange={handleChange} required className="border p-2 mb-2 w-full" />
         <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required className="border p-2 mb-2 w-full" />
         <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required className="border p-2 mb-2 w-full" />
-        <select name="role" value={formData.role} onChange={handleChange} className="border p-2 w-full">
-          <option value="bin_handler">Bin Handler</option>
-          <option value="scan_handler">Scan Handler</option>
-        </select>
+        
         <button type="submit" className="bg-blue-500 text-white px-4 py-2 mt-4">Create Task Handler</button>
       </form>
 
