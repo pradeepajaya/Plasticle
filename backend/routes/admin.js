@@ -1,5 +1,18 @@
-
 const express = require("express");
+const auth = require("../middleware/auth");
+const adminController = require("../controllers/adminController");
+
+const router = express.Router();
+
+router.post("/create-task-handler", auth, adminController.createTaskHandler);
+router.get("/task-handlers", auth, adminController.getTaskHandlers);
+
+module.exports = router;
+
+
+// code before creating controller
+
+/* const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
@@ -13,9 +26,14 @@ router.post("/create-task-handler", auth, async (req, res) => {
   const { username, email, password } = req.body;
   const role = "taskhandler"; // Hardcoded role to ensure only one type of handler
 
+
+   // commented start 
+
   /*if (role !== "bin_handler" && role !== "scan_handler") {
     return res.status(400).json({ message: "Invalid task handler role" });
-  }*/
+  }
+      
+    // commented finish 
 
   try {
     let user = await User.findOne({ email });
@@ -29,6 +47,8 @@ router.post("/create-task-handler", auth, async (req, res) => {
 
     res.status(201).json({ message: "Task Handler Created" });
 
+    // commented start 
+
    /* res.status(201).json({ 
       message: "Task Handler Created",
       user: { 
@@ -36,7 +56,9 @@ router.post("/create-task-handler", auth, async (req, res) => {
         username: user.username, 
         role: user.role 
       } 
-    });*/
+    });
+
+    // commented finish 
     
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -55,3 +77,6 @@ router.get("/task-handlers", auth, async (req, res) => {
 });
 
 module.exports = router;
+ 
+*/
+
