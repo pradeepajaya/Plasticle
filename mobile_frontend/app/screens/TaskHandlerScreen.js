@@ -1,8 +1,10 @@
-export default function TaskHandlerScreen() {
-    return (
-      <View style={{ padding: 20 }}>
-        <Text>Welcome Task Handler</Text>
-      </View>
-    );
-  }
-  
+  import React from "react";
+  import { View, Text } from "react-native";
+  export default function TaskHandlerScreen() {
+      return (
+        <View style={{ padding: 20 }}>
+          <Text>Welcome TaskHandler</Text>
+        </View>
+      );
+    }
+    

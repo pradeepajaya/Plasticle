@@ -1,3 +1,4 @@
+// don't chage any feild  here  this user field is more specific for RBAC login
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
@@ -6,7 +7,7 @@ const userSchema = new mongoose.Schema({
   passwordHash: { type: String, required: true },
   role: {
     type: String,
-    enum: ["buyer", "collector", "manufacturer", "admin", "bin_handler", "scan_handler"],
+    enum: ["buyer", "collector", "manufacturer", "admin", "taskhandler" ],
     required: true,
   },
 });

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api"; // Replace with your backend IP
