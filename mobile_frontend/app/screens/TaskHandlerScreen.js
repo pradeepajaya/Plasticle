@@ -10,6 +10,11 @@ const TaskHandlerScreen = () => {
   // Google Maps API key
   const googleMapsApiKey = "AIzaSyCiB4iiZYHPtCR6BW3PM2XFnbgiqkaz1AI";
 
+  // Function to generate a unique binId
+  const generateBinId = () => {
+    return `BIN-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  };
+
   // Handle the map click event to get lat, lng
   const onMapClick = (e) => {
     const lat = e.latLng.lat();
@@ -24,10 +29,12 @@ const TaskHandlerScreen = () => {
       return;
     }
 
+    const binId = generateBinId(); // Generate unique binId
+
     const response = await fetch("http://localhost:5000/api/bins/createBin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ location, capacity }),
+      body: JSON.stringify({ binId, location, capacity }),
     });
 
     const data = await response.json();
