@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const User = require("./models/User");
 const bcrypt = require("bcryptjs");
 
+
 dotenv.config();
 connectDB();
 
@@ -12,7 +13,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-/*const createAdminUser = async () => {
+const createAdminUser = async () => {
     const adminExists = await User.findOne({ role: "admin" });
   
     if (!adminExists) {
@@ -30,11 +31,13 @@ app.use(cors());
     }
   };
   
-  createAdminUser();*/
+  createAdminUser();
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/manufacturer", require("./routes/manufacturer"));
+app.use("/api/bins", require("./routes/bin"));
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
