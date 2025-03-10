@@ -3,7 +3,6 @@ import { View, Text, TextInput, Button, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 const API_URL = "http://localhost:5000/api"; // Replace with your backend IP
 
 const LoginScreen = () => {
@@ -31,7 +30,10 @@ const LoginScreen = () => {
         navigation.replace("CollectorDashboard");
       } else if (user.role === "manufacturer") {
         navigation.replace("ManufacturerDashboard");
-      } else {
+      } else if(user.role==="taskhandler"){
+        navigation.replace("TaskHandlerScreen")
+      }
+      else {
         Alert.alert("Login failed", "Invalid user role.");
       }
     } catch (error) {

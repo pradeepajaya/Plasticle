@@ -1,4 +1,19 @@
+
+// updated code for creating backend controller 
 import axios from "axios";
+
+const API = axios.create({ baseURL: "http://localhost:5000/api" });
+
+API.interceptors.request.use((req) => {
+  const token = localStorage.getItem("token");
+  if (token) req.headers.Authorization = `Bearer ${token}`; // Fixed token format
+  return req;
+});
+
+export const login = (formData) => API.post("/auth/login", formData);
+export const createTaskHandler = (data) => API.post("/admin/create-task-handler", data);
+export const getTaskHandlers = () => API.get("/admin/task-handlers");
+/*import axios from "axios";
 
 const API = axios.create({ baseURL: "http://localhost:5000/api" });
 
@@ -10,4 +25,6 @@ API.interceptors.request.use((req) => {
 
 export const login = (formData) => API.post("/auth/login", formData);
 export const createTaskHandler = (data) => API.post("/admin/create-task-handler", data);
-export const getTaskHandlers = () => API.get("/admin/task-handlers");
+export const getTaskHandlers = () => API.get("/admin/task-handlers");*/
+
+
