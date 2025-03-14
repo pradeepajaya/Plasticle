@@ -65,6 +65,8 @@ const TaskHandlerScreen = () => {
           center={{ lat: 6.9271, lng: 79.8612 }} // Default center (e.g., Colombo)
           zoom={12}
           onClick={onMapClick}
+
+          // google marker deprecated should use advancedmarkerElement to avoid deprecated error in f12 
         >
           {selectedLocation && (
             <Marker
@@ -74,7 +76,9 @@ const TaskHandlerScreen = () => {
           )}
         </GoogleMap>
       </LoadScript>
-
+             
+       
+                          
       {/* Space between map and input fields */}
       <div style={{ marginBottom: "15px" }}></div>
 

@@ -6,6 +6,9 @@ const Buyer = require("../models/Buyer");
 const Collector = require("../models/Collector");
 const Manufacturer = require("../models/Manufacturer");
 
+// new
+const nodemailer = require("nodemailer");
+
 // User Registration
 exports.register = async (req, res) => {
   const { username, email, password, role } = req.body;
@@ -80,5 +83,67 @@ exports.getUser = async (req, res) => {
     res.json({ user });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+// forgot-password
+
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "User not found" });
+
+    // Generate a password reset token (valid for 15 minutes)
+    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+
+    // Web-based password reset link
+    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+
+
+    // Send email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // Use App Password, not your real Gmail password
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Reset Your Password",
+      html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>
+             <p>If you did not request this, ignore this email.</p>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ message: "Password reset link sent to your email." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+// reset password 
+
+exports.resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ message: "Password reset successful" });
+  } catch (err) {
+    res.status(500).json({ message: "Invalid or expired token" });
   }
 };
