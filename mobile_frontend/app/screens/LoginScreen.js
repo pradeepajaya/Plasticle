@@ -50,6 +50,7 @@ const LoginScreen = () => {
       <TextInput secureTextEntry value={password} onChangeText={setPassword} style={{ borderWidth: 1, padding: 5, marginBottom: 10 }} />
       <Button title="Login" onPress={handleLogin} />
       <Button title="Register" onPress={() => navigation.navigate("Register")} />
+      <Button title="Forgot Password?" onPress={() => navigation.navigate("ForgotPassword")} />
     </View>
   );
 };
