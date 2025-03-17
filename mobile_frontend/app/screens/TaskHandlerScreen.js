@@ -59,23 +59,26 @@ const TaskHandlerScreen = () => {
       <div style={{ padding: "20px", flex: 1, overflowY: "auto" }}>
         <h2 style={{ textAlign: "center" }}>Task Handler</h2>
 
-        {/* Google Map with click to select location */}
-        <LoadScript googleMapsApiKey={googleMapsApiKey}>
-          <GoogleMap
-            id="location-picker-map"
-            mapContainerStyle={{ width: "100%", height: "400px", marginBottom: "20px" }}
-            center={{ lat: 6.9271, lng: 79.8612 }} // Default center (e.g., Colombo)
-            zoom={12}
-            onClick={onMapClick}
-          >
-            {selectedLocation && (
-              <Marker position={selectedLocation} label="Selected Location" />
-            )}
-          </GoogleMap>
-        </LoadScript>
+      {/* Google Map with click to select location */}
+      <LoadScript googleMapsApiKey={googleMapsApiKey}>
+        <GoogleMap
+          id="location-picker-map"
+          mapContainerStyle={{ width: "100%", height: "400px", marginBottom: "20px" }}
+          center={{ lat: 6.9271, lng: 79.8612 }} // Default center (e.g., Colombo)
+          zoom={12}
+          onClick={onMapClick}
+        >
+          {selectedLocation && (
+            <Marker
+              position={selectedLocation}
+              label="Selected Location"
+            />
+          )}
+        </GoogleMap>
+      </LoadScript>
 
-        {/* Space between map and input fields */}
-        <div style={{ marginBottom: "15px" }}></div>
+      {/* Space between map and input fields */}
+      <div style={{ marginBottom: "15px" }}></div>
 
         {/* Input field for location */}
         <div style={{ marginBottom: "15px" }}>
