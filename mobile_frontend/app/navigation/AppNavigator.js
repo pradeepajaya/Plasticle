@@ -8,6 +8,7 @@ import BuyerDashboard from '../screens/BuyerDashboard';
 import CollectorDashboard from '../screens/CollectorDashboard';
 import ManufacturerDashboard from '../screens/ManufacturerDashboard';
 import TaskHandlerScreen from '../screens/TaskHandlerScreen';
+import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 
 const Stack = createStackNavigator();
 
@@ -21,6 +22,7 @@ export default function AppNavigator() {
         <Stack.Screen name="CollectorDashboard" component={CollectorDashboard} />
         <Stack.Screen name="ManufacturerDashboard" component={ManufacturerDashboard} />
         <Stack.Screen name="TaskHandlerScreen" component={TaskHandlerScreen} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       </Stack.Navigator>
    
   );
