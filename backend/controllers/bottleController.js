@@ -1,23 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const bottleController = require("../controllers/bottleController");
-
-// POST /api/task-handler/recycle-bottle
-router.post("/recycle-bottle", bottleController.recycleBottle);
-
-module.exports = router;
-
-// code beffore creating controller  tested 19/03/25 works fine,
-
-
-/*
-const express = require("express");
-const router = express.Router();
 const Bottle = require("../models/Bottle");
 const Manufacturer = require("../models/Manufacturer");
 
-// POST /api/task-handler/recycle-bottle
-router.post("/recycle-bottle", async (req, res) => {
+// Recycle Bottle
+const recycleBottle = async (req, res) => {
   try {
     const { bottleId, manufacturerId } = req.body; // Extract bottleId and manufacturerId from the request
 
@@ -70,8 +55,8 @@ router.post("/recycle-bottle", async (req, res) => {
     console.error("Error recycling bottle:", error);
     return res.status(500).json({ message: "Server error while recycling bottle." });
   }
-});
+};
 
-module.exports = router;
-
-*/
+module.exports = {
+  recycleBottle,
+};
