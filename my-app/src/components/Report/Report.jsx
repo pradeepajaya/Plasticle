@@ -5,6 +5,7 @@ import Companies from "../../data/Companies.json";
 import Months_Male from "../../data/Months_Male.json";
 import Months_Female from "../../data/Months_Female.json";
 import Provinces from "../../data/Provinces.json";
+import Years from "../../data/Years.json";
 
 // Set global chart defaults (optional)
 defaults.maintainAspectRatio = true;
@@ -149,6 +150,39 @@ const Report = () => {
           }}
         />
       </div>
+
+      {/*Total Collection in each year */}
+
+      <div className="Years">
+        <Bar
+          data={{
+            labels: Years.map((data) => data.label),
+            datasets: [
+              {
+                label: "Years",
+                data: Years.map((data) => data.value),
+                backgroundColor:chartColors,
+                borderColor: chartBorderColor,
+                borderWidth: 1,
+                hoverBackgroundColor: hoverColor,
+              },
+            ],
+          }}
+          options={{
+            plugins: {
+              title: {
+                ...chartTitleOptions,
+                text: "PET bottles collected from each Province",
+              },
+              legend: {
+                display: true,
+                position: "top",
+              },
+            },
+          }}
+        />
+      </div>
+
 
 
 
