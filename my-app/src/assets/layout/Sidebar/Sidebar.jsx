@@ -1,8 +1,12 @@
-import { navigationLinks } from "../../../data/data"
-import { iconsImgs } from "../../../utils/images"
-import "./Sidebar.css"
+import { useContext, useState } from "react";
+import { navigationLinks } from "../../../data/data";
+import "./Sidebar.css";
+import { SidebarContext } from "../../../Context/sidebarContext";
 
 const Sidebar = () => {
+    const [activeLinkIdx]=useState(1);
+    const [sidebarClass, setSidebarClass]=useState("");
+    const {isSidebarOpen}=useContext(SidebarContext);
   return (
     <div className={`sidebar`}>
         <nav className="navigation">
