@@ -33,3 +33,14 @@ export const SidebarProvider = ({ children }) => {
 SidebarProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
+const Reducer = (state, action) => {
+  switch (action.type) {
+    case "TOGGLE_SIDEBAR":
+      return {
+        ...state,
+        isSidebarOpen: !state.isSidebarOpen,
+      };
+    default:
+      return state;
+  }
+};

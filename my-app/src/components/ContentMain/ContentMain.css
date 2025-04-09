@@ -1,0 +1,22 @@
+.main-content-holder{
+    display:grid;
+    row-gap:20px;
+    padding:20px;
+}
+.content-grid-one{
+    display:flex;
+    flex-direction: column;
+    gap:2rem;
+    grid-template-columns: repeat(3,1fr);
+    column-gap:16px; 
+}
+.content-grid-two{
+    display:grid;
+    grid-template-columns :repeat(3,1fr);
+    column-gap:16px;
+}
+.subgrid-two{
+    display:grid;
+    row-gap:20px;
+    height:100%;
+}

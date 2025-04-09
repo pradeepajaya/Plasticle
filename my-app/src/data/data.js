@@ -7,3 +7,9 @@ export const navigationLinks = [
     { id: 4, title: 'Recycler' ,image:iconsImgs.recycle },
     { id: 5, title: 'Statistics' ,image:iconsImgs.statistics},
 ];
+export const contentAdding=[
+    {id: 1,title: "Add recycle data"},
+    {id: 2,title: "Add news"},
+    {id: 3,title: "Add initiatives"},
+    {id: 4,title: "Add blog"},
+];

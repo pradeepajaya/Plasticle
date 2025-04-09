@@ -1,0 +1,40 @@
+[
+    {
+        "label":"Sabaragamuwa",
+        "value":7519
+    },
+    {
+        "label":"Northern",
+        "value":1642
+    },
+    {
+        "label":"Southern",
+        "value":8750
+    },
+    {
+        "label":"Eastern",
+        "value":5900
+    },
+    {
+        "label":"Western",
+        "value":3700
+    },
+    {
+        "label":"Uva",
+        "value":9200
+    },
+    {
+        "label":"Central",
+        "value":7000
+    },
+    {
+        "label":"North Western",
+        "value":4580
+    },
+    {
+        "label":"North Central",
+        "value":8450
+    }
+    
+    
+]

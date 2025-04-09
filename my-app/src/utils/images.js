@@ -6,7 +6,8 @@ import Manufacturer from "../assets/icons/Manufacturer.svg";
 import menu from "../assets/icons/menu.svg";
 import bell from "../assets/icons/bell.svg";
 import search from "../assets/icons/search.svg";
+import plus from "../assets/icons/plus.svg";
 
 export const iconsImgs = {
-    home,recycle,statistics,Collector,Manufacturer,menu,bell,search
+    home,recycle,statistics,Collector,Manufacturer,menu,bell,search,plus
 }

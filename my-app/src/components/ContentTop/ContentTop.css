@@ -1,19 +1,77 @@
-.main-content-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.main-content-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 32px;
-}
-.sidebar-toggle{
+    padding: 20px 30px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+  
+  /* ===== Left side (Menu toggle + Title) ===== */
+  .content-top-left {
     display: flex;
     align-items: center;
-    margin-right: 12px;
-}
-.sidebar-toggle img{
-    width:20px;
-}
-.content-top-title{
-    color:whitesmoke;
-    font-size:20px;
+    gap: 12px;
+  }
+  
+  .sidebar-toggler {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .sidebar-toggler img {
+    width: 40px;
+  }
+  
+  /* Title next to menu */
+  .content-top-title {
+    color: rgb(19, 18, 18);
+    font-size: 32px;
     font-weight: 600;
-}
+    margin: 0;
+  }
+  
+  /* ===== Right side (Search + Notification) ===== */
+  .content-top-btns {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  
+  /* Shared styles for right icons */
+  .content-top-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .content-top-btn img {
+    width: 32px;
+  }
+  
+  .content-top-btn img:hover {
+    filter: brightness(0) invert(0.5);
+  }
+  
+  /* Notification red dot */
+  .notification-btn {
+    position: relative;
+  }
+  
+  .notification-btn-dot {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 8px;
+    height: 8px;
+    background: red;
+    border-radius: 50%;
+  }
+  

@@ -1,0 +1,30 @@
+[
+    {
+        "label": "Coca Cola",
+        "value": 10000
+    },
+    {
+        "label": "Pepsi",
+        "value": 9200
+    },
+    {
+        "label": "Knuckles",
+        "value": 4000
+    },
+    {
+        "label": "MJ",
+        "value": 5780
+    },
+    {
+        "label": "SMAK",
+        "value": 7830
+    },
+    {
+        "label": "Elephant House",
+        "value": 6480
+    },
+    {
+        "label":"Other",
+        "value": 5900
+    }
+]

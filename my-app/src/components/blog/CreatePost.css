@@ -1,0 +1,151 @@
+.create-post-container {
+  margin: 1rem;
+  position: relative;
+  background-color: rgb(144, 225, 72);
+  display: flex;
+  flex:auto;
+  align-items: center;
+  padding: 5px;
+}
+
+
+.plus-btn {
+  width: 10px;
+  height: 20px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.plus-btn:hover {
+ border:none;
+ 
+}
+
+
+
+.editor-box {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.editable-content {
+  min-height: 100px;
+  min-width: 500px;
+  border: 1px dashed #ccc;
+  padding: 1rem;
+  background: rgb(175, 182, 179);
+  overflow-y: auto;
+  text-align: left;
+  color:black;
+  font-size: 25px;
+  font-weight: 100px;
+  
+}
+
+.editable-content img {
+  min-width: 100px;
+  min-height:fit-content;
+  margin-top: 10px;
+  
+}
+
+.editor-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  
+}
+
+.container-text {
+  color: black;
+  font-size: 25px;
+  font-weight: 20px;
+}
+preview-box {
+  background-color: #0d2944;
+  padding: 15px;
+  min-height: 150px;
+  border-radius: 4px;
+}
+
+.editor-actions { /*add image, post*/
+  margin-top: 20px;
+ 
+}
+
+.editor-actions button { /*add image, post the whole line area*/
+  background-color: #d81978;
+  color: rgb(193, 31, 31);
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+preview-box {
+  
+  padding: 15px;
+  min-height: 150px;
+  border-radius: 4px;
+  color:#0d2944;
+  background-color: #d81978;
+  
+}
+
+.editor-actions { /*in thhe preview box- add image and post*/
+  margin-top: 20px;
+  color:yellowgreen;
+  
+ 
+}
+
+.editor-actions button { /*add image - send*/
+  background-color: #ccff00;
+  color: rgb(31, 3, 3);
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+.editor-box { /*big box around the content box*/
+  background: green;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar { /*whole tool bar*/
+  margin-bottom: 10px;
+}
+
+.toolbar button { /*bold - italic -tool bar */
+  padding: 5px 10px;
+  margin-right: 10px;
+  background-color: #162006;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toolbar button:hover { /*bold- italic */
+  background-color: #4918e9;
+}
+
+.editable-content { /*content box*/
+  border: 1px solid #ccc;
+  padding: 15px;
+  min-height: 150px;
+  border-radius: 4px;
+  font-size: 20px;
+  background: #f9faf9;
+}
+
