@@ -14,3 +14,22 @@
         padding-left: 16px;
     }
 }
+.logo{
+    height: 120px;
+    width:120px;
+    
+    
+}
+.logo{
+    height: 120px;
+    width:120px;
+    
+    
+}
+.logo-container{
+    position: absolute;
+  top: 0;
+  right: 0;
+  padding: 10px;
+  margin:10px;
+}
