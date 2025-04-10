@@ -47,8 +47,12 @@
   color:black;
   font-size: 25px;
   font-weight: 100px;
+  resize: vertical;  
+  border-radius: 4px;
   
 }
+
+
 
 .editable-content img {
   min-width: 100px;
@@ -146,6 +150,22 @@ preview-box {
   min-height: 150px;
   border-radius: 4px;
   font-size: 20px;
-  background: #f9faf9;
+  background: #b4ecb4;
 }
+.topic-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 18px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 15px;
+}
+
+.toolbar .active-btn {
+  background-color: #e07710;
+  color: white;
+  border-color: #ba5b00;
+}
+
+
 

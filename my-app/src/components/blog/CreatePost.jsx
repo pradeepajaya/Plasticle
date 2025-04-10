@@ -1,19 +1,25 @@
 import { useState, useEffect, useRef } from "react";
 import "./CreatePost.css";
 
-const CreatePost = ({ title }) => {
-  const [content, setContent] = useState(localStorage.getItem(title) || "");
+const CreatePost = () => {
+  const [topic, setTopic] = useState("");
+  const [content, setContent] = useState("");
   const [isPreview, setIsPreview] = useState(false);
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
+
   const fileInputRef = useRef(null);
   const editableRef = useRef(null);
 
   useEffect(() => {
     const saveDraft = setInterval(() => {
-      localStorage.setItem(title, content);
+      if (topic) {
+        localStorage.setItem(topic, content);
+      }
     }, 5000);
 
     return () => clearInterval(saveDraft);
-  }, [content, title]);
+  }, [content, topic]);
 
   const insertHTMLAtCursor = (html) => {
     const sel = window.getSelection();
@@ -71,20 +77,64 @@ const CreatePost = ({ title }) => {
   };
 
   const handlePost = () => {
-    console.log(`${title} Posted:`, content);
-    alert(`${title} Posted!`);
+    if (!topic.trim()) {
+      alert("Please enter a topic.");
+      return;
+    }
+
+    if (!content.trim()) {
+      alert("Please add some content.");
+      return;
+    }
+
+    console.log(`${topic} Posted:`, content);
+    alert(`${topic} Posted!`);
+
+    // Clear everything
     setContent("");
-    localStorage.removeItem(title);
+    setTopic("");
+    localStorage.removeItem(topic);
+
+    if (editableRef.current) {
+      editableRef.current.innerHTML = "";
+    }
+
+    setIsBold(false);
+    setIsItalic(false);
+  };
+
+  const toggleFormat = (format) => {
+    document.execCommand(format);
+    setContent(editableRef.current.innerHTML);
+
+    if (format === "bold") setIsBold(!isBold);
+    if (format === "italic") setIsItalic(!isItalic);
   };
 
   return (
     <div className="create-post-container">
-      <h2 className="post-title">{title}</h2>
-
       <div className="editor-box">
+        <input
+          type="text"
+          className="topic-input"
+          placeholder="Enter topic..."
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+        />
+
         <div className="toolbar">
-          <button onClick={() => document.execCommand("bold")}><b>B</b></button>
-          <button onClick={() => document.execCommand("italic")}><i>I</i></button>
+          <button
+            className={isBold ? "active-btn" : ""}
+            onClick={() => toggleFormat("bold")}
+          >
+            <b>B</b>
+          </button>
+          <button
+            className={isItalic ? "active-btn" : ""}
+            onClick={() => toggleFormat("italic")}
+          >
+            <i>I</i>
+          </button>
           <button onClick={() => setIsPreview(!isPreview)}>
             {isPreview ? "Edit" : "Preview"}
           </button>
