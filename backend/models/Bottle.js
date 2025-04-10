@@ -5,9 +5,9 @@ const mongoose = require("mongoose");
 const bottleSchema = new mongoose.Schema({
   manufacturerId: { type: mongoose.Schema.Types.ObjectId, ref: "Manufacturer", required: true },
   bottleId: { type: String, required: true, unique: true }, // Unique bottle ID
-  buyerId: { type: mongoose.Schema.Types.ObjectId, ref: "Buyer", default: null },
-  binId: { type: mongoose.Schema.Types.ObjectId, ref: "Bin", default: null },
-  status: { type: String, enum: ["unused", "collected", "recycled"], default: "unused" },
+  buyerId: { type: String, default: null },
+  binId: { type: String, default: null },
+  status: { type: String, enum: ["unused", "used", "collected", "recycled"], default: "unused" },
 });
 
 const Bottle = mongoose.model("Bottle", bottleSchema);
