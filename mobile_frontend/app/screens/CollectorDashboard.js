@@ -6,9 +6,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const CollectorDashboard = () => {
   const [scanning, setScanning] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
-  const [binId, setBinId] = useState(null); // State to store binId
-  const [userId, setUserId] = useState(null); // Store logged-in userId
-  const [loading, setLoading] = useState(false); // Loading state
+  const [binId, setBinId] = useState(null); 
+  const [userId, setUserId] = useState(null); 
+  const [loading, setLoading] = useState(false); 
   const webcamRef = useRef(null);
 
   // Fetch user ID from AsyncStorage after login
@@ -31,7 +31,7 @@ const CollectorDashboard = () => {
 
         const data = await response.json();
         if (response.ok) {
-          setUserId(data.user._id); // Store the fetched userId in state
+          setUserId(data.user._id); 
         } else {
           alert(data.error || "Failed to fetch user details");
         }
@@ -65,8 +65,8 @@ const CollectorDashboard = () => {
           const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
           const code = jsQR(imageData.data, canvas.width, canvas.height);
           if (code) {
-            setBinId(code.data); // Extract binId from QR code
-            validateBinQRCode(code.data); // Validate the scanned binId
+            setBinId(code.data); 
+            validateBinQRCode(code.data); 
             setScanning(false);
           }
         };
@@ -77,24 +77,24 @@ const CollectorDashboard = () => {
   // Validate Bin QR Code and update backend
   const validateBinQRCode = (qrData) => {
     try {
-      console.log("Raw QR Data:", qrData); // Log the QR data before processing
+      console.log("Raw QR Data:", qrData); 
 
       let binId;
       // Check if the QR data is a JSON string
       if (qrData.startsWith("{") && qrData.endsWith("}")) {
-        const parsedData = JSON.parse(qrData); // Parse QR data
-        binId = parsedData.binId; // Extract binId from JSON
+        const parsedData = JSON.parse(qrData); 
+        binId = parsedData.binId; 
       } else {
-        binId = qrData; // Use the QR data directly as binId
+        binId = qrData; 
       }
 
-      console.log("Sending Bin ID to backend:", binId); // Log binId
+      console.log("Sending Bin ID to backend:", binId); 
 
-      setLoading(true); // Start loading
+      setLoading(true); 
       fetch("http://localhost:5000/api/collector/validate-bin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ binId, userId }), // Send binId and userId
+        body: JSON.stringify({ binId, userId }), 
       })
         .then((res) => {
           if (!res.ok) {
@@ -116,11 +116,11 @@ const CollectorDashboard = () => {
           console.error("Error validating Bin QR Code:", error);
           setValidationMessage(`Error validating Bin QR Code: ${error.message}`);
         })
-        .finally(() => setLoading(false)); // Stop loading
+        .finally(() => setLoading(false)); 
     } catch (error) {
       console.error("Error parsing QR code data:", error);
       setValidationMessage("Invalid Bin QR Code format.");
-      setLoading(false); // Stop loading
+      setLoading(false); 
     }
   };
 
@@ -128,7 +128,7 @@ const CollectorDashboard = () => {
   useEffect(() => {
     let intervalId;
     if (scanning) {
-      intervalId = setInterval(scanQRCode, 1000); // Scan every 1 second
+      intervalId = setInterval(scanQRCode, 1000); 
     } else {
       clearInterval(intervalId);
     }
