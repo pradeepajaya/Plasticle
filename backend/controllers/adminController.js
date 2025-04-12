@@ -12,6 +12,7 @@ exports.createTaskHandler = async (req, res) => {
 
   const { username, email, password } = req.body;
   const role = "taskhandler";
+  
 
   try {
     let user = await User.findOne({ email });
@@ -20,7 +21,7 @@ exports.createTaskHandler = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    user = new User({ username, email, passwordHash, role });
+    user = new User({ username, email, passwordHash, role, isVerified: true,});
     await user.save();
 
     res.status(201).json({ message: "Task Handler Created" });
@@ -33,7 +34,7 @@ exports.createTaskHandler = async (req, res) => {
 exports.getTaskHandlers = async (req, res) => {
   try {
     const taskHandlers = await User.find({ role: "taskhandler" });
-    if (!taskHandlers.length) {
+    if (!taskHandlers) {
       return res.status(404).json({ message: "No Task Handlers found" });
     }
     res.json(taskHandlers);

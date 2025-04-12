@@ -138,14 +138,21 @@ const styles = StyleSheet.create({
 export default ManufacturerDashboard;*/
 
 import React, { useState, useEffect } from "react";
-import { 
-  View, Button, ScrollView, TextInput, Alert, 
-  StyleSheet, Text, ActivityIndicator 
+import {
+  View,
+  Button,
+  ScrollView,
+  TextInput,
+  Alert,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+  Platform,
+  Image
 } from "react-native";
-import QRCode from "react-native-qrcode-svg";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "http://localhost:5000/api"; 
+const API_URL = "http://localhost:5000/api"; // Ensure this URL is correct
 
 const ManufacturerDashboard = () => {
   const [count, setCount] = useState(1);
@@ -153,6 +160,7 @@ const ManufacturerDashboard = () => {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Fetch user ID when the component is mounted
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -165,7 +173,7 @@ const ManufacturerDashboard = () => {
         const response = await fetch(`${API_URL}/auth/user`, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
@@ -185,6 +193,7 @@ const ManufacturerDashboard = () => {
     fetchUserId();
   }, []);
 
+  // Generate QR Codes based on the count
   const generateQRCodes = async () => {
     if (!userId) {
       Alert.alert("Error", "User ID not found. Please log in again.");
@@ -206,7 +215,7 @@ const ManufacturerDashboard = () => {
 
       const data = await response.json();
       if (response.ok) {
-        setQRCodes(data.bottles);
+        setQRCodes(data.bottles); // Store the QR codes and bottle information
       } else {
         Alert.alert("Error", data.error || "Failed to generate QR codes");
       }
@@ -218,6 +227,24 @@ const ManufacturerDashboard = () => {
     }
   };
 
+  // Function to download all QR codes on web platform
+  const downloadAllQRCodes = () => {
+    if (Platform.OS !== "web") {
+      Alert.alert("Download Unavailable", "Downloading is only supported on web.");
+      return;
+    }
+
+    // Loop through the QR codes and download them
+    qrCodes.forEach((qr, index) => {
+      const link = document.createElement("a");
+      link.href = qr.qrCodeImage; // Base64 QR code image
+      link.download = `qr_code_${index + 1}.png`; // Set download name
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Enter the number of QR Codes:</Text>
@@ -226,7 +253,9 @@ const ManufacturerDashboard = () => {
         placeholder="Enter Count"
         keyboardType="numeric"
         value={count.toString()}
-        onChangeText={(text) => setCount(isNaN(parseInt(text, 10)) ? "" : parseInt(text, 10))}
+        onChangeText={(text) =>
+          setCount(isNaN(parseInt(text, 10)) ? "" : parseInt(text, 10))
+        }
         style={styles.input}
       />
 
@@ -236,17 +265,23 @@ const ManufacturerDashboard = () => {
         <Button title="Generate QR Codes" onPress={generateQRCodes} />
       )}
 
-      <ScrollView>
-        {qrCodes.map((qr, index) => (
-          <View key={index} style={styles.qrContainer}>
-            {qr.bottleId && (
-        <QRCode 
-        value={`\n bottleId : "${qr.bottleId}"\n manufacturerId : "${userId}"`}  
-          size={200} 
-        />
+      {qrCodes.length > 0 && Platform.OS === "web" && (
+        <View style={{ marginVertical: 10 }}>
+          <Button title="Download All QR Codes" onPress={downloadAllQRCodes} />
+        </View>
       )}
-          </View>
-        ))}
+
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.qrRow}>
+          {qrCodes.map((qr, index) => (
+            <View key={index} style={styles.qrContainer}>
+              <Image
+                source={{ uri: qr.qrCodeImage }} // Use the uri to display the image
+                style={styles.qrCode}
+              />
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -256,23 +291,36 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     flex: 1,
-    justifyContent: "flex-start",
+    backgroundColor: "#fff",
+  },
+  input: {
+    borderColor: "#ccc",
+    borderWidth: 1,
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 5,
   },
   label: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 10,
   },
-  input: {
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 20,
+  qrRow: {
+    flexDirection: "row",
+    flexWrap: "wrap", // Allow items to wrap to the next line
+    justifyContent: "space-evenly", // Distribute QR codes evenly in the row
   },
   qrContainer: {
-    marginVertical: 10,
+    margin: 10,
     alignItems: "center",
+    width: "10%", // Ensures QR codes take up 30% of the width for three columns
+  },
+  scrollContainer: {
+    maxHeight: "50%", // Makes sure the ScrollView height is constrained, allowing it to scroll
+  },
+  qrCode: {
+    width: 150,
+    height: 150,
   },
 });
 
 export default ManufacturerDashboard;
-

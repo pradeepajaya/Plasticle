@@ -24,6 +24,7 @@ const createAdminUser = async () => {
         email: "admin@example.com",
         passwordHash,
         role: "admin",
+        isVerified: true,
       });
   
       await admin.save();

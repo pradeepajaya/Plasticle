@@ -1,20 +1,19 @@
 const QRCode = require("qrcode");
 const Bin = require("../models/Bin");
-const { v4: uuidv4 } = require('uuid');  // For generating unique bin IDs
-
+const { v4: uuidv4 } = require('uuid');  
 exports.createBin = async (req, res) => {
   try {
     const { location, capacity } = req.body;
 
     // Generate a unique binId using uuid
-    const binId = uuidv4();  // Generates a unique binId
+    const binId = uuidv4(); 
 
     // Create new bin in the database with generated binId
     const newBin = new Bin({
-      binId,  // Store the generated binId
+      binId,  
       location,
       capacity,
-      currentFill: 0,  // Default value
+      currentFill: 0, 
     });
 
     // Save the new bin document
@@ -22,7 +21,7 @@ exports.createBin = async (req, res) => {
 
     // Generate QR code data (binId, location, currentFill)
     const qrData = JSON.stringify({
-      binId: newBin.binId,  // Use the binId generated above
+      binId: newBin.binId,  
       location: newBin.location,
       currentFill: newBin.currentFill,
     });
@@ -31,7 +30,7 @@ exports.createBin = async (req, res) => {
     const qrCodeImage = await QRCode.toDataURL(qrData);
 
     res.json({
-      binId: newBin.binId,  // Send back the binId and QR code
+      binId: newBin.binId, 
       qrCodeImage,
     });
   } catch (error) {

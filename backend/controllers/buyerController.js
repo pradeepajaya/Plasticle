@@ -60,22 +60,25 @@ const validateBottleQRCode = async (req, res) => {
     bottle.status = "used";
     await bottle.save();
 
-    // Update the Buyer collection
-    const currentMonth = new Date().toLocaleString("default", { month: "long" }); // e.g., "March"
+   
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}`;
+
     await Buyer.findOneAndUpdate(
       { userId: userId },
       {
         $inc: {
           totalBottlesCollected: 1,
-          [`monthlyContribution.${currentMonth}`]: 1, // Increment the current month's contribution
+          [`monthlyContribution.${currentMonthKey}`]: 1, 
         },
-      }
+      },
+    { upsert: true }
     );
 
     // Update the Bin collection
     await Bin.findOneAndUpdate(
       { binId: binId },
-      { $inc: { currentFill: 1 } }
+      { $inc: { currentFill: 1 } },
     );
 
     // Return success response

@@ -4,52 +4,53 @@ const Manufacturer = require("../models/Manufacturer");
 // Recycle Bottle
 const recycleBottle = async (req, res) => {
   try {
-    const { bottleId, manufacturerId } = req.body; // Extract bottleId and manufacturerId from the request
+    const { bottleId, manufacturerId } = req.body;
 
-    // Log the request body for debugging
     console.log("Request Body:", req.body);
 
-    // Validate input
     if (!bottleId || !manufacturerId) {
       return res.status(400).json({ message: "bottleId and manufacturerId are required." });
     }
 
-    // Find the bottle by bottleId
     const bottle = await Bottle.findOne({ bottleId });
-
-    // Log the found bottle (or null if not found)
     console.log("Found bottle:", bottle);
 
     if (!bottle) {
       return res.status(404).json({ message: "Bottle not found." });
     }
 
-    // Check if the bottle has already been recycled
     if (bottle.status === "recycled") {
       return res.status(400).json({ message: "Bottle already recycled." });
     }
 
-    // Update the bottle status to "recycled"
     const updatedBottle = await Bottle.findOneAndUpdate(
       { bottleId },
-      { status: "recycled" }, // Update the bottle's status to "recycled"
-      { new: true } // Return the updated bottle document
+      { status: "recycled" },
+      { new: true }
     );
     console.log("Updated Bottle:", updatedBottle);
 
-    // Update the manufacturer's totalBottlesRecycled using manufacturerId (mapped to userId)
-    const manufacturerUpdate = await Manufacturer.findOneAndUpdate(
-      { userId: manufacturerId }, // Find manufacturer by userId (mapped from manufacturerId)
-      { $inc: { totalBottlesRecycled: 1 } }, // Increment the totalBottlesRecycled count by 1
-      { new: true } // Return the updated manufacturer document
-    );
-    console.log("Updated Manufacturer:", manufacturerUpdate);
-
-    if (!manufacturerUpdate) {
+    const manufacturer = await Manufacturer.findOne({ userId: manufacturerId });
+    if (!manufacturer) {
       return res.status(404).json({ message: "Manufacturer not found." });
     }
 
-    // Return success response
+    manufacturer.totalBottlesRecycled += 1;
+
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`; 
+
+    if (!manufacturer.monthlyRecycled) {
+      manufacturer.monthlyRecycled = new Map();
+    }
+
+    const currentMonthCount = manufacturer.monthlyRecycled.get(monthKey) || 0;
+    manufacturer.monthlyRecycled.set(monthKey, currentMonthCount + 1);
+
+    await manufacturer.save();
+
+    console.log("Updated Manufacturer:", manufacturer);
+
     return res.status(200).json({ message: "Bottle added to recycling process" });
   } catch (error) {
     console.error("Error recycling bottle:", error);

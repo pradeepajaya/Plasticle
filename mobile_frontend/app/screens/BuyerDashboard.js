@@ -5,21 +5,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const BuyerDashboard = () => {
-  const [scanBin, setScanBin] = useState(true); // Step 1: Scan Bin QR first
+  const [scanBin, setScanBin] = useState(true); 
   const [showScanButton, setShowScanButton] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
   const [data, setData] = useState(null);
-  const [binId, setBinId] = useState(null); // State to store binId
-  const [userId, setUserId] = useState(null); // Replace with actual userId from login
-  const [loading, setLoading] = useState(false); // Loading state
+  const [binId, setBinId] = useState(null); 
+  const [userId, setUserId] = useState(null); 
+  const [loading, setLoading] = useState(false); 
   const webcamRef = useRef(null);
 
   
 useEffect(() => {
   const fetchUserId = async () => {
     try {
-      const token = await AsyncStorage.getItem("userToken"); // Retrieve token from storage
+      const token = await AsyncStorage.getItem("userToken"); 
       if (!token) {
         Alert.alert("Error", "User token not found. Please log in again.");
         return;
@@ -35,7 +35,7 @@ useEffect(() => {
 
       const data = await response.json();
       if (response.ok) {
-        setUserId(data.user._id); // Store the fetched userId in state
+        setUserId(data.user._id); 
       } else {
         Alert.alert("Error", data.error || "Failed to fetch user details");
       }
@@ -73,7 +73,7 @@ useEffect(() => {
           if (code) {
             setData(code.data);
             if (scanBin) {
-              validateBinQRCode(code.data); // Pass only binId
+              validateBinQRCode(code.data); 
             } else {
               validateBottleQRCode(code.data);
             }
@@ -88,32 +88,32 @@ useEffect(() => {
   // Validate Bin QR Code
   const validateBinQRCode = (qrData) => {
     try {
-      const binId = JSON.parse(qrData).binId; // Extract binId from the full QR data
-      console.log("Scanned Bin ID:", binId); // Log the binId for debugging
+      const binId = JSON.parse(qrData).binId; 
+      console.log("Scanned Bin ID:", binId); 
 
-      setLoading(true); // Start loading
+      setLoading(true); 
       fetch("http://localhost:5000/api/buyer/validate-bin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ binId }), // Send only binId
+        body: JSON.stringify({ binId }), 
       })
         .then((res) => res.json())
         .then((data) => {
-          console.log("API Response Data for Bin:", data); // Log API response
+          console.log("API Response Data for Bin:", data); 
           if (data.message === "Bin is valid") {
             setValidationMessage("Bin QR Code validated successfully!");
-            setBinId(binId); // Set binId in state
-            setScanBin(false); // Move to bottle scanning
+            setBinId(binId);
+            setScanBin(false); 
           } else {
             setValidationMessage(data.message);
           }
         })
         .catch(() => setValidationMessage("Error validating Bin QR Code."))
-        .finally(() => setLoading(false)); // Stop loading
+        .finally(() => setLoading(false)); 
     } catch (error) {
       console.error("Error parsing QR code data:", error);
       setValidationMessage("Invalid Bin QR Code format.");
-      setLoading(false); // Stop loading
+      setLoading(false); 
     }
   };
 
@@ -127,10 +127,10 @@ useEffect(() => {
     // Parse the QR code data to extract bottleId
     let bottleId;
     try {
-      const lines = qrData.split("\n"); // Split the QR data by newlines
+      const lines = qrData.split("\n"); 
       for (const line of lines) {
         if (line.includes("bottleId")) {
-          bottleId = line.split(":")[1].trim().replace(/"/g, ""); // Extract and clean bottleId
+          bottleId = line.split(":")[1].trim().replace(/"/g, ""); 
           break;
         }
       }
@@ -145,9 +145,9 @@ useEffect(() => {
       return;
     }
   
-    console.log("Extracted Bottle ID:", bottleId); // Log the extracted bottleId
+    console.log("Extracted Bottle ID:", bottleId); 
   
-    setLoading(true); // Start loading
+    setLoading(true); 
     fetch("http://localhost:5000/api/buyer/validate-bottle", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -162,7 +162,7 @@ useEffect(() => {
         }
       })
       .catch(() => setValidationMessage("Error validating Bottle QR Code."))
-      .finally(() => setLoading(false)); // Stop loading
+      .finally(() => setLoading(false)); 
   };
 
   useEffect(() => {
