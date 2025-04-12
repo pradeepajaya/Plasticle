@@ -56,17 +56,17 @@ const RegisterScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     if (!isChecked) {
-      Alert.alert("Error", "You must accept the Privacy Policy to continue.");
+      alert("Error", "You must accept the Privacy Policy to continue.");
       return;
     }
 
     try {
       const response = await axios.post(`${API_URL}/auth/register`, formData);
-      Alert.alert("Success", "Registration completed");
+      alert(response.data.message);
       navigation.replace("Login");
     } catch (error) {
       console.error("Registration Error:", error.response?.data || error.message);
-      Alert.alert("Error", error.response?.data?.message || "Registration failed");
+      alert( error.response?.data?.message || "Registration failed");
     }
   };
 

@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema({
     enum: ["buyer", "collector", "manufacturer", "admin", "taskhandler" ],
     required: true,
   },
+  // verify user 
+  isVerified: { type: Boolean, default: false },
+  verificationToken: String
 });
 
 module.exports = mongoose.model("User", userSchema);

@@ -11,7 +11,8 @@ router.get("/user", authenticateToken, authController.getUser);
 // new 
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
-
+//verify user gmail
+router.get("/verify-email", authController.verifyEmail);
 module.exports = router;
 
 // code for before creating the controller 04/03/25 tested works fine 
