@@ -1,11 +1,18 @@
 const express = require("express");
 const auth = require("../middleware/auth");
 const adminController = require("../controllers/adminController");
-
+const taskHandlerCon = require("../controllers/taskHandlerCon");
 const router = express.Router();
 
 router.post("/create-task-handler", auth, adminController.createTaskHandler);
 router.get("/task-handlers", auth, adminController.getTaskHandlers);
+
+router.get("/assginBin", taskHandlerCon.assginBinManual); 
+router.get("/createMachine", taskHandlerCon.createMachine); 
+router.get("/getMachine", taskHandlerCon.getMachine); 
+router.get("/updateMachine", taskHandlerCon.updateMachine); 
+router.get("/deleteMachine", taskHandlerCon.deleteMachine); 
+
 
 module.exports = router;
 
