@@ -5,9 +5,15 @@ const User = require("../models/User");
 const Buyer = require("../models/Buyer");
 const Collector = require("../models/Collector");
 const Manufacturer = require("../models/Manufacturer");
+// verify 
+const crypto = require("crypto");
 
 // new
 const nodemailer = require("nodemailer");
+
+const API_URL = process.env.API_BASE_URL;
+const Front_API_URL=process.env.Reset_frontendpage_API_URL;
+
 
 // User Registration
 exports.register = async (req, res) => {
@@ -23,8 +29,10 @@ exports.register = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
+    // verify 
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
-    user = new User({ username, email, passwordHash, role });
+    user = new User({ username, email, passwordHash, role, verificationToken });
     await user.save();
 
     let roleSpecificDoc;
@@ -42,7 +50,28 @@ exports.register = async (req, res) => {
 
     if (roleSpecificDoc) await roleSpecificDoc.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    // Send Verification Email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // Use Gmail App Password
+      }
+    });
+
+    const verificationUrl = `${API_URL}/api/auth/verify-email?token=${verificationToken}`;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Verify Your Email",
+      html: `<p>Hi ${username},</p><p>Please <a href="${verificationUrl}">click here</a> to verify your email address.</p>`
+    });
+
+    // end verify 
+
+
+    res.status(201).json({ message: "User registered successfully Check your email to verify." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -59,6 +88,13 @@ exports.login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+    //  Email not verified check
+  
+    if ( !user.isVerified) {
+      return res.status(403).json({ message: "Please verify your email before logging in" });
+    }
+  
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -100,7 +136,7 @@ exports.forgotPassword = async (req, res) => {
     const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
 
     // Web-based password reset link
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetLink = `${Front_API_URL}/reset-password?token=${resetToken}`;
 
 
     // Send email
@@ -145,5 +181,25 @@ exports.resetPassword = async (req, res) => {
     res.json({ message: "Password reset successful" });
   } catch (err) {
     res.status(500).json({ message: "Invalid or expired token" });
+  }
+};
+
+// verify user by gmail
+
+exports.verifyEmail = async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    const user = await User.findOne({ verificationToken: token });
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Email verified successfully!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
