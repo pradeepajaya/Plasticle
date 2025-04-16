@@ -24,6 +24,7 @@ const createAdminUser = async () => {
         email: "admin@example.com",
         passwordHash,
         role: "admin",
+        isVerified: true,
       });
   
       await admin.save();
@@ -42,4 +43,6 @@ app.use("/api/collector", require("./routes/collector"));
 app.use("/api/task-handler", require("./routes/bottle"));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+//app.listen(PORT, () => console.log(Server running on port ${PORT}));
+//app.listen(PORT, '0.0.0.0', () => console.log(Server running on port ${PORT}));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://192.168.8.101:${PORT}`));
