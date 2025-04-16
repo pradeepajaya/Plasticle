@@ -37,11 +37,12 @@ export default RegisterScreen;*/
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, Modal, ScrollView } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { CheckBox } from "react-native";  // No need to install anything extra
+//import { CheckBox } from "react-native";  // No need to install anything extra
 //import CheckBox from "@react-native-community/checkbox"; // Install if not installed
 import axios from "axios";
+import { Checkbox } from 'react-native-paper';
 
-const API_URL = "http://localhost:5000/api"; // Replace with your backend IP
+const API_URL = "http://192.168.63.221:5000/api"; // Replace with your backend IP
 
 const privacyPolicies = {
   buyer: "Buyer Privacy Policy: You agree to share personal information for transactions.",
@@ -56,17 +57,17 @@ const RegisterScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     if (!isChecked) {
-      alert("Error", "You must accept the Privacy Policy to continue.");
+      Alert.alert("Error", "You must accept the Privacy Policy to continue.");
       return;
     }
 
     try {
       const response = await axios.post(`${API_URL}/auth/register`, formData);
-      alert(response.data.message);
+      Alert.alert(response.data.message);
       navigation.replace("Login");
     } catch (error) {
       console.error("Registration Error:", error.response?.data || error.message);
-      alert( error.response?.data?.message || "Registration failed");
+      Alert.alert( error.response?.data?.message || "Registration failed");
     }
   };
 
@@ -105,14 +106,23 @@ const RegisterScreen = ({ navigation }) => {
         <Picker.Item label="Manufacturer" value="manufacturer" />
       </Picker>
 
+
+              {/* ✅ Paper Checkbox Implementation */}
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-        <CheckBox value={isChecked} onValueChange={setIsChecked} />
+        <Checkbox
+          status={isChecked ? "checked" : "unchecked"}
+          onPress={() => setIsChecked(!isChecked)}
+        />
         <Text onPress={() => setModalVisible(true)} style={{ color: "blue", marginLeft: 8 }}>
           Accept Privacy Policy
         </Text>
-      </View>
+      </View> 
 
       <Button title="Register" onPress={handleRegister} disabled={!isChecked} />
+
+      
+
+      
 
       {/* Privacy Policy Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
