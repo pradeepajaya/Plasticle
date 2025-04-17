@@ -11,6 +11,10 @@ const crypto = require("crypto");
 // new
 const nodemailer = require("nodemailer");
 
+const API_URL = process.env.API_BASE_URL;
+const Front_API_URL=process.env.Reset_frontendpage_API_URL;
+
+
 // User Registration
 exports.register = async (req, res) => {
   const { username, email, password, role } = req.body;
@@ -55,7 +59,7 @@ exports.register = async (req, res) => {
       }
     });
 
-    const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${API_URL}/api/auth/verify-email?token=${verificationToken}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -132,7 +136,7 @@ exports.forgotPassword = async (req, res) => {
     const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
 
     // Web-based password reset link
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetLink = `${Front_API_URL}/reset-password?token=${resetToken}`;
 
 
     // Send email
