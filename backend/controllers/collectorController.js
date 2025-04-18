@@ -33,7 +33,7 @@ const validateBin = async (req, res) => {
     if (bin.currentFill === 0) {
       return res.status(400).json({ message: "This bin is already empty and cannot be collected." });
     }
-    
+
     // Update the Bottle collection 
     const bottles = await Bottle.updateMany(
       { binId: binId },
@@ -42,18 +42,30 @@ const validateBin = async (req, res) => {
     console.log("Bottles updated:", bottles);
 
     // Update the Collector collection
-    const currentMonth = new Date().toLocaleString("default", { month: "long" }); 
-    const collectorUpdate = await Collector.findOneAndUpdate(
-      { userId: userId }, 
-      {
-        $inc: {
-          totalBinsCollected: 1,
-          [`monthlyBinsCollected.${currentMonth}`]: 1, 
-        },
-      },
-      { new: true } 
-    );
-    console.log("Updated Collector:", collectorUpdate);
+    const now = new Date();
+    const currentMonth = now.toISOString().slice(0, 7); // e.g., "2025-04"
+
+    // Fetch the collector document
+    const collector = await Collector.findOne({ userId });
+
+if (!collector) {
+    return res.status(404).json({ message: "Collector not found." });
+}
+
+// Update monthlyBinsCollected
+if (!collector.monthlyBinsCollected.has(currentMonth)) {
+    collector.monthlyBinsCollected.set(currentMonth, 0);
+}
+collector.monthlyBinsCollected.set(
+    currentMonth,
+    collector.monthlyBinsCollected.get(currentMonth) + 1
+);
+
+collector.totalBinsCollected += 1;
+
+await collector.save();
+
+    console.log("Updated Collector:", collector);
 
     // Update the Bin collection 
     const binUpdate = await Bin.findOneAndUpdate(
