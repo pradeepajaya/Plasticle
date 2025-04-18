@@ -154,7 +154,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 
-const API_URL = "http://192.168.8.101:5000/api"; // Update with your IP
+const API_URL = "http://192.168.8.100:5000/api"; // Update with your IP
 
 const ManufacturerDashboard = () => {
   const [count, setCount] = useState(1);
@@ -299,12 +299,6 @@ const ManufacturerDashboard = () => {
           {qrCodes.map((qr, index) => (
             <View key={index} style={styles.qrContainer}>
               <Image source={{ uri: qr.qrCodeImage }} style={styles.qrCode} />
-              {Platform.OS !== "web" && (
-                <Button
-                  title="Download"
-                  onPress={() => downloadQRCode(qr.qrCodeImage, index)}
-                />
-              )}
             </View>
           ))}
         </View>
