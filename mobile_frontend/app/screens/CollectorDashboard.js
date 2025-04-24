@@ -206,7 +206,7 @@ const CollectorDashboard = () => {
           return;
         }
 
-        const response = await fetch("http://192.168.8.100:5000/api/auth/user", {
+        const response = await fetch("http://10.10.21.99:5000/api/auth/user", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -254,7 +254,7 @@ const CollectorDashboard = () => {
       console.log("Sending Bin ID to backend:", binId);
 
       setLoading(true);
-      fetch("http://192.168.8.100:5000/api/collector/validate-bin", {
+      fetch("http://10.10.21.99:5000/api/collector/validate-bin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ binId, userId }),

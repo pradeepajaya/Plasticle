@@ -253,7 +253,7 @@ const BuyerDashboard = () => {
           return;
         }
 
-        const response = await fetch("http://192.168.8.100:5000/api/auth/user", {
+        const response = await fetch("http://10.10.21.99:5000/api/auth/user", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -295,7 +295,7 @@ const BuyerDashboard = () => {
       const scannedBinId = parsed.binId;
 
       setLoading(true);
-      const response = await fetch("http://192.168.8.100:5000/api/buyer/validate-bin", {
+      const response = await fetch("http://10.10.21.99:5000/api/buyer/validate-bin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ binId: scannedBinId }),
@@ -345,7 +345,7 @@ const BuyerDashboard = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("http://192.168.8.100:5000/api/buyer/validate-bottle", {
+      const response = await fetch("http://10.10.21.99:5000/api/buyer/validate-bottle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bottleId, binId, userId }),
