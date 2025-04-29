@@ -186,6 +186,7 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+import {API_URL} from "@env";
 
 const CollectorDashboard = () => {
   const [facing, setFacing] = useState("back");
@@ -193,7 +194,6 @@ const CollectorDashboard = () => {
   const [scanned, setScanned] = useState(false);
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
-  const [binId, setBinId] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -206,7 +206,7 @@ const CollectorDashboard = () => {
           return;
         }
 
-        const response = await fetch("http://10.10.21.99:5000/api/auth/user", {
+        const response = await fetch(`${API_URL}/auth/user`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -254,7 +254,7 @@ const CollectorDashboard = () => {
       console.log("Sending Bin ID to backend:", binId);
 
       setLoading(true);
-      fetch("http://10.10.21.99:5000/api/collector/validate-bin", {
+      fetch(`${API_URL}/collector/validate-bin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ binId, userId }),

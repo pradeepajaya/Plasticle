@@ -153,14 +153,36 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
-
-const API_URL = "http://10.10.21.99:5000/api"; // Update with your IP
+import { API_URL } from "@env";
 
 const ManufacturerDashboard = () => {
   const [count, setCount] = useState(1);
   const [qrCodes, setQRCodes] = useState([]);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [hasPermission, setHasPermission] = useState(null);
+
+  // Request permission only once when the component is mounted or "Download All QR Codes" is clicked
+  useEffect(() => {
+    const requestPermission = async () => {
+      try {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        setHasPermission(status === "granted");
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Denied", 
+            "Storage permission is required to download files."
+          );
+        }
+      } catch (error) {
+        console.error("Permission Request Failed:", error);
+        setHasPermission(false);
+        Alert.alert("Error", "Failed to request permission.");
+      }
+    };
+
+    requestPermission();
+  }, []);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -227,45 +249,72 @@ const ManufacturerDashboard = () => {
     }
   };
 
-  const downloadQRCode = async (qrImage, index) => {
+  const downloadAllQRCodes = async () => {
+    if (hasPermission === false) {
+      Alert.alert(
+        "Permission Denied", 
+        "Please enable storage permission in settings to download files."
+      );
+      return;
+    }
+  
+    if (hasPermission === null) {
+      Alert.alert(
+        "Waiting for Permission", 
+        "Please wait while we verify storage permissions."
+      );
+      return;
+    }
+  
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission Denied", "Storage permission is required to download files");
-        return;
+      if (Platform.OS === "web") {
+        qrCodes.forEach((qr, index) => {
+          const link = document.createElement("a");
+          link.href = qr.qrCodeImage;
+          link.download = `qr_code_${index + 1}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
+      } else {
+        setLoading(true); // Show loading indicator
+        
+        // Get or create album once
+        let album = await MediaLibrary.getAlbumAsync("Download");
+        if (!album) {
+          album = await MediaLibrary.createAlbumAsync("Download");
+        }
+  
+        const assets = [];
+        
+        // First save all files
+        for (let index = 0; index < qrCodes.length; index++) {
+          const qr = qrCodes[index];
+          const fileName = `qr_code_${index + 1}.png`;
+          const path = FileSystem.documentDirectory + fileName;
+  
+          const base64Image = qr.qrCodeImage.replace(/^data:image\/png;base64,/, "");
+  
+          await FileSystem.writeAsStringAsync(path, base64Image, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+  
+          const asset = await MediaLibrary.createAssetAsync(path);
+          assets.push(asset);
+        }
+  
+        // Then add all assets to album in one operation
+        if (assets.length > 0) {
+          await MediaLibrary.addAssetsToAlbumAsync(assets, album, false);
+        }
+        
+        Alert.alert("Success", "All QR Codes saved to your device.");
       }
-
-      const fileName = `qr_code_${index + 1}.png`;
-      const path = FileSystem.documentDirectory + fileName;
-
-      const base64Image = qrImage.replace(/^data:image\/png;base64,/, "");
-
-      await FileSystem.writeAsStringAsync(path, base64Image, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      const asset = await MediaLibrary.createAssetAsync(path);
-      await MediaLibrary.createAlbumAsync("Download", asset, false);
-
-      Alert.alert("Success", `QR Code saved to your device.`);
     } catch (error) {
       console.error("Download failed", error);
-      Alert.alert("Error", "Failed to save QR code.");
-    }
-  };
-
-  const downloadAllQRCodes = () => {
-    if (Platform.OS === "web") {
-      qrCodes.forEach((qr, index) => {
-        const link = document.createElement("a");
-        link.href = qr.qrCodeImage;
-        link.download = `qr_code_${index + 1}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
-    } else {
-      qrCodes.forEach((qr, index) => downloadQRCode(qr.qrCodeImage, index));
+      Alert.alert("Error", "Failed to save QR codes.");
+    } finally {
+      setLoading(false);
     }
   };
 

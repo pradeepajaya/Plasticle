@@ -3,9 +3,7 @@ import { View, Text, TextInput, Button, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-//const API_URL = "http://localhost:5000/api"; 
-const API_URL = "http://10.10.21.99:5000/api";
-
+import {API_URL} from "@env";
 
 const LoginScreen = () => {
   const navigation = useNavigation();

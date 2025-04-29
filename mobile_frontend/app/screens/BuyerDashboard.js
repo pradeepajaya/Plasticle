@@ -218,7 +218,6 @@ export default BuyerDashboard;
 
 */
 
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -232,6 +231,8 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+import {API_URL} from "@env";
+import { useNavigation } from "@react-navigation/native";
 
 const BuyerDashboard = () => {
   const [facing, setFacing] = useState("back");
@@ -243,7 +244,7 @@ const BuyerDashboard = () => {
   const [binId, setBinId] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -253,7 +254,7 @@ const BuyerDashboard = () => {
           return;
         }
 
-        const response = await fetch("http://10.10.21.99:5000/api/auth/user", {
+        const response = await fetch(`${API_URL}/auth/user`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -295,7 +296,7 @@ const BuyerDashboard = () => {
       const scannedBinId = parsed.binId;
 
       setLoading(true);
-      const response = await fetch("http://10.10.21.99:5000/api/buyer/validate-bin", {
+      const response = await fetch(`${API_URL}/buyer/validate-bin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ binId: scannedBinId }),
@@ -345,7 +346,7 @@ const BuyerDashboard = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("http://10.10.21.99:5000/api/buyer/validate-bottle", {
+      const response = await fetch(`${API_URL}/buyer/validate-bottle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bottleId, binId, userId }),

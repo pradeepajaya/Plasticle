@@ -410,6 +410,7 @@ import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from "@expo/vector-icons";
+import {API_URL} from "@env";
 
 const TaskHandlerScreen = () => {
   // State declarations
@@ -449,7 +450,7 @@ const TaskHandlerScreen = () => {
 
     try {
       setLoading(true);
-      const response = await fetch("http://10.10.21.99:5000/api/bins/createBin", {
+      const response = await fetch(`${API_URL}/bins/createBin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -541,7 +542,7 @@ const TaskHandlerScreen = () => {
       }
 
       setLoading(true);
-      const response = await fetch("http://10.10.21.99:5000/api/task-handler/recycle-bottle", {
+      const response = await fetch(`${API_URL}/task-handler/recycle-bottle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bottleId, manufacturerId }),
