@@ -1,4 +1,4 @@
-import axios from "axios";
+/*import axios from "axios";
 
 const API_URL = "http://localhost:5000/api"; // Replace with your backend IP
 
@@ -18,4 +18,4 @@ export const register = async (userData) => {
   } catch (error) {
     throw error.response?.data?.message || "Registration failed";
   }
-};
+};*/
