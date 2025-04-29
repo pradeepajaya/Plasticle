@@ -6,6 +6,8 @@ const app = express();
 app.use(express.json());
 
 //placed to be modifed if assgin bin according to location
+//keeping this as optional till now
+/* 
 exports.assginBinAuto = async (req, res) => {
   try {
     const filledbin = await bin.findOne({ currentFill: 1 });
@@ -22,8 +24,9 @@ exports.assginBinAuto = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
-}
+} */
 
+  // need to be updated
 exports.assginBinManual = async (req, res) => { 
     try {
         const filledbin = await bin.findOne({ currentFill: 1 });
@@ -41,61 +44,5 @@ exports.assginBinManual = async (req, res) => {
     }
 }
 
+//count num of scan for each machine
 
-exports.createMachine = async (req, res) => {
-  try {
-    const {name , description } = req.body;
-    const newMachine = new Machine({
-      name,
-      description,
-    });
-    await newMachine.save();
-  }catch (error) { 
-    res.status(500).json({ error: "Server error" });
-  } 
-}
-
-exports.updateMachine = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, description } = req.body;
-
-    const updatedMachine = await Machine.findByIdAndUpdate(id, {
-      name,
-      description,
-    }, { new: true });
-
-    if (!updatedMachine) {
-      return res.status(404).json({ error: "Machine not found" });
-    } 
-    res.json(updatedMachine);
-  }
-  catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}
-
-exports.getMachine = async (req, res) => {
-  try {
-    const machines = await Machine.find();
-    res.json(machines);
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}
-
-exports.deleteMachine = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deleteMachine = await Machine.findByIdAndDelete(id);
-
-    if (!deleteMachine) {
-      return res.status(404).json({ error: "Machine not found" });
-    }
-    await deleteMachine.delete();
-
-    res.json({ message: "Machine deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}

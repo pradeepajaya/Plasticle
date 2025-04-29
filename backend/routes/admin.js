@@ -7,12 +7,12 @@ const router = express.Router();
 router.post("/create-task-handler", auth, adminController.createTaskHandler);
 router.get("/task-handlers", auth, adminController.getTaskHandlers);
 
-router.get("/assginBin", taskHandlerCon.assginBinManual); 
-router.get("/createMachine", taskHandlerCon.createMachine); 
-router.get("/getMachine", taskHandlerCon.getMachine); 
-router.get("/updateMachine", taskHandlerCon.updateMachine); 
-router.get("/deleteMachine", taskHandlerCon.deleteMachine); 
-
+//router.get("/assginBin", taskHandlerCon.assginBinManual); 
+router.post("/createMachine", adminController.createMachine); 
+router.get("/getMachine", adminController.getMachine); 
+router.patch("/updateMachine", adminController.updateMachine); 
+router.delete("/deleteMachine", adminController.deleteMachine); 
+router.get("/assignMachine", adminController.assignMachine);
 
 module.exports = router;
 
