@@ -153,8 +153,9 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
+//import { API_URL } from '@env';
 
-const API_URL = "http://10.10.21.99:5000/api"; // Update with your IP
+//const API_URL = "http://10.10.21.99:5000/api"; // Update with your IP
 
 const ManufacturerDashboard = () => {
   const [count, setCount] = useState(1);

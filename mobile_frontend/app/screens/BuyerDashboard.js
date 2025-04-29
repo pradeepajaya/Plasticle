@@ -3,11 +3,6 @@ import Webcam from "react-webcam";
 import jsQR from "jsqr";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Text, View, Button, Alert } from "react-native";
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 17761339f603674565c50e86e9fe8ae27d162cb3
 
 const BuyerDashboard = () => {
   const [scanBin, setScanBin] = useState(true); 
@@ -19,11 +14,6 @@ const BuyerDashboard = () => {
   const [userId, setUserId] = useState(null); 
   const [loading, setLoading] = useState(false); 
   const webcamRef = useRef(null);
-<<<<<<< HEAD
-  
-
-=======
->>>>>>> 17761339f603674565c50e86e9fe8ae27d162cb3
   
 useEffect(() => {
   const fetchUserId = async () => {
@@ -228,7 +218,7 @@ export default BuyerDashboard;
 
 */
 
-
+//import { API_URL } from '@env';
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -242,6 +232,7 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+//const API_URL = "http://10.10.21.99:5000/api"; // Replace with your backend URL
 
 const BuyerDashboard = () => {
   const [facing, setFacing] = useState("back");
@@ -262,8 +253,8 @@ const BuyerDashboard = () => {
           Alert.alert("Error", "User token not found. Please log in again.");
           return;
         }
-
-        const response = await fetch("http://10.10.21.99:5000/api/auth/user", {
+         //const response = await fetch("http://10.10.21.99:5000/api/auth/user",
+        const response = await fetch(`${API_URL}/auth/user`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -305,7 +296,8 @@ const BuyerDashboard = () => {
       const scannedBinId = parsed.binId;
 
       setLoading(true);
-      const response = await fetch("http://10.10.21.99:5000/api/buyer/validate-bin", {
+      //"http://10.10.21.99:5000/api/buyer/validate-bin"
+      const response = await fetch(`${API_URL}/buyer/validate-bin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ binId: scannedBinId }),
@@ -354,8 +346,9 @@ const BuyerDashboard = () => {
     }
 
     setLoading(true);
+    //"http://10.10.21.99:5000/api/buyer/validate-bottle"
     try {
-      const response = await fetch("http://10.10.21.99:5000/api/buyer/validate-bottle", {
+      const response = await fetch(`${API_URL}/buyer/validate-bottle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bottleId, binId, userId }),

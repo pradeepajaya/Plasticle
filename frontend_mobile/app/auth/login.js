@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-//import { API_URL } from '@env';
-//const API_URL = "http://localhost:5000/api"; 
-//const API_URL = "http://10.10.21.99:5000/api";
+import { API_URL } from '@env';
 
+//console.log("API URL is", API_URL); // Test if it's working
+//const API_URL = "http://192.168.65.221:5000/api";
 
+//nst API_URL = process.env.API_mobilefrontend_URL;
 const LoginScreen = () => {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -28,15 +29,14 @@ const LoginScreen = () => {
 
       // Navigate based on user role
       if (user.role === "buyer") {
-        navigation.replace("BuyerDashboard");
+        router.replace("/dashboard/buyer");
       } else if (user.role === "collector") {
-        navigation.replace("CollectorDashboard");
+        router.replace("/dashboard/collector");
       } else if (user.role === "manufacturer") {
-        navigation.replace("ManufacturerDashboard");
-      } else if(user.role==="taskhandler"){
-        navigation.replace("TaskHandlerScreen")
-      }
-      else {
+        router.replace("/dashboard/manufacturer");
+      } else if (user.role === "taskhandler") {
+        router.replace("/dashboard/task-handler");
+      } else {
         Alert.alert("Login failed", "Invalid user role.");
       }
     } catch (error) {
@@ -51,9 +51,10 @@ const LoginScreen = () => {
       <TextInput value={email} onChangeText={setEmail} style={{ borderWidth: 1, padding: 5, marginBottom: 10 }} />
       <Text>Password:</Text>
       <TextInput secureTextEntry value={password} onChangeText={setPassword} style={{ borderWidth: 1, padding: 5, marginBottom: 10 }} />
+
       <Button title="Login" onPress={handleLogin} />
-      <Button title="Register" onPress={() => navigation.navigate("Register")} />
-      <Button title="Forgot Password?" onPress={() => navigation.navigate("ForgotPassword")} />
+      <Button title="Register" onPress={() => router.push( "/auth/register")}/>
+      <Button title="Forgot Password?" onPress={() => router.push("/auth/forgot-password")}/>
     </View>
   );
 };

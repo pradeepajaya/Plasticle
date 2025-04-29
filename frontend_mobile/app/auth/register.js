@@ -1,39 +1,3 @@
-/*import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
-import axios from "axios";
-
-const API_URL = "http://localhost:5000/api"; // Replace with your backend IP
-
-const RegisterScreen = ({ navigation }) => {
-  const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "buyer" });
-
-  const handleRegister = async () => {
-    try {
-      const response = await axios.post(`${API_URL}/auth/register`, formData);
-      Alert.alert("Success", "Registration completed");
-      navigation.replace("Login");
-    } catch (error) {
-      console.error("Registration Error:", error.response?.data || error.message);
-      Alert.alert("Error", error.response?.data?.message || "Registration failed");
-    }
-  };
-
-  return (
-    <View style={{ padding: 20 }}>
-      <Text>Username:</Text>
-      <TextInput value={formData.username} onChangeText={(text) => setFormData({ ...formData, username: text })} style={{ borderWidth: 1, padding: 5, marginBottom: 10 }} />
-      <Text>Email:</Text>
-      <TextInput value={formData.email} onChangeText={(text) => setFormData({ ...formData, email: text })} style={{ borderWidth: 1, padding: 5, marginBottom: 10 }} />
-      <Text>Password:</Text>
-      <TextInput secureTextEntry value={formData.password} onChangeText={(text) => setFormData({ ...formData, password: text })} style={{ borderWidth: 1, padding: 5, marginBottom: 10 }} />
-      <Text>Role:</Text>
-      <TextInput value={formData.role} onChangeText={(text) => setFormData({ ...formData, role: text })} style={{ borderWidth: 1, padding: 5, marginBottom: 10 }} />
-      <Button title="Register" onPress={handleRegister} />
-    </View>
-  );
-};
-
-export default RegisterScreen;*/
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, Modal, ScrollView } from "react-native";
 import { Picker } from "@react-native-picker/picker";
@@ -41,7 +5,11 @@ import { Picker } from "@react-native-picker/picker";
 //import CheckBox from "@react-native-community/checkbox"; // Install if not installed
 import axios from "axios";
 import { Checkbox } from 'react-native-paper';
-//import { API_URL } from '@env';
+import { API_URL } from '@env';
+import{ useRouter} from "expo-router";
+
+//const API_URL = "http://192.168.65.221:5000/api";
+//nst API_URL = process.env.API_mobilefrontend_URL;
 
 //const API_URL = "http://10.10.21.99:5000/api"; // Replace with your backend IP
 
@@ -51,7 +19,9 @@ const privacyPolicies = {
   manufacturer: "Manufacturer Privacy Policy: You must ensure compliance with regulations."
 };
 
-const RegisterScreen = ({ navigation }) => {
+export default function RegisterScreen(){
+
+ const router = useRouter();
   const [formData, setFormData] = useState({ username: "", email: "", password: "", role: "buyer" });
   const [isChecked, setIsChecked] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -65,7 +35,7 @@ const RegisterScreen = ({ navigation }) => {
     try {
       const response = await axios.post(`${API_URL}/auth/register`, formData);
       Alert.alert(response.data.message);
-      navigation.replace("Login");
+      router.replace("/auth/login"); // ✅ use router instead of navigation
     } catch (error) {
       console.error("Registration Error:", error.response?.data || error.message);
       Alert.alert( error.response?.data?.message || "Registration failed");
@@ -141,4 +111,4 @@ const RegisterScreen = ({ navigation }) => {
   );
 };
 
-export default RegisterScreen;
+
