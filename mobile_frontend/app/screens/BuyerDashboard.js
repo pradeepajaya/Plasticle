@@ -253,7 +253,6 @@ const BuyerDashboard = () => {
           Alert.alert("Error", "User token not found. Please log in again.");
           return;
         }
-
         const response = await fetch(`${API_URL}/auth/user`, {
           method: "GET",
           headers: {
@@ -345,6 +344,7 @@ const BuyerDashboard = () => {
     }
 
     setLoading(true);
+    //"http://10.10.21.99:5000/api/buyer/validate-bottle"
     try {
       const response = await fetch(`${API_URL}/buyer/validate-bottle`, {
         method: "POST",

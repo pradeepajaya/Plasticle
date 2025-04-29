@@ -172,7 +172,7 @@ export default CollectorDashboard;
 
 */
 
-
+//import { API_URL } from '@env';
 import React, { useEffect, useState } from "react"; 
 import {
   View,
@@ -205,7 +205,6 @@ const CollectorDashboard = () => {
           Alert.alert("Error", "User token not found. Please log in again.");
           return;
         }
-
         const response = await fetch(`${API_URL}/auth/user`, {
           method: "GET",
           headers: {
