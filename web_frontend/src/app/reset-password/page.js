@@ -21,7 +21,6 @@ export default function ResetPassword() {
     try {
       await axios.post(`${API_URL}/auth/reset-password`, { token, newPassword });
       alert('Password reset successfully! You can now login.');
-      router.push('/login');
     } catch (error) {
       alert(error.response?.data?.message || 'Failed to reset password.');
     }

@@ -138,14 +138,23 @@ const styles = StyleSheet.create({
 export default ManufacturerDashboard;*/
 
 import React, { useState, useEffect } from "react";
-import { 
-  View, Button, ScrollView, TextInput, Alert, 
-  StyleSheet, Text, ActivityIndicator 
+import {
+  View,
+  Button,
+  ScrollView,
+  TextInput,
+  Alert,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+  Platform,
+  Image,
 } from "react-native";
-import QRCode from "react-native-qrcode-svg";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
+import * as MediaLibrary from "expo-media-library";
 
-const API_URL = "http://localhost:5000/api"; 
+const API_URL = "http://192.168.63.221:5000/api"; // Update with your IP
 
 const ManufacturerDashboard = () => {
   const [count, setCount] = useState(1);
@@ -165,7 +174,7 @@ const ManufacturerDashboard = () => {
         const response = await fetch(`${API_URL}/auth/user`, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
@@ -218,15 +227,58 @@ const ManufacturerDashboard = () => {
     }
   };
 
+  const downloadQRCode = async (qrImage, index) => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "Storage permission is required to download files");
+        return;
+      }
+
+      const fileName = `qr_code_${index + 1}.png`;
+      const path = FileSystem.documentDirectory + fileName;
+
+      const base64Image = qrImage.replace(/^data:image\/png;base64,/, "");
+
+      await FileSystem.writeAsStringAsync(path, base64Image, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const asset = await MediaLibrary.createAssetAsync(path);
+      await MediaLibrary.createAlbumAsync("Download", asset, false);
+
+      Alert.alert("Success", `QR Code saved to your device.`);
+    } catch (error) {
+      console.error("Download failed", error);
+      Alert.alert("Error", "Failed to save QR code.");
+    }
+  };
+
+  const downloadAllQRCodes = () => {
+    if (Platform.OS === "web") {
+      qrCodes.forEach((qr, index) => {
+        const link = document.createElement("a");
+        link.href = qr.qrCodeImage;
+        link.download = `qr_code_${index + 1}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    } else {
+      qrCodes.forEach((qr, index) => downloadQRCode(qr.qrCodeImage, index));
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Enter the number of QR Codes:</Text>
-
       <TextInput
         placeholder="Enter Count"
         keyboardType="numeric"
         value={count.toString()}
-        onChangeText={(text) => setCount(isNaN(parseInt(text, 10)) ? "" : parseInt(text, 10))}
+        onChangeText={(text) =>
+          setCount(isNaN(parseInt(text, 10)) ? "" : parseInt(text, 10))
+        }
         style={styles.input}
       />
 
@@ -236,17 +288,26 @@ const ManufacturerDashboard = () => {
         <Button title="Generate QR Codes" onPress={generateQRCodes} />
       )}
 
-      <ScrollView>
-        {qrCodes.map((qr, index) => (
-          <View key={index} style={styles.qrContainer}>
-            {qr.bottleId && (
-        <QRCode 
-        value={`\n bottleId : "${qr.bottleId}"\n manufacturerId : "${userId}"`}  
-          size={200} 
-        />
+      {qrCodes.length > 0 && (
+        <View style={{ marginVertical: 10 }}>
+          <Button title="Download All QR Codes" onPress={downloadAllQRCodes} />
+        </View>
       )}
-          </View>
-        ))}
+
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.qrRow}>
+          {qrCodes.map((qr, index) => (
+            <View key={index} style={styles.qrContainer}>
+              <Image source={{ uri: qr.qrCodeImage }} style={styles.qrCode} />
+              {Platform.OS !== "web" && (
+                <Button
+                  title="Download"
+                  onPress={() => downloadQRCode(qr.qrCodeImage, index)}
+                />
+              )}
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -256,23 +317,37 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     flex: 1,
-    justifyContent: "flex-start",
+    backgroundColor: "#fff",
+  },
+  input: {
+    borderColor: "#ccc",
+    borderWidth: 1,
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 5,
   },
   label: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 10,
   },
-  input: {
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 20,
+  qrRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-evenly",
   },
   qrContainer: {
-    marginVertical: 10,
+    margin: 10,
     alignItems: "center",
+    width: "40%",
+  },
+  scrollContainer: {
+    maxHeight: "50%",
+  },
+  qrCode: {
+    width: 150,
+    height: 150,
+    marginBottom: 10,
   },
 });
 
 export default ManufacturerDashboard;
-
