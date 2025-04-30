@@ -6,6 +6,7 @@ import {
   TouchableOpacity, 
   Image, 
   Alert, 
+  Button,
   ActivityIndicator, 
   ScrollView, 
   StyleSheet 
@@ -15,9 +16,9 @@ import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 //import { API_URL } from '@env';   
 import { useRouter } from "expo-router"; // Expo Router navigation if needed
-
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const TaskHandlerScreen = () => {
@@ -43,6 +44,16 @@ const TaskHandlerScreen = () => {
       setMediaPermission(status === 'granted');
     })();
   }, []);
+
+  const handleLogout = async () => {
+  try {
+    await AsyncStorage.removeItem("userToken");
+    router.replace("/auth/login"); // Replace the screen with login
+  } catch (error) {
+    console.error("Logout Error:", error);
+    Alert.alert("Error", "Failed to log out.");
+  }
+};
 
   const handleMapPress = (event) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
@@ -344,6 +355,10 @@ const TaskHandlerScreen = () => {
           </View>
         </View>
       )}
+      <View style={{ marginVertical: 10 }}>
+  <Button title="Logout" color="red" onPress={handleLogout} />
+</View>
+
     </ScrollView>
   );
 };

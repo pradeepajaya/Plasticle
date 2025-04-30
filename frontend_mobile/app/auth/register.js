@@ -7,7 +7,6 @@ import axios from "axios";
 import { Checkbox } from 'react-native-paper';
 //import { API_URL } from '@env';
 import{ useRouter} from "expo-router";
-
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 //const API_URL = "http://192.168.65.221:5000/api";
 //nst API_URL = process.env.API_mobilefrontend_URL;

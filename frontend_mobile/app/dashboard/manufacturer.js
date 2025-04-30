@@ -35,6 +35,17 @@ const ManufacturerDashboard = () => {
     })();
   }, []);
 
+const handleLogout = async () => {
+  try {
+    await AsyncStorage.removeItem("userToken");
+    router.replace("/auth/login"); // Replace the screen with login
+  } catch (error) {
+    console.error("Logout Error:", error);
+    Alert.alert("Error", "Failed to log out.");
+  }
+};
+
+
   const generateQRCodes = async () => {
     if (!userId || count <= 0) {
       Alert.alert("Error", "Please provide valid inputs.");
@@ -130,6 +141,11 @@ const ManufacturerDashboard = () => {
           </View>
         ))}
       </ScrollView>
+      
+      <View style={{ marginVertical: 10 }}>
+  <Button title="Logout" color="red" onPress={handleLogout} />
+</View>
+
     </View>
   );
 };

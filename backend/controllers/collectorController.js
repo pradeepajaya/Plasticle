@@ -85,6 +85,35 @@ await collector.save();
   }
 };
 
-module.exports = {
-  validateBin,
+const updateCollectorStatus = async (req, res) => {
+  try {
+    const { userId, latitude, longitude, activePersonal } = req.body;
+
+    if (!userId || latitude == null || longitude == null || activePersonal == null) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
+    const collector = await Collector.findOneAndUpdate(
+      { userId },
+      {
+        location: {
+          type: "Point",
+          coordinates: [longitude, latitude],
+        },
+        activePersonal,
+      },
+      { new: true }
+    );
+
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    res.status(200).json({ message: "Collector status updated", collector });
+  } catch (error) {
+    console.error("Error updating collector status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
+
+module.exports = { validateBin, updateCollectorStatus };
