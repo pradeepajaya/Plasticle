@@ -3,12 +3,10 @@ import { View, Text, TextInput, Button, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from '@env';
+//import { API_URL } from '@env';
 
-//console.log("API URL is", API_URL); // Test if it's working
-//const API_URL = "http://192.168.65.221:5000/api";
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-//nst API_URL = process.env.API_mobilefrontend_URL;
 const LoginScreen = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");

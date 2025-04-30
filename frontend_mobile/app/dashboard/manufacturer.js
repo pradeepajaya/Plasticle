@@ -3,10 +3,10 @@ import { View, Button, ScrollView, TextInput, Alert, StyleSheet, Text, ActivityI
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
-import { API_URL } from '@env';
+//import { API_URL } from '@env';
 import { useRouter } from "expo-router"; // Expo Router navigation if needed
 // Replace this with your actual API URL
-
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const ManufacturerDashboard = () => {
   const router = useRouter(); // <-- if you want to navigate somewhere
@@ -34,6 +34,17 @@ const ManufacturerDashboard = () => {
       }
     })();
   }, []);
+
+const handleLogout = async () => {
+  try {
+    await AsyncStorage.removeItem("userToken");
+    router.replace("/auth/login"); // Replace the screen with login
+  } catch (error) {
+    console.error("Logout Error:", error);
+    Alert.alert("Error", "Failed to log out.");
+  }
+};
+
 
   const generateQRCodes = async () => {
     if (!userId || count <= 0) {
@@ -130,6 +141,11 @@ const ManufacturerDashboard = () => {
           </View>
         ))}
       </ScrollView>
+      
+      <View style={{ marginVertical: 10 }}>
+  <Button title="Logout" color="red" onPress={handleLogout} />
+</View>
+
     </View>
   );
 };

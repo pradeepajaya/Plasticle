@@ -11,13 +11,10 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { API_URL } from '@env';
-
+//import { API_URL } from '@env';
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 import { useRouter } from "expo-router"; // Expo Router navigation if needed
 
-// Optional: Use env var or hardcoded fallback
-//nst API_URL = process.env.EXPO_PUBLIC_API_URL ;
-//const API_URL = "http://192.168.204.221:5000/api";
 
 export default function BuyerDashboard() {
   const router = useRouter(); // <-- if you want to navigate somewhere
@@ -62,6 +59,17 @@ export default function BuyerDashboard() {
 
     fetchUserId();
   }, []);
+
+  const handleLogout = async () => {
+  try {
+    await AsyncStorage.removeItem("userToken");
+    router.replace("/auth/login"); // Replace the screen with login
+  } catch (error) {
+    console.error("Logout Error:", error);
+    Alert.alert("Error", "Failed to log out.");
+  }
+};
+
 
   const handleScan = async ({ data }) => {
     if (!scanned) {
@@ -198,6 +206,11 @@ export default function BuyerDashboard() {
           </TouchableOpacity>
         </View>
       )}
+
+      <View style={{ marginVertical: 10 }}>
+  <Button title="Logout" color="red" onPress={handleLogout} />
+</View>
+
     </View>
   );
 }

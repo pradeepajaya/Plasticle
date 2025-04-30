@@ -19,9 +19,9 @@ export default function Index() {
     </View>
   );
 }
-
+/*
 // app/index.js
-/*import { View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 
 export default function Home() {
   return (
