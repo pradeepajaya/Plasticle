@@ -344,7 +344,7 @@ const BuyerDashboard = () => {
     }
 
     setLoading(true);
-    //"http://10.10.21.99:5000/api/buyer/validate-bottle"
+    //"http:// 192.168.50.38:5000/api/buyer/validate-bottle"
     try {
       const response = await fetch(`${API_URL}/buyer/validate-bottle`, {
         method: "POST",

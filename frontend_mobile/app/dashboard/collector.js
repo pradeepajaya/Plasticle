@@ -12,8 +12,8 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router"; // Expo Router navigation if needed
-import { API_URL } from '@env';
- 
+//import { API_URL } from '@env';
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function CollectorDashboard() {
   const router = useRouter(); // <-- if you want to navigate somewhere

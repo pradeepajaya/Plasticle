@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
-import { API_URL } from '@env';
-// const API_URL = "http://10.10.21.99:5000/api"; // Uncomment and set your real API
+//import { API_URL } from '@env';
+// const API_URL = "http:// 192.168.50.38:5000/api"; // Uncomment and set your real API
 
 //const API_URL = process.env.API_mobilefrontend_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");

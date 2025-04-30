@@ -15,9 +15,10 @@ import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from "@expo/vector-icons";
-import { API_URL } from '@env';   
+//import { API_URL } from '@env';   
 import { useRouter } from "expo-router"; // Expo Router navigation if needed
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const TaskHandlerScreen = () => {
   // State declarations
@@ -55,7 +56,7 @@ const TaskHandlerScreen = () => {
     }
 
     const locationString = textLocation || `${location.latitude},${location.longitude}`;
-     //"http://10.10.21.99:5000/api/bins/createBin"
+     //"http:// 192.168.50.38:5000/api/bins/createBin"
     try {
       setLoading(true);
       const response = await fetch(`${API_URL}/bins/createBin`, {
@@ -148,7 +149,7 @@ const TaskHandlerScreen = () => {
       if (!bottleId || !manufacturerId) {
         throw new Error("Invalid bottle QR format");
       }
-       //"http://10.10.21.99:5000/api/task-handler/recycle-bottle"
+       //"http:// 192.168.50.38:5000/api/task-handler/recycle-bottle"
       setLoading(true);
       const response = await fetch(`${API_URL}/task-handler/recycle-bottle`, {
         method: "POST",

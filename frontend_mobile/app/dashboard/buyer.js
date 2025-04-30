@@ -11,12 +11,12 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { API_URL } from '@env';
+//import { API_URL } from '@env';
 
 import { useRouter } from "expo-router"; // Expo Router navigation if needed
 
 // Optional: Use env var or hardcoded fallback
-//nst API_URL = process.env.EXPO_PUBLIC_API_URL ;
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 //const API_URL = "http://192.168.204.221:5000/api";
 
 export default function BuyerDashboard() {
