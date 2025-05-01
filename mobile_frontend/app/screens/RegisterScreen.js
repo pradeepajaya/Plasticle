@@ -41,8 +41,9 @@ import { Picker } from "@react-native-picker/picker";
 //import CheckBox from "@react-native-community/checkbox"; // Install if not installed
 import axios from "axios";
 import { Checkbox } from 'react-native-paper';
+//import { API_URL } from '@env';
 
-const API_URL = "http://192.168.63.221:5000/api"; // Replace with your backend IP
+//const API_URL = "http://10.10.21.99:5000/api"; // Replace with your backend IP
 
 const privacyPolicies = {
   buyer: "Buyer Privacy Policy: You agree to share personal information for transactions.",

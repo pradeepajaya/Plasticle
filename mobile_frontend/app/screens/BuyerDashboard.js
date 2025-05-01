@@ -4,8 +4,6 @@ import jsQR from "jsqr";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Text, View, Button, Alert } from "react-native";
 
-
-
 const BuyerDashboard = () => {
   const [scanBin, setScanBin] = useState(true); 
   const [showScanButton, setShowScanButton] = useState(true);
@@ -16,8 +14,6 @@ const BuyerDashboard = () => {
   const [userId, setUserId] = useState(null); 
   const [loading, setLoading] = useState(false); 
   const webcamRef = useRef(null);
-  
-
   
 useEffect(() => {
   const fetchUserId = async () => {
@@ -219,46 +215,50 @@ useEffect(() => {
 };
 
 export default BuyerDashboard;
+
 */
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Button, ActivityIndicator, Alert, StyleSheet } from 'react-native';
-import  { Camera } from 'expo-camera';
-console.log('Camera:', Camera);
-import {AsyncStorage} from '@react-native-async-storage/async-storage';
+
+//import { API_URL } from '@env';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
+//const API_URL = "http://10.10.21.99:5000/api"; // Replace with your backend URL
 
 const BuyerDashboard = () => {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [scanning, setScanning] = useState(false);
+  const [facing, setFacing] = useState("back");
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanned, setScanned] = useState(false);
+  const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [scanBin, setScanBin] = useState(true);
-  const [validationMessage, setValidationMessage] = useState('');
+  const [validationMessage, setValidationMessage] = useState("");
   const [binId, setBinId] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const cameraRef = useRef(null);
 
-  // Ask camera permission
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
-
-  // Fetch userId using token
   useEffect(() => {
     const fetchUserId = async () => {
       try {
-        const token = await AsyncStorage.getItem('userToken');
+        const token = await AsyncStorage.getItem("userToken");
         if (!token) {
-          Alert.alert('Error', 'User token not found. Please log in again.');
+          Alert.alert("Error", "User token not found. Please log in again.");
           return;
         }
-
-        const response = await fetch('http://192.168.63.221:5000/api/auth/user', {
-          method: 'GET',
+         //const response = await fetch("http://10.10.21.99:5000/api/auth/user",
+        const response = await fetch(`${API_URL}/auth/user`, {
+          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
@@ -266,126 +266,213 @@ const BuyerDashboard = () => {
         if (response.ok) {
           setUserId(data.user._id);
         } else {
-          Alert.alert('Error', data.error || 'Failed to fetch user details');
+          Alert.alert("Error", data.error || "Failed to fetch user details");
         }
       } catch (error) {
-        console.error('Fetch User ID Error:', error);
-        Alert.alert('Error', 'Something went wrong while fetching user details');
+        console.error("Fetch User ID Error:", error);
+        Alert.alert("Error", "Something went wrong while fetching user details");
       }
     };
 
     fetchUserId();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
-    setScanning(false);
-    if (scanBin) {
-      validateBinQRCode(data);
-    } else {
-      validateBottleQRCode(data);
+  const handleScan = async ({ data }) => {
+    if (!scanned) {
+      setScanned(true);
+      setIsCameraVisible(false);
+      if (scanBin) {
+        await validateBinQRCode(data);
+      } else {
+        await validateBottleQRCode(data);
+      }
+      setTimeout(() => setScanned(false), 3000);
     }
   };
 
-  const validateBinQRCode = (qrData) => {
+  const validateBinQRCode = async (qrData) => {
     try {
       const parsed = JSON.parse(qrData);
       const scannedBinId = parsed.binId;
-      if (!scannedBinId) throw new Error('Missing binId');
 
       setLoading(true);
-      fetch('http://192.168.63.221:5000/api/buyer/validate-bin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      //"http://10.10.21.99:5000/api/buyer/validate-bin"
+      const response = await fetch(`${API_URL}/buyer/validate-bin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ binId: scannedBinId }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.message === 'Bin is valid') {
-            setValidationMessage('Bin QR Code validated successfully!');
-            setBinId(scannedBinId);
-            setScanBin(false); // Move to bottle scan
-          } else {
-            setValidationMessage(data.message);
-          }
-        })
-        .catch(() => setValidationMessage('Error validating Bin QR Code.'))
-        .finally(() => setLoading(false));
+      });
+
+      const data = await response.json();
+      if (data.message === "Bin is valid") {
+        setValidationMessage("Bin validated successfully");
+        setBinId(scannedBinId);
+        setScanBin(false);
+      } else {
+        setValidationMessage(`${data.message}`);
+      }
     } catch (error) {
-      console.error('QR Parsing Error:', error);
-      setValidationMessage('Invalid Bin QR Code format.');
+      console.error("Error parsing or validating Bin QR Code:", error);
+      setValidationMessage("Invalid Bin QR Code format");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const validateBottleQRCode = (qrData) => {
+  const validateBottleQRCode = async (qrData) => {
     if (!binId || !userId) {
-      setValidationMessage('Bin ID or User ID is missing. Please scan the bin QR first.');
+      setValidationMessage("Bin ID or User ID is missing. Please scan the bin QR first.");
       return;
     }
 
+    let bottleId;
     try {
-      const parsed = JSON.parse(qrData);
-      const bottleId = parsed.bottleId;
-      if (!bottleId) throw new Error('Missing bottleId');
+      const lines = qrData.split("\n");
+      for (const line of lines) {
+        if (line.includes("bottleId")) {
+          bottleId = line.split(":")[1].trim().replace(/"/g, "");
+          break;
+        }
+      }
 
-      setLoading(true);
-      fetch('http://192.168.63.221:5000/api/buyer/validate-bottle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bottleId, binId, userId }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          setValidationMessage(data.message || 'Bottle added to bin');
-        })
-        .catch(() => setValidationMessage('Error validating Bottle QR Code.'))
-        .finally(() => setLoading(false));
+      if (!bottleId) {
+        setValidationMessage("Bottle ID not found in QR code");
+        return;
+      }
     } catch (error) {
-      console.error('QR Parsing Error:', error);
-      setValidationMessage('Invalid Bottle QR Code format.');
+      console.error("Error parsing Bottle QR Code:", error);
+      setValidationMessage("Invalid Bottle QR Code format");
+      return;
+    }
+
+    setLoading(true);
+    //"http://10.10.21.99:5000/api/buyer/validate-bottle"
+    try {
+      const response = await fetch(`${API_URL}/buyer/validate-bottle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bottleId, binId, userId }),
+      });
+
+      const data = await response.json();
+      if (data.message === "Bottle added to bin") {
+        setValidationMessage("Bottle added to bin successfully");
+        setScanBin(true); // Reset to scan bin again
+        setBinId(null);
+        setTimeout(() => {
+          setValidationMessage("");
+        }, 5000);
+  
+      } else {
+        setValidationMessage(` ${data.message}`);
+      }
+    } catch (error) {
+      console.error("Bottle validation error:", error);
+      setValidationMessage("Error validating Bottle QR Code");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (hasPermission === null) return <Text>Requesting camera permission...</Text>;
-  if (hasPermission === false) return <Text>No access to camera</Text>;
+  const toggleCameraFacing = () => {
+    setFacing((prev) => (prev === "back" ? "front" : "back"));
+  };
+
+  if (!permission) return <View />;
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>We need your permission to access the camera</Text>
+        <Button title="Grant Permission" onPress={requestPermission} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Buyer Dashboard</Text>
-
-      {loading && <ActivityIndicator size="large" color="#0000ff" />}
-      {validationMessage ? <Text style={styles.message}>{validationMessage}</Text> : null}
-
-      {!scanning && (
-        <Button
-          title={scanBin ? 'Scan Bin QR Code' : 'Scan Bottle QR Code'}
-          onPress={() => setScanning(true)}
-        />
+      {isCameraVisible && (
+        <CameraView
+          style={styles.camera}
+          facing={facing}
+          barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+          onBarcodeScanned={handleScan}
+        >
+          <View style={styles.overlay}>
+            <View style={styles.scanArea} />
+          </View>
+          <TouchableOpacity style={styles.flipIcon} onPress={toggleCameraFacing}>
+            <Ionicons name="camera-reverse-outline" size={30} color="white" />
+          </TouchableOpacity>
+        </CameraView>
       )}
 
-      {scanning && (
-        <>
-          <Camera
-            ref={cameraRef}
-            onBarCodeScanned={handleBarCodeScanned}
-            barCodeScannerSettings={{ barCodeTypes: ['qr'] }}
-            ratio="16:9"
-          />
-          <Button title="Cancel Scan" onPress={() => setScanning(false)} />
-        </>
+      {!isCameraVisible && (
+        <View style={styles.uiContainer}>
+          {loading && <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 10 }} />}
+
+          <Text style={styles.statusText}>
+            {validationMessage || "Welcome to the Buyer Dashboard"}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setIsCameraVisible(true)}
+          >
+            <Text style={styles.buttonText}>{scanBin ? "Scan Bin QR" : "Scan Bottle QR"}</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, textAlign: 'center', marginBottom: 20 },
-  message: { textAlign: 'center', marginVertical: 10, color: 'green' },
-  camera: {
+  container: { flex: 1 },
+  message: { textAlign: "center", marginTop: 20 },
+  camera: { flex: 1 },
+  overlay: {
     flex: 1,
-    height: 400,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scanArea: {
+    width: 250,
+    height: 250,
+    borderWidth: 2,
+    borderColor: "white",
     borderRadius: 10,
-    marginVertical: 20,
+  },
+  uiContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+  },
+  actionButton: {
+    backgroundColor: "black",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+  },
+  statusText: {
+    textAlign: "center",
+    marginTop: 30,
+    fontSize: 16,
+    fontWeight: "500",
+    color: "green",
+    paddingHorizontal: 20,
+  },
+  flipIcon: {
+    position: "absolute",
+    right: 20,
+    bottom: 30,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    padding: 10,
+    borderRadius: 50,
   },
 });
 
