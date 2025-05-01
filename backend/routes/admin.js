@@ -13,6 +13,7 @@ router.get("/getMachine", adminController.getMachine);
 router.patch("/updateMachine", adminController.updateMachine); 
 router.delete("/deleteMachine", adminController.deleteMachine); 
 router.get("/assignMachine", adminController.assignMachine);
+router.get("/getTaskHandler", adminController.getTaskHandler);
 
 module.exports = router;
 

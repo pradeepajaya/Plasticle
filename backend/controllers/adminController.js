@@ -5,7 +5,6 @@ const User = require("../models/User");
 const Machine = require("../models/Machine");
 const express = require("express");
 
-
 const app = express();
 app.use(express.json());
 
@@ -19,7 +18,7 @@ exports.createTaskHandler = async (req, res) => {
 
   const { username, email, password } = req.body;
   const role = "taskhandler";
-  
+
 
   try {
     let user = await User.findOne({ email });
@@ -28,7 +27,7 @@ exports.createTaskHandler = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    user = new User({ username, email, passwordHash, role, isVerified: true,});
+    user = new User({ username, email, passwordHash, role, isVerified: true, });
     await user.save();
 
     res.status(201).json({ message: "Task Handler Created" });
@@ -54,16 +53,16 @@ exports.getTaskHandlers = async (req, res) => {
 //create
 exports.createMachine = async (req, res) => {
   try {
-    const {name , description } = req.body;
+    const { name, description } = req.body;
     const newMachine = new Machine({
       name,
       description,
     });
     await newMachine.save();
     res.send('Machine created');
-  }catch (error) { 
+  } catch (error) {
     res.status(500).json({ error: "Server error" });
-  } 
+  }
 }
 
 
@@ -80,8 +79,8 @@ exports.getMachine = async (req, res) => {
 //update
 exports.updateMachine = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, description } = req.body;
+    // const { id } = req.body;
+    const { id, name, description } = req.body;
 
     const updatedMachine = await Machine.findByIdAndUpdate(id, {
       name,
@@ -90,7 +89,7 @@ exports.updateMachine = async (req, res) => {
 
     if (!updatedMachine) {
       return res.status(404).json({ error: "Machine not found" });
-    } 
+    }
     res.json(updatedMachine);
   }
   catch (error) {
@@ -101,24 +100,35 @@ exports.updateMachine = async (req, res) => {
 //delete
 exports.deleteMachine = async (req, res) => {
   try {
-    const {_id}  = req.body;
-    console.log(_id);
-    if (!_id) {
+    const { id } = req.body;
+    console.log(id);
+    if (!id) {
       return res.status(400).json({ error: "ID is required" });
     }
 
-    const dltMachine = await Machine.findByIdAndDelete(_id);
-  
+    const dltMachine = await Machine.findByIdAndDelete(id);
+
     if (!dltMachine) {
       return res.status(404).json({ error: "Machine not found" });
     }
-    
+
 
     res.json({ message: "Machine deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
 }
+
+//get task handler
+exports.getTaskHandler = async (req, res) => {
+  try {
+    const taskhandler = await User.find({ role: "taskhandler" });
+    res.json(taskhandler);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+}
+
 
 //assgin Machine to task handler
 exports.assignMachine = async (req, res) => {
@@ -127,12 +137,12 @@ exports.assignMachine = async (req, res) => {
     console.log("Request Body:", req.body);
 
     const { machineId, taskHandlerId } = req.body; // Extract machineId and taskHandlerId from the request body
-    
+
     // Validate input
     if (!machineId || !taskHandlerId) {
       return res.status(400).json({ message: "machineId and taskHandlerId are required." });
     }
-  
+
     const machineToAssign = await Machine.findById(machineId);
     //const user = await User.findById("taskHandlerId");
 
@@ -161,7 +171,7 @@ exports.assignMachine = async (req, res) => {
 
     // Return success response
     return res.status(200).json({ message: "Machine successfully assigned" });
-  }catch (error) {
+  } catch (error) {
     console.error("Error assigning machine:", error);
     return res.status(500).json({ message: "Server error while assigning machine." });
   }
