@@ -1,17 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, Modal, ScrollView } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-//import { CheckBox } from "react-native";  // No need to install anything extra
-//import CheckBox from "@react-native-community/checkbox"; // Install if not installed
 import axios from "axios";
 import { Checkbox } from 'react-native-paper';
-//import { API_URL } from '@env';
 import{ useRouter} from "expo-router";
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-//const API_URL = "http://192.168.65.221:5000/api";
-//nst API_URL = process.env.API_mobilefrontend_URL;
-
-//const API_URL = "http:// 192.168.50.38:5000/api"; // Replace with your backend IP
 
 const privacyPolicies = {
   buyer: "Buyer Privacy Policy: You agree to share personal information for transactions.",
@@ -35,7 +28,7 @@ export default function RegisterScreen(){
     try {
       const response = await axios.post(`${API_URL}/auth/register`, formData);
       Alert.alert(response.data.message);
-      router.replace("/auth/login"); // ✅ use router instead of navigation
+      router.replace("/auth/login"); //use router instead of navigation
     } catch (error) {
       console.error("Registration Error:", error.response?.data || error.message);
       Alert.alert( error.response?.data?.message || "Registration failed");
@@ -78,7 +71,7 @@ export default function RegisterScreen(){
       </Picker>
 
 
-              {/* ✅ Paper Checkbox Implementation */}
+              {/*Paper Checkbox Implementation */}
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
         <Checkbox
           status={isChecked ? "checked" : "unchecked"}

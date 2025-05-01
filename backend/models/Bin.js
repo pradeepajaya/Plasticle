@@ -1,4 +1,3 @@
-// don't chage any feild  here  , you can add fields for your reqiurements but don't delete any feilds 
 // bin id should store here when taskhandler generate bin qr 
 const mongoose = require("mongoose");
 
