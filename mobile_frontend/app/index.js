@@ -1,14 +1,28 @@
-import React from "react";
-import { LogBox } from "react-native";
-import AppNavigator from "./navigation/AppNavigator";
+import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import { View, ActivityIndicator } from "react-native";
 
+export default function Index() {
+  const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
 
-// Suppress the specific warning
-LogBox.ignoreLogs(["props.pointerEvents is deprecated. Use style.pointerEvents"]);
-// Enable verbose logging for warnings
-LogBox.ignoreAllLogs(false); // Ensure warnings are not ignored
-console.disableYellowBox = false; // Enable yellow box warnings
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsReady(true);
+    }, 100); // small delay to ensure layout mounts
 
-export default function App() {
-  return <AppNavigator />;
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (isReady) {
+      router.replace("/auth/login");
+    }
+  }, [isReady]);
+
+  return (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <ActivityIndicator size="large" />
+    </View>
+  );
 }
