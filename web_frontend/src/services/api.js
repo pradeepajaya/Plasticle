@@ -8,13 +8,13 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-export const login = (formData) => API.post('api/auth/login', formData);
+export const login = (formData) => API.post('/auth/login', formData);
 
-export const createTaskHandler = (data) => API.post('/api/admin/create-task-handler', data);
-export const getTaskHandlers = () => API.get('/api/admin/task-handlers');
+export const createTaskHandler = (data) => API.post('/admin/create-task-handler', data);
+export const getTaskHandlers = () => API.get('/admin/task-handlers');
 
-export const getDueLocations = () => API.get('/api/bins/due-locations');
+export const getDueLocations = () => API.get('/bins/due-locations');
 
-export const getAvailableCollectors = () => API.get('/api/collector/available-collectors');
+export const getAvailableCollectors = () => API.get('/collector/available-collectors');
 export const allocateCollector = (binId, collectorId) =>
-  API.post('/api/admin/allocate-collector', { binId, collectorId });
+  API.post('/admin/allocate-collector', { binId, collectorId });

@@ -16,7 +16,7 @@ const binSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["active", "full", "inactive"],
+    enum: ["active", "full", "inactive", "assigned"],
     default: "active",
   },
 
