@@ -9,17 +9,17 @@ export default function MachinesPage() {
 
   //fetch machine list 
   const fetchMachines = async () => {
-    const res = await fetch("/api/admin/getMachine");
+    const res = await fetch("http://localhost:5000/api/admin/getMachine");
     const data = await res.json();
-    const response = await getTaskHandlers();
-    setTaskHandlers(response.data);
+    //const response = await getTaskHandlers();
+    //setTaskHandlers(response.data);
     console.log("Fetched Machines:", data)
     setMachines(data);
   };
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    await fetch("/api/admin/getMachine", {
+    await fetch("http://localhost:5000/api/admin/getMachine", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
