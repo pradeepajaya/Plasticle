@@ -97,10 +97,10 @@ exports.allocateCollector = async (req, res) => {
     return res.status(403).json({ message: "Access Denied" });
   }
 
-  const { binId, collectorId } = req.body;
+  const { binId, collectorId, collectionDate } = req.body;
 
-  if (!binId || !collectorId) {
-    return res.status(400).json({ message: "Bin ID and Collector ID are required" });
+  if (!binId || !collectorId || !collectionDate) {
+    return res.status(400).json({ message: "Bin ID and Collector ID and Collection Date are required" });
   }
 
   try {
@@ -120,8 +120,9 @@ exports.allocateCollector = async (req, res) => {
       return res.status(400).json({ message: "Collector not available" });
     }
 
-    bin.collector = collectorId;
+    bin.collectorId = collectorId;
     bin.status = "assigned";
+    bin.collectionDate = new Date(collectionDate);
 
     await bin.save();
 

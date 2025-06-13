@@ -210,6 +210,14 @@ export default function CollectorDashboard() {
           >
             <Text style={styles.buttonText}>Update Location</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: '#007bff' }]}
+            onPress={() => router.push('/dashboard/collector/calendar')} // navigate to calendar page
+          >
+            <Text style={styles.buttonText}>View Collection Calendar</Text>
+          </TouchableOpacity>
+
         </View>
       )}
 

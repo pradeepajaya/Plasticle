@@ -16,5 +16,5 @@ export const getTaskHandlers = () => API.get('/admin/task-handlers');
 export const getDueLocations = () => API.get('/bins/due-locations');
 
 export const getAvailableCollectors = () => API.get('/collector/available-collectors');
-export const allocateCollector = (binId, collectorId) =>
-  API.post('/admin/allocate-collector', { binId, collectorId });
+export const allocateCollector = (binId, collectorId, collectionDate) =>
+  API.post('/admin/allocate-collector', { binId, collectorId, collectionDate, });

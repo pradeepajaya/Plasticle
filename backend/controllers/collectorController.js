@@ -116,4 +116,21 @@ const updateCollectorStatus = async (req, res) => {
   }
 };
 
-module.exports = { validateBin, updateCollectorStatus };
+
+const getCollectorAllocations = async (req, res) => {
+  try {
+    const collectorId = req.user._id; // assuming JWT middleware attaches user
+
+    const bins = await Bin.find({
+      collectorId,
+      collectionDate: { $ne: null }, // has a date set
+    });
+
+    res.status(200).json(bins);
+  } catch (error) {
+    console.error("Error fetching collector allocations:", error);
+    res.status(500).json({ message: "Failed to fetch collector allocations." });
+  }
+};
+
+module.exports = { validateBin, updateCollectorStatus, getCollectorAllocations };

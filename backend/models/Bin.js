@@ -20,6 +20,11 @@ const binSchema = new mongoose.Schema({
     default: "active",
   },
 
+  collectionDate: { type: Date },
+
+  collectorId: { type: mongoose.Schema.Types.ObjectId, ref: "Collector" },
+
+
   collected: { type: Boolean, default: false }, // optional, if you want
   
   // Optional: You can add this field if you want to store the QR code URL or data itself
