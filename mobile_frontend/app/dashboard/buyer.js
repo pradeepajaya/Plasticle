@@ -209,7 +209,7 @@ export default function BuyerDashboard() {
         </View>
       )}
 
-      <View style={{ marginVertical: 10 }}>
+      <View style={{ marginVertical: 40 }}>
   <Button title="Logout" color="red" onPress={handleLogout} />
 </View>
 
