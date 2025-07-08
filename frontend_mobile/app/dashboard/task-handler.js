@@ -66,7 +66,7 @@ const TaskHandlerScreen = () => {
     }
 
     const locationString = textLocation || `${location.latitude},${location.longitude}`;
-     //"http:// 192.168.50.38:5000/api/bins/createBin"
+     //"http://10.10.21.99:5000/api/bins/createBin"
     try {
       setLoading(true);
       const response = await fetch(`${API_URL}/bins/createBin`, {
@@ -159,7 +159,7 @@ const TaskHandlerScreen = () => {
       if (!bottleId || !manufacturerId) {
         throw new Error("Invalid bottle QR format");
       }
-       //"http:// 192.168.50.38:5000/api/task-handler/recycle-bottle"
+       //"http://10.10.21.99:5000/api/task-handler/recycle-bottle"
       setLoading(true);
       const response = await fetch(`${API_URL}/task-handler/recycle-bottle`, {
         method: "POST",
