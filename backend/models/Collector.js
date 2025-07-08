@@ -1,5 +1,4 @@
-// don't change any feild  here , this stored collector related data  you can add fields for your reqiurements but don't delete any feilds 
-// you don't need to add collector id , when user login colloctor id will create and stored here automatically 
+ // you don't need to add collector id , when user login colloctor id will create and stored here automatically 
 const mongoose = require("mongoose");
 
 const collectorSchema = new mongoose.Schema({

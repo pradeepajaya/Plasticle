@@ -1,4 +1,3 @@
-// don't chage any feild  here  this user field is more specific for RBAC login
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({

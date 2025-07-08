@@ -1,4 +1,3 @@
-// src/app/dashboard/page.js
 'use client'; // Mark as a Client Component
 import { useState, useEffect } from 'react';
 import { createTaskHandler, getTaskHandlers } from '../../services/api';

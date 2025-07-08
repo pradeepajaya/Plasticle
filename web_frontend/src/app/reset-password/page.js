@@ -1,4 +1,3 @@
-// src/app/reset-password/page.js
 'use client'; // Mark as a Client Component
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';

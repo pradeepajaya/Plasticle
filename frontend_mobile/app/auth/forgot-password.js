@@ -2,20 +2,18 @@ import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
-//import { API_URL } from '@env';
-// const API_URL = "http://10.10.21.99:5000/api"; // Uncomment and set your real API
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
-  const router = useRouter(); // 🔥 for navigation
+  const router = useRouter(); //for navigation
 
   const handleForgotPassword = async () => {
     try {
       await axios.post(`${API_URL}/auth/forgot-password`, { email });
       Alert.alert("Success", "Password reset link sent to your email.");
-      router.replace("/auth/login"); // ✅ Navigate back to login after success
+      router.replace("/auth/login"); 
     } catch (error) {
       console.error(error);
       Alert.alert("Error", error.response?.data?.message || "Failed to send reset link.");

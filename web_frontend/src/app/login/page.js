@@ -1,4 +1,3 @@
-// src/app/login/page.js
 'use client'; // Mark as a Client Component
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
