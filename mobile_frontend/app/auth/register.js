@@ -311,7 +311,7 @@ import {
 } from '@react-native-google-signin/google-signin';
 
 GoogleSignin.configure( {
-  webClientId:"273634974067-ut4phnd5gnslhlh2nti2237sq6odcl1q.apps.googleusercontent.com"
+  webClientId: // check env file 
 });
 
 
@@ -379,7 +379,7 @@ import {
 } from '@react-native-google-signin/google-signin';
 
 GoogleSignin.configure({
-  webClientId: "273634974067-ut4phnd5gnslhlh2nti2237sq6odcl1q.apps.googleusercontent.com",
+  webClientId: // check env file for webClientId
 });
 
 export default function Index() {
