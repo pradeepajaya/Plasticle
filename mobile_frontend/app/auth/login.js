@@ -72,7 +72,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 
 GoogleSignin.configure({
-  webClientId: "273634974067-ut4phnd5gnslhlh2nti2237sq6odcl1q.apps.googleusercontent.com",
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
 });
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
