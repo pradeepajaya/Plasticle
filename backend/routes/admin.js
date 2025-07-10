@@ -15,4 +15,6 @@ router.delete("/deleteMachine", adminController.deleteMachine);
 router.get("/assignMachine", adminController.assignMachine);
 router.get("/getTaskHandler", adminController.getTaskHandler);
 
+router.get("/filled-bins-with-collectors", adminController.getFilledBinsWithCollectors);
+router.post('/allocate-collector', auth, adminController.allocateCollector);
 module.exports = router;
