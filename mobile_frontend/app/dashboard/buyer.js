@@ -197,6 +197,8 @@ export default function BuyerDashboard() {
         </CameraView>
       )}
 
+        
+
       {!isCameraVisible && (
         <View style={styles.uiContainer}>
           {loading && <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 10 }} />}
@@ -249,3 +251,5 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 });
+
+

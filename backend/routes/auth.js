@@ -13,4 +13,8 @@ router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
 //verify user gmail
 router.get("/verify-email", authController.verifyEmail);
+
+router.post("/google", authController.googleAuth);
+
+
 module.exports = router;

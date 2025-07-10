@@ -2,21 +2,32 @@
   "expo": {
     "name": "mobile_frontend",
     "slug": "mobile_frontend",
+    "owner": "kangaroo3",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobilefrontend",
+    "scheme": "mobile_frontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      },
+      "package": "com.kangaroo3.mobile_frontend",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "bundler": "metro",
@@ -24,6 +35,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      
       "expo-router",
       [
         "expo-splash-screen",
@@ -34,9 +46,20 @@
           "backgroundColor": "#ffffff"
         }
       ]
+      
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "expoClientId": "522202538527-123nk7e0iopgj6chqs92t5vppu4mcn9a.apps.googleusercontent.com",
+      "router": {},
+      "eas": {
+        "projectId": "ff967104-1057-467b-864d-a4d764c54d76"
+      }    
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ff967104-1057-467b-864d-a4d764c54d76"
     }
   }
 }

@@ -1,58 +1,57 @@
 import React, { useEffect, useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Image, 
-  Alert, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  Alert,
   Button,
-  ActivityIndicator, 
-  ScrollView, 
-  StyleSheet 
-} from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import * as FileSystem from 'expo-file-system';
-import * as MediaLibrary from 'expo-media-library';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import * as FileSystem from "expo-file-system";
+import * as MediaLibrary from "expo-media-library";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";  
-import { useRouter } from "expo-router"; // Expo Router navigation if needed
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const TaskHandlerScreen = () => {
-  // State declarations
-  const router = useRouter(); 
+  const router = useRouter();
   const [selectedOption, setSelectedOption] = useState(null);
   const [location, setLocation] = useState(null);
-  const [capacity, setCapacity] = useState('');
-  const [textLocation, setTextLocation] = useState('');
+  const [capacity, setCapacity] = useState("");
+  const [textLocation, setTextLocation] = useState("");
   const [qrCode, setQrCode] = useState(null);
   const [facing, setFacing] = useState("back");
   const [scanned, setScanned] = useState(false);
   const [isCameraVisible, setIsCameraVisible] = useState(false);
-  const [validationMessage, setValidationMessage] = useState('');
+  const [validationMessage, setValidationMessage] = useState("");
   const [permission, requestPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false);
   const [mediaPermission, setMediaPermission] = useState(null);
 
-  // Request media library permission
   useEffect(() => {
     (async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
-      setMediaPermission(status === 'granted');
+      setMediaPermission(status === "granted");
     })();
   }, []);
 
   const handleLogout = async () => {
-  try {
-    await AsyncStorage.removeItem("userToken");
-    router.replace("/auth/login"); // Replace the screen with login
-  } catch (error) {
-    console.error("Logout Error:", error);
-    Alert.alert("Error", "Failed to log out.");
-  }
-};
+    try {
+      await AsyncStorage.removeItem("userToken");
+      router.replace("/auth/login");
+    } catch (error) {
+      console.error("Logout Error:", error);
+      Alert.alert("Error", "Failed to log out.");
+    }
+  };
 
   const handleMapPress = (event) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
@@ -66,7 +65,6 @@ const TaskHandlerScreen = () => {
     }
 
     const locationString = textLocation || `${location.latitude},${location.longitude}`;
-     //"http:// 192.168.50.38:5000/api/bins/createBin"
     try {
       setLoading(true);
       const response = await fetch(`${API_URL}/bins/createBin`, {
@@ -88,9 +86,9 @@ const TaskHandlerScreen = () => {
 
       if (data.qrCodeImage) {
         setQrCode(data.qrCodeImage);
-        setCapacity('');
+        setCapacity("");
         setLocation(null);
-        setTextLocation('');
+        setTextLocation("");
       } else {
         throw new Error("No QR code received from server");
       }
@@ -105,21 +103,21 @@ const TaskHandlerScreen = () => {
   const downloadQR = async () => {
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission required', 'Please grant permission to access media library.');
+      if (status !== "granted") {
+        Alert.alert("Permission required", "Please grant permission to access media library.");
         return;
       }
 
-      const fileUri = FileSystem.documentDirectory + 'bin-qr-code.png';
-      await FileSystem.writeAsStringAsync(fileUri, qrCode.replace(/^data:image\/png;base64,/, ''), {
+      const fileUri = FileSystem.documentDirectory + "bin-qr-code.png";
+      await FileSystem.writeAsStringAsync(fileUri, qrCode.replace(/^data:image\/png;base64,/, ""), {
         encoding: FileSystem.EncodingType.Base64,
       });
 
       await MediaLibrary.saveToLibraryAsync(fileUri);
-      Alert.alert('Success', 'QR Code saved to gallery.');
+      Alert.alert("Success", "QR Code saved to gallery.");
     } catch (err) {
       console.error(err);
-      Alert.alert('Error', 'Failed to download QR code.');
+      Alert.alert("Error", "Failed to download QR code.");
     }
   };
 
@@ -129,16 +127,17 @@ const TaskHandlerScreen = () => {
       setIsCameraVisible(false);
       await validateBottleQRCode(data);
       setTimeout(() => setScanned(false), 3000);
-      setTimeout(() => { setValidationMessage(""); }, 3000);
+      setTimeout(() => {
+        setValidationMessage("");
+      }, 3000);
     }
   };
 
   const validateBottleQRCode = async (qrData) => {
     try {
       console.log("Raw Bottle QR Data:", qrData);
-      
       let bottleId, manufacturerId;
-      
+
       if (qrData.startsWith("{") && qrData.endsWith("}")) {
         const parsedData = JSON.parse(qrData);
         bottleId = parsedData.bottleId;
@@ -159,7 +158,7 @@ const TaskHandlerScreen = () => {
       if (!bottleId || !manufacturerId) {
         throw new Error("Invalid bottle QR format");
       }
-       //"http:// 192.168.50.38:5000/api/task-handler/recycle-bottle"
+
       setLoading(true);
       const response = await fetch(`${API_URL}/task-handler/recycle-bottle`, {
         method: "POST",
@@ -168,15 +167,13 @@ const TaskHandlerScreen = () => {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || "Failed to validate bottle");
       }
 
       setValidationMessage(
-        data.message === "Bottle already recycled" 
-          ? "Bottle already recycled" 
-          : "Bottle recycled successfully!"
+        data.message === "Bottle already recycled" ? "Bottle already recycled" : "Bottle recycled successfully!"
       );
     } catch (error) {
       console.error("Bottle Validation Error:", error);
@@ -191,17 +188,18 @@ const TaskHandlerScreen = () => {
   };
 
   if (!permission) {
-    return <View style={styles.loadingContainer}><ActivityIndicator size="large" /></View>;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
   }
 
   if (!permission.granted) {
     return (
       <View style={styles.permissionContainer}>
         <Text style={styles.permissionText}>We need camera access to scan bottles</Text>
-        <TouchableOpacity 
-          style={styles.permissionButton} 
-          onPress={requestPermission}
-        >
+        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
           <Text style={styles.buttonText}>Grant Permission</Text>
         </TouchableOpacity>
       </View>
@@ -212,25 +210,25 @@ const TaskHandlerScreen = () => {
     <ScrollView contentContainerStyle={styles.container}>
       {!selectedOption && (
         <View style={styles.buttonRow}>
-          <TouchableOpacity 
-            style={[styles.optionButton, { backgroundColor: '#4CAF50' }]} 
-            onPress={() => setSelectedOption('generateBinQR')}
+          <TouchableOpacity
+            style={[styles.optionButton, { backgroundColor: "#4CAF50" }]}
+            onPress={() => setSelectedOption("generateBinQR")}
           >
             <Text style={styles.buttonText}>Generate Bin QR</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.optionButton, { backgroundColor: '#FF9800' }]} 
-            onPress={() => setSelectedOption('scanBottleQR')}
+          <TouchableOpacity
+            style={[styles.optionButton, { backgroundColor: "#FF9800" }]}
+            onPress={() => setSelectedOption("scanBottleQR")}
           >
             <Text style={styles.buttonText}>Scan Bottle QR</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {selectedOption === 'generateBinQR' && (
+      {selectedOption === "generateBinQR" && (
         <View>
-          <TouchableOpacity 
-            style={styles.backButton} 
+          <TouchableOpacity
+            style={styles.backButton}
             onPress={() => {
               setSelectedOption(null);
               setQrCode(null);
@@ -240,29 +238,19 @@ const TaskHandlerScreen = () => {
           </TouchableOpacity>
 
           <Text style={styles.sectionTitle}>Enter Location (optional if using map):</Text>
-          <TextInput
-            placeholder="Enter Location Name"
-            value={textLocation}
-            onChangeText={setTextLocation}
-            style={styles.input}
-          />
+          <TextInput placeholder="Enter Location Name" value={textLocation} onChangeText={setTextLocation} style={styles.input} />
 
           <Text style={styles.sectionTitle}>Or select location on map:</Text>
           <MapView
             style={styles.map}
-            initialRegion={{
-              latitude: 6.9271,
-              longitude: 79.8612,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
+            initialRegion={{ latitude: 6.9271, longitude: 79.8612, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
             onPress={handleMapPress}
           >
             {location && <Marker coordinate={location} />}
           </MapView>
 
           <Text style={styles.label}>
-            Selected Location: {textLocation || (location ? `${location.latitude}, ${location.longitude}` : 'None')}
+            Selected Location: {textLocation || (location ? `${location.latitude}, ${location.longitude}` : "None")}
           </Text>
 
           <TextInput
@@ -273,24 +261,16 @@ const TaskHandlerScreen = () => {
             style={styles.input}
           />
 
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: '#2196F3' }]} 
-            onPress={generateBinQR}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={styles.buttonText}>Generate QR</Text>
-            )}
+          <TouchableOpacity style={[styles.actionButton, { backgroundColor: "#2196F3" }]} onPress={generateBinQR} disabled={loading}>
+            {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Generate QR</Text>}
           </TouchableOpacity>
 
           {qrCode && (
             <View style={styles.qrContainer}>
               <Text style={styles.qrLabel}>Bin QR Code:</Text>
               <Image source={{ uri: qrCode }} style={styles.qrImage} />
-              <TouchableOpacity 
-                style={[styles.actionButton, { backgroundColor: '#673AB7' }]} 
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: "#673AB7" }]}
                 onPress={downloadQR}
                 disabled={!mediaPermission}
               >
@@ -301,13 +281,13 @@ const TaskHandlerScreen = () => {
         </View>
       )}
 
-      {selectedOption === 'scanBottleQR' && (
+      {selectedOption === "scanBottleQR" && (
         <View>
-          <TouchableOpacity 
-            style={styles.backButton} 
+          <TouchableOpacity
+            style={styles.backButton}
             onPress={() => {
               setSelectedOption(null);
-              setValidationMessage('');
+              setValidationMessage("");
             }}
           >
             <Text style={styles.backText}>← Back</Text>
@@ -321,30 +301,28 @@ const TaskHandlerScreen = () => {
                   facing={facing}
                   barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
                   onBarcodeScanned={scanned ? undefined : handleBottleScan}
-                >
-                  <View style={styles.cameraOverlay}>
-                    <View style={styles.scanFrame} />
-                    <Text style={styles.scanHelpText}>Align QR code within frame</Text>
-                  </View>
-                  <TouchableOpacity 
-                    style={styles.flipButton} 
-                    onPress={toggleCameraFacing}
-                  >
+                />
+                <View style={styles.cameraOverlay}>
+                  <View style={styles.scanFrame} />
+                  <Text style={styles.scanHelpText}>Align QR code within frame</Text>
+                  <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
                     <Ionicons name="camera-reverse-outline" size={30} color="white" />
                   </TouchableOpacity>
-                </CameraView>
+                </View>
               </View>
             ) : (
               <View style={styles.scanPromptContainer}>
                 {loading && <ActivityIndicator size="large" color="#007bff" />}
-                <Text style={[
-                  styles.statusText,
-                  validationMessage.includes("Error") ? styles.errorText : styles.successText
-                ]}>
+                <Text
+                  style={[
+                    styles.statusText,
+                    validationMessage.includes("Error") ? styles.errorText : styles.successText,
+                  ]}
+                >
                   {validationMessage || "Ready to scan bottles"}
                 </Text>
                 <TouchableOpacity
-                  style={[styles.actionButton, { backgroundColor: '#FF9800' }]}
+                  style={[styles.actionButton, { backgroundColor: "#FF9800" }]}
                   onPress={() => setIsCameraVisible(true)}
                 >
                   <Text style={styles.buttonText}>Scan Bottle QR</Text>
@@ -354,10 +332,10 @@ const TaskHandlerScreen = () => {
           </View>
         </View>
       )}
-      <View style={{ marginVertical: 10 }}>
-  <Button title="Logout" color="red" onPress={handleLogout} />
-</View>
 
+      <View style={{ marginVertical: 10 }}>
+        <Button title="Logout" color="red" onPress={handleLogout} />
+      </View>
     </ScrollView>
   );
 };

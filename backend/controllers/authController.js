@@ -13,6 +13,10 @@ const nodemailer = require("nodemailer");
 const API_URL = process.env.API_BASE_URL;
 const Front_API_URL=process.env.Reset_frontendpage_API_URL;
 
+// oauth
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_WEB_CLIENT_ID);
+
 
 // User Registration
 exports.register = async (req, res) => {
@@ -31,7 +35,7 @@ exports.register = async (req, res) => {
     // verify 
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
-    user = new User({ username, email, passwordHash, role, verificationToken });
+    user = new User({ username, email, passwordHash, role, verificationToken,  isOAuth:false });
     await user.save();
 
     let roleSpecificDoc;
@@ -77,7 +81,88 @@ exports.register = async (req, res) => {
   }
 };
 
+// oauth 
+
+exports.googleAuth = async (req, res) => {
+  const { name, email, role } = req.body;
+
+  if (!name || !email || !role) {
+    return res.status(400).json({ message: "Name, email, and role are required" });
+  }
+
+  if (!["buyer", "collector", "manufacturer"].includes(role)) {
+    return res.status(400).json({ message: "Invalid role" });
+  }
+
+  try {
+    let user = await User.findOne({ email });
+
+    // If user already exists
+    if (user) {
+      // Optional: check if role matches
+      if (user.role !== role) {
+        return res.status(400).json({ message: "User already registered with a different role." });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      return res.json({
+        token,
+        user: { id: user._id, username: user.username, role: user.role }
+      });
+    }
+
+    // Register new user
+    const newUser = new User({
+      username: name || email.split("@")[0],
+      email,
+      role,
+      isOAuth: true,
+      isVerified: true
+    });
+    await newUser.save();
+
+    // Create role-specific document
+    let roleSpecificDoc;
+    switch (role) {
+      case "buyer":
+        roleSpecificDoc = new Buyer({ userId: newUser._id });
+        break;
+      case "collector":
+        roleSpecificDoc = new Collector({ userId: newUser._id });
+        break;
+      case "manufacturer":
+        roleSpecificDoc = new Manufacturer({ userId: newUser._id });
+        break;
+    }
+    if (roleSpecificDoc) await roleSpecificDoc.save();
+
+    // Generate token
+    const token = jwt.sign(
+      { id: newUser._id, role: newUser.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    return res.status(201).json({
+      token,
+      user: { id: newUser._id, username: newUser.username, role: newUser.role }
+    });
+
+  } catch (error) {
+    console.error("OAuth error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 // User Login
+/*
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   
@@ -106,7 +191,42 @@ exports.login = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
+};*/
+// updated login
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "Invalid email or password" });
+
+    if (user.isOAuth) {
+      return res.status(400).json({ message: "This account uses Google Sign-In. Please log in with Google." });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
+
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Please verify your email before logging in" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      token,
+      user: { id: user._id, username: user.username, role: user.role }
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
+
 
 // Get User Profile
 exports.getUser = async (req, res) => {
@@ -143,7 +263,7 @@ exports.forgotPassword = async (req, res) => {
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // Use App Password, not your real Gmail password
+        pass: process.env.EMAIL_PASS, // App Password gmail 
       },
     });
 
