@@ -41,6 +41,7 @@ mobile_frontend/*.pem
 mobile_frontend/.env*.local
 mobile_frontend/*.tsbuildinfo
 mobile_frontend/app-example
+mobile_frontend/.env
 
 #Node.js Dependencies
 node_modules/
