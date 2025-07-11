@@ -14,7 +14,11 @@ router.post("/reset-password", authController.resetPassword);
 //verify user gmail
 router.get("/verify-email", authController.verifyEmail);
 
+// OAuth login
 router.post("/google", authController.googleAuth);
+
+// delete user account
+router.delete("/delete-account", authenticateToken, authController.deleteUserAccount);
 
 
 module.exports = router;

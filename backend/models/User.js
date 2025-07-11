@@ -28,7 +28,11 @@ const userSchema = new mongoose.Schema({
   },
   isVerified: { type: Boolean, default: false }, // True for OAuth users
   verificationToken: String,
-  isOAuth: { type: Boolean, default: false } // New field to flag OAuth users
+  isOAuth: { type: Boolean, default: false }, // New field to flag OAuth users
+  nickname: { type: String },
+  dateOfBirth: { type: Date },
+  gender: { type: String, enum: ["male", "female", "other"] },
+  hometown: { type: String }
 });
 
 module.exports = mongoose.model("User", userSchema);

@@ -322,3 +322,30 @@ exports.verifyEmail = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// DELETE /user /delete-account / soft -delete user account
+
+exports.deleteUserAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Overwrite the email (to free it for reuse)
+    const timestamp = Date.now();
+    const replacedEmail = `deleted_${timestamp}_${user._id}@deleted.com`;
+
+    await User.findByIdAndUpdate(userId, {
+      email: replacedEmail,
+      passwordHash: null,
+      isVerified: false,
+      isOAuth: false, // Optional: clear OAuth flag
+    });
+
+    res.status(200).json({ message: "Account deleted. You may reuse your email to register again." });
+  } catch (err) {
+    console.error("Delete account error:", err);
+    res.status(500).json({ message: "Server error while deleting account" });
+  }
+};

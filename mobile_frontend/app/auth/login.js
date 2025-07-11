@@ -1,4 +1,4 @@
-/*import React, { useState } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
@@ -57,9 +57,9 @@ const LoginScreen = () => {
 };
 
 export default LoginScreen;
-*/
-    // oauth works fine but cannot test using expo go app , want to use dev build android Emulator 
 
+    // oauth works fine but cannot test using expo go app , want to use dev build android Emulator 
+/*
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, Modal, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
@@ -152,7 +152,7 @@ const proceedWithGoogle = async (selectedRole) => {
         />
       </View>
 
-      {/* Role Selection Modal */}
+      {/* Role Selection Modal *//*}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={{ flex: 1, backgroundColor: "#000000aa", justifyContent: "center", alignItems: "center" }}>
           <View style={{ backgroundColor: "#fff", padding: 20, borderRadius: 10, width: "80%" }}>
@@ -170,3 +170,4 @@ const proceedWithGoogle = async (selectedRole) => {
   );
 };
 export default LoginScreen;
+*/
