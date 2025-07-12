@@ -1,6 +1,7 @@
 const Bottle = require("../models/Bottle");
 const Bin = require("../models/Bin");
 const Collector = require("../models/Collector");
+const User = require("../models/User");
 
 const validateBin = async (req, res) => {
   try {
@@ -116,4 +117,25 @@ const updateCollectorStatus = async (req, res) => {
   }
 };
 
-module.exports = { validateBin, updateCollectorStatus };
+
+// update collector profile information
+
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { nickname, dateOfBirth, gender, hometown } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { nickname, dateOfBirth, gender, hometown },
+      { new: true }
+    );
+
+    res.json({ message: "Profile updated successfully", user });
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+    res.status(500).json({ message: "Server error while updating profile" });
+  }
+};  
+
+module.exports = { validateBin, updateCollectorStatus, updateProfile };

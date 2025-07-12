@@ -84,15 +84,7 @@ const ManufacturerDashboard = () => {
     fetchUserId();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("userToken");
-      router.replace("/auth/login");
-    } catch (error) {
-      console.error("Logout Error:", error);
-      Alert.alert("Error", "Failed to log out.");
-    }
-  };
+  
 
   const generateQRCodes = async () => {
     if (!userId) {
@@ -276,10 +268,6 @@ const ManufacturerDashboard = () => {
           ))}
         </View>
       </ScrollView>
-
-      <View style={{ marginVertical: 10 }}>
-        <Button title="Logout" color="red" onPress={handleLogout} />
-      </View>
     </View>
   );
 };

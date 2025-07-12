@@ -19,6 +19,19 @@ export default function Settings() {
     hometown: '',
   });
 
+// Function to handle logout
+
+  const handleLogout = async () => {
+  try {
+    await AsyncStorage.removeItem("userToken");
+    router.replace("/auth/login"); 
+  } catch (error) {
+    console.error("Logout Error:", error);
+    Alert.alert("Error", "Failed to log out.");
+  }
+};
+
+// Function to handle profile update
   const handleUpdate = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -33,7 +46,7 @@ export default function Settings() {
     }
   };
 
-
+// Function to handle account deletion
   const handleDeleteAccount = () => {
   Alert.alert(
     "Confirm Deletion",
@@ -67,7 +80,8 @@ export default function Settings() {
       <Text style={styles.title}>Buyer Settings Page</Text>
       <Button title="Update Profile" onPress={() => setModalVisible(true)} />
       <Button title="Delete My Account" color="red" onPress={handleDeleteAccount} />
-
+      <Button title="Logout" color="red" onPress={handleLogout} />
+      
       <Modal visible={modalVisible} animationType="slide">
         <View style={styles.modalContent}>
           <Text>Nickname:</Text>

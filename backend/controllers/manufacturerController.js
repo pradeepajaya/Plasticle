@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require("uuid");
 const QRCode = require("qrcode");
 const Manufacturer = require("../models/Manufacturer");
 const Bottle = require("../models/Bottle");
+const User = require("../models/User");
 
 exports.generateQrCodes = async (req, res) => {
     try {
@@ -74,3 +75,22 @@ exports.generateQrCodes = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { companyName, companyLocation,companyRegNumber , companyTelephone } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { companyName, companyLocation, companyRegNumber, companyTelephone },
+      { new: true }
+    );
+
+    res.json({ message: "Profile updated successfully", user });
+  } catch (err) {
+    console.error("Update Profile Error:", err);
+    res.status(500).json({ message: "Server error while updating manufacturer profile" });
+  }
+};
+

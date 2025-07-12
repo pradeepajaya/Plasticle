@@ -62,17 +62,6 @@ export default function BuyerDashboard() {
     fetchUserId();
   }, []);
 
-  const handleLogout = async () => {
-  try {
-    await AsyncStorage.removeItem("userToken");
-    router.replace("/auth/login"); 
-  } catch (error) {
-    console.error("Logout Error:", error);
-    Alert.alert("Error", "Failed to log out.");
-  }
-};
-
-
   const handleScan = async ({ data }) => {
     if (!scanned) {
       setScanned(true);
@@ -210,10 +199,6 @@ export default function BuyerDashboard() {
           </TouchableOpacity>
         </View>
       )}
-
-      <View style={{ marginVertical: 10 }}>
-  <Button title="Logout" color="red" onPress={handleLogout} />
-</View>
 
     </View>
   );

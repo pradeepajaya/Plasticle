@@ -5,7 +5,7 @@
     "owner": "kangaroo3",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logoplasticle.png",
     "scheme": "mobile_frontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
