@@ -6,8 +6,7 @@ const binSchema = new mongoose.Schema({
   location: { type: String, required: true },
   capacity: { type: Number, required: true },
   currentFill: { type: Number, default: 0 },
-  status: { type: String, enum: ["active", "full","assigned", "inactive"], default: "active" },
-  assignedTo: { type: String, default: null }, //added by sk
+  status: { type: String, enum: ["active", "full", "inactive"], default: "active" },
 });
 
 const Bin = mongoose.model("Bin", binSchema);

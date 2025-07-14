@@ -1,10 +1,7 @@
 'use client'; // Mark as a Client Component
 import { useState, useEffect } from 'react';
 import { createTaskHandler, getTaskHandlers } from '../../services/api';
-
-
 import { useRouter } from 'next/navigation'; // Correct import for Next.js App Router
-import Navbar from '../components/navbar';
 
 export default function AdminDashboard() {
   const [taskHandlers, setTaskHandlers] = useState([]);
@@ -39,15 +36,13 @@ export default function AdminDashboard() {
 
   
 
-  //  Logout Function
+  // Logout Function
   const handleLogout = () => {
-    localStorage.removeItem('token'); //  Remove stored auth token
+    localStorage.removeItem('token'); // Remove stored auth token
     router.push('/login'); // Redirect to login page
   };
 
   return (
-    <>
-    <Navbar/>
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
       <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
@@ -67,6 +62,5 @@ export default function AdminDashboard() {
         ))}
       </ul>
     </div>
-    </>
   );
 }

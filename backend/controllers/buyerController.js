@@ -1,6 +1,7 @@
 const Bottle = require("../models/Bottle");
 const Bin = require("../models/Bin");
 const Buyer = require("../models/Buyer");
+const User = require("../models/User");
 
 // Validate Bin QR Code
 const validateBinQRCode = async (req, res) => {
@@ -89,7 +90,30 @@ const validateBottleQRCode = async (req, res) => {
   }
 };
 
+ // update buyer profile  
+
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { nickname, dateOfBirth, gender, hometown } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { nickname, dateOfBirth, gender, hometown },
+      { new: true }
+    );
+
+    res.json({ message: "Profile updated successfully", user });
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+    res.status(500).json({ message: "Server error while updating profile" });
+  }
+};  
+
+// update buyer profile end 
+
 module.exports = {
   validateBinQRCode,
   validateBottleQRCode,
+  updateProfile,
 };
