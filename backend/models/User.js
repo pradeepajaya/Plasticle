@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema({
   companyLocation: { type: String },
   companyRegNumber: { type: String },
   companyTelephone: { type: String },
+
+  //user profile image
+  profilePicture: { type: String }, // base64 string or image URL
+
   
 });
 

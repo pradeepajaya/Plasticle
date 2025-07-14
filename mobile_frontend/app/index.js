@@ -66,6 +66,7 @@ export default function Index() {
 }
 
 
+
 /*import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { View, ActivityIndicator } from "react-native";

@@ -138,4 +138,44 @@ const updateProfile = async (req, res) => {
   }
 };  
 
-module.exports = { validateBin, updateCollectorStatus, updateProfile };
+// update buyer profile image
+
+const updateProfilePicture = async (req, res) => {
+  try {
+    const { profilePicture } = req.body;
+
+    if (!profilePicture) {
+      return res.status(400).json({ message: "Profile picture is required" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { profilePicture },
+      { new: true }
+    );
+
+    res.json({ message: "Profile picture updated", profilePicture: user.profilePicture });
+  } catch (err) {
+    console.error("Profile picture update error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// get profile picture
+
+const getProfilepicture = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-passwordHash');
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user });
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture };

@@ -178,7 +178,7 @@ export default function RegisterScreen() {
       Alert.alert(response.data.message);
       router.replace("/auth/login");
     } catch (error) {
-      console.error("Registration Error:", error.response?.data || error.message);
+      //console.error("Registration Error:", error.response?.data || error.message);
       Alert.alert("Error", error.response?.data?.message || "Registration failed");
     }
   };
@@ -234,7 +234,7 @@ export default function RegisterScreen() {
               theme={{ roundness: 20 }}
             />
 
-            <Text style={{ marginBottom: 5 }}  >Who am i ?</Text>
+            <Text style={{ marginBottom: 5 }}  >Register Me As </Text>
             <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={formData.role}

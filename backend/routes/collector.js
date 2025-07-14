@@ -14,4 +14,11 @@ router.post("/update-status", updateCollectorStatus);
 router.put("/update-profile",authenticateToken, collectorController.updateProfile);
 
 
+//update collector profile image
+
+router.put("/update-profile-picture", authenticateToken, collectorController.updateProfilePicture);
+
+// Get collector  profile picture
+router.get('/profile', authenticateToken, collectorController.getProfilepicture);
+
 module.exports = router;
