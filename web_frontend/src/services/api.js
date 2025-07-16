@@ -12,3 +12,5 @@ API.interceptors.request.use((req) => {
 export const login = (formData) => API.post('/auth/login', formData);
 export const createTaskHandler = (data) => API.post('/admin/create-task-handler', data);
 export const getTaskHandlers = () => API.get('/admin/task-handlers');
+// Soft delete (deactivate) a task handler
+export const deactivateTaskHandler = (id) => API.put(`/admin/deactivate-taskhandler/${id}`);

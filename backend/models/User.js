@@ -45,6 +45,9 @@ const userSchema = new mongoose.Schema({
   //user profile image
   profilePicture: { type: String }, // base64 string or image URL
 
+  //Task Handler-specific fields
+  isActive: { type: Boolean, default: true }, // New field for soft delete
+
   
 });
 
