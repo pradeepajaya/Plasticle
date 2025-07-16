@@ -1,3 +1,4 @@
+ // no ui updated 
 /*import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, Modal, ScrollView } from "react-native";
 import { Picker } from "@react-native-picker/picker";
@@ -104,7 +105,221 @@ export default function RegisterScreen(){
   );
 };
 */
+
+// ui updated new 
 import React, { useState } from "react";
+import {
+  View,
+  ScrollView,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+} from "react-native";
+import {
+  Text,
+  TextInput,
+  Button,
+  Modal,
+  Portal,
+  Checkbox,
+  ProgressBar,
+} from "react-native-paper";
+import { LinearGradient } from "expo-linear-gradient";
+import { Picker } from "@react-native-picker/picker";
+import { useRouter } from "expo-router";
+import axios from "axios";
+import uiStyles from "./styles";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+const passwordStrength = (password) => {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  return score / 4;
+};
+
+const privacyPolicies = {
+  buyer: "Buyer Privacy Policy: You agree to share personal information for transactions.",
+  collector: "Collector Privacy Policy: You agree to handle collected materials responsibly.",
+  manufacturer: "Manufacturer Privacy Policy: You must ensure compliance with regulations.",
+};
+
+export default function RegisterScreen() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "buyer",
+  });
+  const [isChecked, setIsChecked] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleRegister = async () => {
+    if (!isChecked) {
+      Alert.alert("Error", "You must accept the Privacy Policy to continue.");
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
+      return;
+    }
+    if (formData.password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters long.");
+      return;
+    }
+    try {
+      const response = await axios.post(`${API_URL}/auth/register`, formData);
+      Alert.alert(response.data.message);
+      router.replace("/auth/login");
+    } catch (error) {
+      Alert.alert("Error", error.response?.data?.message || "Registration failed");
+    }
+  };
+
+  const passwordScore = passwordStrength(formData.password);
+
+  return (
+    <LinearGradient colors={["#1d5c4a", "#26735d"]} style={uiStyles.background}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={uiStyles.container} keyboardShouldPersistTaps="handled">
+          <View style={uiStyles.headerWrapper}>
+            <Text style={uiStyles.title}>Let’s</Text>
+            <Text style={uiStyles.boldTitle}>Create</Text>
+            <Text style={uiStyles.boldTitle}>Yoour Account</Text>
+          </View>
+
+          <View style={uiStyles.card}>
+            <TextInput
+              placeholder="Full Name"
+              value={formData.username}
+              onChangeText={(text) => setFormData({ ...formData, username: text })}
+              style={uiStyles.input}
+              mode="outlined"
+              left={<TextInput.Icon icon="account" />}
+              theme={{ roundness: 25 }}
+            />
+            <TextInput
+              placeholder="Email Address"
+              value={formData.email}
+              onChangeText={(text) => setFormData({ ...formData, email: text })}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={uiStyles.input}
+              mode="outlined"
+              left={<TextInput.Icon icon="email" />}
+              theme={{ roundness: 25 }}
+            />
+            <TextInput
+              placeholder="Password"
+              secureTextEntry
+              value={formData.password}
+              onChangeText={(text) => setFormData({ ...formData, password: text })}
+              style={uiStyles.input}
+              mode="outlined"
+              left={<TextInput.Icon icon="lock" />}
+              theme={{ roundness: 25 }}
+            />
+            <TextInput
+              placeholder="Retype Password"
+              secureTextEntry
+              value={formData.confirmPassword}
+              onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
+              style={uiStyles.input}
+              mode="outlined"
+              left={<TextInput.Icon icon="lock-check" />}
+              theme={{ roundness: 25 }}
+            />
+
+            {formData.password.length > 0 && (
+              <View style={{ marginBottom: 10 }}>
+                <ProgressBar
+                  progress={passwordScore}
+                  color={
+                    passwordScore < 0.3 ? "red" : passwordScore < 0.6 ? "orange" : "green"
+                  }
+                />
+                <Text style={{ fontSize: 12, color: "#555" }}>
+                  Strength: {["Weak", "Moderate", "Strong", "Very Strong"][Math.floor(passwordScore * 4)]}
+                </Text>
+              </View>
+            )}
+            <Text style={{ marginBottom: 5, fontWeight: "bold", color: "#333" }}>Who am I?</Text>
+            <View style={{ width: "100%", marginBottom: 10 }}>
+              <Picker
+                selectedValue={formData.role}
+                onValueChange={(itemValue) => setFormData({ ...formData, role: itemValue })}
+              >
+                <Picker.Item label="Consumer" value="buyer" />
+                <Picker.Item label="Collector" value="collector" />
+                <Picker.Item label="Manufacturer" value="manufacturer" />
+              </Picker>
+            </View>
+
+            <View style={uiStyles.checkboxRow}>
+              <Checkbox
+                status={isChecked ? "checked" : "unchecked"}
+                onPress={() => setIsChecked(!isChecked)}
+              />
+              <Text onPress={() => setModalVisible(true)} style={uiStyles.privacyText}>
+                I agree to the <Text style={{ fontWeight: "bold" }}>Terms & Privacy</Text>
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              disabled={!isChecked}
+              style={[uiStyles.button, { opacity: isChecked ? 1 : 0.5 }]}
+              onPress={handleRegister}
+            >
+              <Text style={uiStyles.buttonText}>Sign Up</Text>
+            </TouchableOpacity>
+
+            <Text style={uiStyles.signInText}>
+              Have an account?{' '}
+              <Text onPress={() => router.replace("/auth/login")} style={{ fontWeight: "bold" }}>
+                Sign In
+              </Text>
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <Portal>
+        <Modal
+          visible={modalVisible}
+          onDismiss={() => setModalVisible(false)}
+          contentContainerStyle={uiStyles.modalContainer}
+        >
+          <ScrollView>
+            <Text variant="titleMedium" style={{ marginBottom: 10 }}>
+              Privacy Policy
+            </Text>
+            <Text style={{ color: "#4CAF50" }}>{privacyPolicies[formData.role]}</Text>
+            <Button mode="outlined" onPress={() => setModalVisible(false)} style={{ marginTop: 10 }}>
+              Close
+            </Button>
+          </ScrollView>
+        </Modal>
+      </Portal>
+    </LinearGradient>
+  );
+}
+
+
+
+// ui updated old 
+
+/*import React, { useState } from "react";
 import {
   View,
   ScrollView,
@@ -284,7 +499,7 @@ export default function RegisterScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Privacy Policy Modal */}
+      {/* Privacy Policy Modal *//*}
       <Portal>
         <Modal
           visible={modalVisible}
@@ -304,3 +519,5 @@ export default function RegisterScreen() {
   );
 }
 
+
+*/
