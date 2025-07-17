@@ -181,6 +181,8 @@ import {
   deactivateTaskHandler,
 } from '../../services/api';
 import { useRouter } from 'next/navigation';
+import Sidebar from '../components/sidebar';
+
 
 export default function AdminDashboard() {
   const [taskHandlers, setTaskHandlers] = useState([]);
@@ -217,15 +219,15 @@ export default function AdminDashboard() {
   };
 
   const handleDeactivate = async (id) => {
-  try {
-    await deactivateTaskHandler(id);
-    alert('Task handler deactivated');
-    fetchHandlers(); // Refresh list
-  } catch (error) {
-    console.error('Failed to deactivate handler', error);
-    alert('Failed to deactivate task handler');
-  }
-};
+    try {
+      await deactivateTaskHandler(id);
+      alert('Task handler deactivated');
+      fetchHandlers(); // Refresh list
+    } catch (error) {
+      console.error('Failed to deactivate handler', error);
+      alert('Failed to deactivate task handler');
+    }
+  };
 
 
   const handleLogout = () => {
@@ -234,74 +236,76 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 via-emerald-700 to-green-600 p-6">
-      <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 text-white">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg shadow"
-          >
-            Logout
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="grid gap-4 mb-8">
-          <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-            className="bg-white/20 placeholder-white/80 text-white px-4 py-3 rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="bg-white/20 placeholder-white/80 text-white px-4 py-3 rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            className="bg-white/20 placeholder-white/80 text-white px-4 py-3 rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-          />
-          <button
-            type="submit"
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-lg shadow transition duration-200"
-          >
-            Create Task Handler
-          </button>
-        </form>
-
-        <h2 className="text-2xl font-semibold mb-4">Existing Task Handlers</h2>
-        <ul className="space-y-3">
-          {taskHandlers.map((handler) => (
-            <li
-              key={handler._id}
-              className="bg-white/10 border border-white/20 px-4 py-3 rounded-lg backdrop-blur-sm shadow hover:shadow-md transition duration-200 flex justify-between items-center"
+    <div className="flex min-h-screen bg-gradient-to-br from-green-900 via-emerald-700 to-green-600">
+  <Sidebar />
+  <div className="flex-grow bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 text-white min-h-screen"><div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 text-white">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg shadow"
             >
-              <div>
-                <span className="font-medium">{handler.username}</span>{' '}
-                — <span className="text-sm opacity-80">{handler.role}</span>
-              </div>
-              <button
-                onClick={() => handleDeactivate(handler._id)}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded shadow"
+              Logout
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="grid gap-4 mb-8">
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              className="bg-white/20 placeholder-white/80 text-white px-4 py-3 rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="bg-white/20 placeholder-white/80 text-white px-4 py-3 rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="bg-white/20 placeholder-white/80 text-white px-4 py-3 rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            />
+            <button
+              type="submit"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-lg shadow transition duration-200"
+            >
+              Create Task Handler
+            </button>
+          </form>
+
+          <h2 className="text-2xl font-semibold mb-4">Existing Task Handlers</h2>
+          <ul className="space-y-3">
+            {taskHandlers.map((handler) => (
+              <li
+                key={handler._id}
+                className="bg-white/10 border border-white/20 px-4 py-3 rounded-lg backdrop-blur-sm shadow hover:shadow-md transition duration-200 flex justify-between items-center"
               >
-                Deactivate
-              </button>
-            </li>
-          ))}
-        </ul>
+                <div>
+                  <span className="font-medium">{handler.username}</span>{' '}
+                  — <span className="text-sm opacity-80">{handler.role}</span>
+                </div>
+                <button
+                  onClick={() => handleDeactivate(handler._id)}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded shadow"
+                >
+                  Deactivate
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
