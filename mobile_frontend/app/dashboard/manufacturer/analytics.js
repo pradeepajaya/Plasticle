@@ -1,11 +1,19 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
 
 export default function Analytics() {
   return (
-	<View style={styles.container}>
+    <LinearGradient
+      colors={['#e8f5e9', '#a5d6a7', '#388e3c']}
+      style={{ flex: 1 }}
+    >
+      <View style={styles.container}>
+
 	  <Text style={styles.title}>manufacturer Analytics Page</Text>
 	  <Text>This is where analytics related to the buyer will be shown.</Text>
-	</View>
+      </View>
+    </LinearGradient>
   );
 }
 

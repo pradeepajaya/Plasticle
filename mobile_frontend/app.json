@@ -5,7 +5,11 @@
     "owner": "kangaroo3",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "assets": [
+      "./assets/fonts/",
+      "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons"
+    ],
+    "icon": "./assets/images/logoplasticle.png",
     "scheme": "mobile_frontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -23,7 +27,7 @@
       "edgeToEdgeEnabled": true,
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyCiB4iiZYHPtCR6BW3PM2XFnbgiqkaz1AI"
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
         }
       },
       "package": "com.kangaroo3.mobile_frontend",
@@ -35,20 +39,18 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-  "expo-router",
-  [
-    "expo-splash-screen",
-    {
-      "image": "./assets/images/splash-icon.png",
-      "imageWidth": 200,
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    }
-  ],
-  "expo-web-browser"
-]
-
-,
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true
     },

@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  Button,
-  StyleSheet,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
@@ -12,8 +10,11 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import styles from "./_styles";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 
 export default function BuyerDashboard() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function BuyerDashboard() {
   const [binId, setBinId] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showScanButton, setShowScanButton] = useState(true);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -59,16 +61,6 @@ export default function BuyerDashboard() {
     fetchUserId();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("userToken");
-      router.replace("/auth/login");
-    } catch (error) {
-      console.error("Logout Error:", error);
-      Alert.alert("Error", "Failed to log out.");
-    }
-  };
-
   const handleScan = async ({ data }) => {
     if (!scanned) {
       setScanned(true);
@@ -99,12 +91,15 @@ export default function BuyerDashboard() {
         setValidationMessage("Bin validated successfully");
         setBinId(scannedBinId);
         setScanBin(false);
+        setShowScanButton(true);
       } else {
-        setValidationMessage(`${data.message}`);
+        setValidationMessage(`Error: ${data.message}`);
+        setShowScanButton(true);
       }
     } catch (error) {
       console.error("Error parsing or validating Bin QR Code:", error);
-      setValidationMessage("Invalid Bin QR Code format");
+      setValidationMessage("Error: Invalid Bin QR Code format");
+      setShowScanButton(true);
     } finally {
       setLoading(false);
     }
@@ -112,7 +107,8 @@ export default function BuyerDashboard() {
 
   const validateBottleQRCode = async (qrData) => {
     if (!binId || !userId) {
-      setValidationMessage("Bin ID or User ID is missing. Please scan the bin QR first.");
+      setValidationMessage("Error: Bin ID or User ID is missing. Please scan the bin QR first.");
+      setShowScanButton(true);
       return;
     }
 
@@ -127,16 +123,19 @@ export default function BuyerDashboard() {
       }
 
       if (!bottleId) {
-        setValidationMessage("Bottle ID not found in QR code");
+        setValidationMessage("Error: Bottle ID not found in QR code");
+        setShowScanButton(true);
         return;
       }
     } catch (error) {
       console.error("Error parsing Bottle QR Code:", error);
-      setValidationMessage("Invalid Bottle QR Code format");
+      setValidationMessage("Error: Invalid Bottle QR Code format");
+      setShowScanButton(true);
       return;
     }
 
     setLoading(true);
+    setShowScanButton(false);
     try {
       const response = await fetch(`${API_URL}/buyer/validate-bottle`, {
         method: "POST",
@@ -146,16 +145,21 @@ export default function BuyerDashboard() {
 
       const data = await response.json();
       if (data.message === "Bottle added to bin") {
-        setValidationMessage("Bottle added to bin successfully");
-        setScanBin(true);
-        setBinId(null);
-        setTimeout(() => setValidationMessage(""), 5000);
+        setValidationMessage("Success: Bottle added to bin successfully");
+        setTimeout(() => {
+          setScanBin(true);
+          setBinId(null);
+          setValidationMessage("");
+          setShowScanButton(true);
+        }, 3000);
       } else {
-        setValidationMessage(`${data.message}`);
+        setValidationMessage(`Error: ${data.message}`);
+        setShowScanButton(true);
       }
     } catch (error) {
       console.error("Bottle validation error:", error);
-      setValidationMessage("Error validating Bottle QR Code");
+      setValidationMessage("Error: Failed to validate Bottle QR Code");
+      setShowScanButton(true);
     } finally {
       setLoading(false);
     }
@@ -167,12 +171,13 @@ export default function BuyerDashboard() {
 
   const handleCameraBack = () => {
     if (scanBin) {
-      setIsCameraVisible(false); // back to bin scan screen
+      setIsCameraVisible(false);
     } else {
-      setScanBin(true); // go back to bin scan
+      setScanBin(true);
       setBinId(null);
       setIsCameraVisible(false);
       setValidationMessage("Please scan the Bin QR again.");
+      setShowScanButton(true);
     }
   };
 
@@ -180,6 +185,7 @@ export default function BuyerDashboard() {
     setScanBin(true);
     setBinId(null);
     setValidationMessage("Please scan the Bin QR again.");
+    setShowScanButton(true);
   };
 
   if (!permission) return <View />;
@@ -193,93 +199,98 @@ export default function BuyerDashboard() {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient 
+      colors={["#E8F5E9", "#C8E6C9", "#A5D6A7"]} 
+      style={styles.container}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
       {isCameraVisible && (
-        <CameraView
-          style={styles.camera}
-          facing={facing}
-          barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-          onBarcodeScanned={handleScan}
-        >
-          <View style={styles.overlay}>
-            <View style={styles.scanArea} />
-          </View>
-          <TouchableOpacity style={styles.flipIcon} onPress={toggleCameraFacing}>
-            <Ionicons name="camera-reverse-outline" size={30} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.backButton} onPress={handleCameraBack}>
-            <Ionicons name="arrow-back-circle" size={35} color="white" />
-          </TouchableOpacity>
-        </CameraView>
+        <View style={styles.cameraContainer}>
+          <CameraView
+            style={styles.camera}
+            facing={facing}
+            barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+            onBarcodeScanned={handleScan}
+          >
+            <View style={styles.overlay}>
+              <View style={styles.scanArea}>
+                <View style={styles.scanAreaBorder} />
+              </View>
+            </View>
+            <TouchableOpacity style={styles.flipIcon} onPress={toggleCameraFacing}>
+              <Ionicons name="camera-reverse-outline" size={30} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.backButton} onPress={handleCameraBack}>
+              <Ionicons name="arrow-back-circle" size={35} color="white" />
+            </TouchableOpacity>
+          </CameraView>
+        </View>
       )}
 
       {!isCameraVisible && (
         <View style={styles.uiContainer}>
-          {loading && <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 10 }} />}
-          <Text style={styles.statusText}>
-            {validationMessage || "Welcome to the Buyer Dashboard"}
-          </Text>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#4CAF50" />
+              <Text style={styles.loadingText}>Processing...</Text>
+            </View>
+          ) : (
+            <>
+              {validationMessage ? (
+                <View style={[
+                  styles.messageContainer,
+                  validationMessage.startsWith("Error") 
+                    ? styles.errorContainer 
+                    : styles.successContainer
+                ]}>
+                  {validationMessage.startsWith("Error") ? (
+                    <Ionicons name="close-circle" size={24} color="#FF3B30" style={styles.icon} />
+                  ) : (
+                    <Ionicons name="checkmark-circle" size={24} color="#4CAF50" style={styles.icon} />
+                  )}
+                  <Text style={styles.statusText}>
+                    {validationMessage}
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.welcomeContainer}>
+                  <Ionicons name="qr-code" size={60} color="#4CAF50" style={styles.qrIcon} />
+                  <Text style={styles.welcomeText}>Plasticle</Text>
+                  <Text style={styles.subText}>Scan QR codes to get points</Text>
+                </View>
+              )}
 
-          <TouchableOpacity style={styles.actionButton} onPress={() => setIsCameraVisible(true)}>
-            <Text style={styles.buttonText}>{scanBin ? "Scan Bin QR" : "Scan Bottle QR"}</Text>
-          </TouchableOpacity>
+              {showScanButton && (
+                <TouchableOpacity 
+                  style={styles.actionButton}
+                  onPress={() => setIsCameraVisible(true)}
+                >
+                  <View style={styles.buttonContent}>
+                    <Ionicons 
+                      name="camera" 
+                      size={24} 
+                      color="white" 
+                      style={styles.cameraIcon} 
+                    />
+                    <Text style={styles.buttonText}>
+                      {scanBin ? "Scan Bin QR" : "Scan Bottle QR"}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
 
-          {/* 👇 NEW back button for Scan Bottle QR screen */}
-          {!scanBin && (
-            <TouchableOpacity style={styles.backButtonText} onPress={handleScanBottleBack}>
-              <Text style={{ color: "blue", fontSize: 16 }}>⬅ Back to Bin Scan</Text>
-            </TouchableOpacity>
+              {!scanBin && showScanButton && (
+                <TouchableOpacity style={styles.backButtonText} onPress={handleScanBottleBack}>
+                  <Text style={styles.backButtonLabel}>
+                    <Ionicons name="arrow-back" size={16} color="#4CAF50" /> Back to Bin Scan
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
         </View>
       )}
-
-      <View style={{ marginVertical: 10 }}>
-        <Button title="Logout" color="red" onPress={handleLogout} />
-      </View>
-    </View>
+    </LinearGradient>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  message: { textAlign: "center", marginTop: 20 },
-  camera: { flex: 1 },
-  overlay: { flex: 1, justifyContent: "center", alignItems: "center" },
-  scanArea: { width: 250, height: 250, borderWidth: 2, borderColor: "white", borderRadius: 10 },
-  uiContainer: { justifyContent: "center", alignItems: "center", flex: 1 },
-  actionButton: {
-    backgroundColor: "black",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  buttonText: { color: "white", fontSize: 18 },
-  statusText: {
-    textAlign: "center",
-    marginTop: 30,
-    fontSize: 16,
-    fontWeight: "500",
-    color: "green",
-    paddingHorizontal: 20,
-  },
-  flipIcon: {
-    position: "absolute",
-    right: 20,
-    bottom: 30,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 10,
-    borderRadius: 50,
-  },
-  backButton: {
-    position: "absolute",
-    left: 20,
-    top: 40,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 8,
-    borderRadius: 50,
-  },
-  backButtonText: {
-    marginTop: 15,
-  },
-});

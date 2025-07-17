@@ -1,15 +1,24 @@
-/*import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
+
+import { useState } from "react";
+import { View, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Alert, Image} from "react-native";
+import { Text, TextInput, Button, useTheme,} from "react-native-paper";
+import { LinearGradient } from "expo-linear-gradient";
+import styles from "./styles";
+
 import { useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-const LoginScreen = () => {
+export default function LoginScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // ← Add this line
+
 
   const handleLogin = async () => {
     try {
@@ -21,45 +30,87 @@ const LoginScreen = () => {
         return;
       }
 
-      // Save token to AsyncStorage
       await AsyncStorage.setItem("userToken", token);
 
-      // Navigate based on user role
-      if (user.role === "buyer") {
-        router.replace("/dashboard/buyer");
-      } else if (user.role === "collector") {
-        router.replace("/dashboard/collector");
-      } else if (user.role === "manufacturer") {
-        router.replace("/dashboard/manufacturer");
-      } else if (user.role === "taskhandler") {
-        router.replace("/dashboard/task-handler");
-      } else {
-        Alert.alert("Login failed", "Invalid user role.");
-      }
+      if (user.role === "buyer") router.replace("/dashboard/buyer");
+      else if (user.role === "collector") router.replace("/dashboard/collector");
+      else if (user.role === "manufacturer") router.replace("/dashboard/manufacturer");
+      else if (user.role === "taskhandler") router.replace("/dashboard/task-handler");
+      else Alert.alert("Login failed", "Invalid user role.");
     } catch (error) {
-      console.error("Login Error:", error.response?.data || error.message);
+      //console.error("Login Error:", error.response?.data || error.message);
       Alert.alert("Login Error", error.response?.data?.message || "Invalid credentials");
     }
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text>Email:</Text>
-      <TextInput value={email} onChangeText={setEmail} style={{ borderWidth: 1, padding: 5, marginBottom: 10 }} />
-      <Text>Password:</Text>
-      <TextInput secureTextEntry value={password} onChangeText={setPassword} style={{ borderWidth: 1, padding: 5, marginBottom: 10 }} />
+    <LinearGradient colors={["#cde9b8", "#a3d977", "#76b852"]} style={styles.background}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <View style={styles.card}>
+            <Image
+              source={require("../../../assets/images/logoplasticle.png")} // ✅ Update path to your logo
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text variant="headlineMedium" style={styles.header}>Login</Text>
 
-      <Button title="Login" onPress={handleLogin} />
-      <Button title="Register" onPress={() => router.push( "/auth/register")}/>
-      <Button title="Forgot Password?" onPress={() => router.push("/auth/forgot-password")}/>
-    </View>
+            <TextInput
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              mode="outlined"
+              //style={styles.input} 
+              style={[styles.input, { fontSize: 18 }]}
+              right={<TextInput.Icon icon="email" />}
+              
+/>
+
+            <TextInput
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              mode="outlined"
+              style={[styles.input, { fontSize: 18,  }]}
+             // right={<TextInput.Icon icon="lock" />} 
+               right={
+    <TextInput.Icon
+      icon={showPassword ? "eye-off" : "eye"}
+      onPress={() => setShowPassword(!showPassword)}
+    />
+  }
+            />
+
+            <Button mode="contained" onPress={handleLogin} style={styles.loginButton}>
+              Login
+            </Button>
+
+            <TouchableOpacity onPress={() => router.push("/auth/register")}>
+              <Text style={styles.linkText}>
+                Don't have an account? <Text style={[{fontSize:14, color:"black"},styles.linkBold]}>Register</Text>
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.push("/auth/forgot-password")}>
+              <Text style={styles.linkText}>
+                Forgot Password?
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
-};
+}
 
-export default LoginScreen;
-*/
+
+
+
     // oauth works fine but cannot test using expo go app , want to use dev build android Emulator 
-
+/*
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, Modal, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
@@ -152,7 +203,7 @@ const proceedWithGoogle = async (selectedRole) => {
         />
       </View>
 
-      {/* Role Selection Modal */}
+      {/* Role Selection Modal *//*}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={{ flex: 1, backgroundColor: "#000000aa", justifyContent: "center", alignItems: "center" }}>
           <View style={{ backgroundColor: "#fff", padding: 20, borderRadius: 10, width: "80%" }}>
@@ -169,4 +220,4 @@ const proceedWithGoogle = async (selectedRole) => {
     </View>
   );
 };
-export default LoginScreen;
+export default LoginScreen;*/

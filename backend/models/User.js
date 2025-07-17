@@ -29,10 +29,23 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false }, // True for OAuth users
   verificationToken: String,
   isOAuth: { type: Boolean, default: false }, // New field to flag OAuth users
+
+  //Buyer/Collector-specific fields
   nickname: { type: String },
   dateOfBirth: { type: Date },
   gender: { type: String, enum: ["male", "female", "other"] },
-  hometown: { type: String }
+  hometown: { type: String },
+
+  // Manufacturer-specific fields
+  companyName: { type: String },
+  companyLocation: { type: String },
+  companyRegNumber: { type: String },
+  companyTelephone: { type: String },
+
+  //user profile image
+  profilePicture: { type: String }, // base64 string or image URL
+
+  
 });
 
 module.exports = mongoose.model("User", userSchema);

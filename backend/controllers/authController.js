@@ -12,6 +12,7 @@ const nodemailer = require("nodemailer");
 
 const API_URL = process.env.API_BASE_URL;
 const Front_API_URL=process.env.Reset_frontendpage_API_URL;
+const email_verifiedpage_API_URL=process.env.email_verifiedpage_API_URL;
 
 // oauth
 const { OAuth2Client } = require('google-auth-library');
@@ -316,10 +317,17 @@ exports.verifyEmail = async (req, res) => {
     user.verificationToken = undefined;
     await user.save();
 
-    res.status(200).json({ message: "Email verified successfully!" });
+   //const email_verifiedpage_API_URL=process.env.email_verifiedpage_API_URL;
+   
+   const successURL = `${email_verifiedpage_API_URL}/email-verify?status=success`;
+    //res.status(200).json({ message: "Email verified successfully!" });
+    return res.redirect(successURL);
+    
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    const errorURL = `${process.env.email_verifiedpage_API_URL}/email-verify?status=error`;
+    return res.redirect(errorURL);
+    //res.status(500).json({ message: "Server error" });
   }
 };
 

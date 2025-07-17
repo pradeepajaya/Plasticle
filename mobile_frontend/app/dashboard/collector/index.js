@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  Button,
-  StyleSheet,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
@@ -13,6 +11,8 @@ import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import styles from "./_styles";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -59,16 +59,6 @@ export default function CollectorDashboard() {
     fetchUserId();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("userToken");
-      router.replace("/auth/login");
-    } catch (error) {
-      console.error("Logout Error:", error);
-      Alert.alert("Error", "Failed to log out.");
-    }
-  };
-
   const handleScan = async ({ data }) => {
     if (!scanned) {
       setScanned(true);
@@ -101,11 +91,11 @@ export default function CollectorDashboard() {
         setValidationMessage(data.message || "Bin successfully collected!");
         setTimeout(() => setValidationMessage(""), 5000);
       } else {
-        setValidationMessage(data.error || "Error validating bin.");
+        setValidationMessage(`Error: ${data.error || "Failed to validate bin"}`);
       }
     } catch (error) {
       console.error("Error parsing QR code data:", error);
-      setValidationMessage("Invalid Bin QR Code format.");
+      setValidationMessage("Error: Invalid Bin QR Code format");
     } finally {
       setLoading(false);
     }
@@ -138,15 +128,18 @@ export default function CollectorDashboard() {
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
-      Alert.alert("Success", "Status updated successfully");
+      setValidationMessage("Success: Location updated successfully");
+      setTimeout(() => setValidationMessage(""), 5000);
     } catch (err) {
       console.error("Error updating status:", err);
-      Alert.alert("Error", err.message || "Failed to update status");
+      setValidationMessage(`Error: ${err.message || "Failed to update location"}`);
     }
   };
 
   const toggleAvailability = () => {
     setActivePersonal((prev) => !prev);
+    setValidationMessage(`You are now ${!activePersonal ? "available" : "unavailable"}`);
+    setTimeout(() => setValidationMessage(""), 3000);
   };
 
   const toggleCameraFacing = () => {
@@ -164,123 +157,95 @@ export default function CollectorDashboard() {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={["#E8F5E9", "#C8E6C9", "#A5D6A7"]} style={styles.container}>
       {isCameraVisible && (
-        <CameraView
-          style={styles.camera}
-          facing={facing}
-          barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-          onBarcodeScanned={handleScan}
-        >
-          <View style={styles.overlay}>
-            <View style={styles.scanArea} />
-          </View>
-
-          {/* Back Button */}
-          <TouchableOpacity style={styles.backIcon} onPress={() => setIsCameraVisible(false)}>
-            <Ionicons name="arrow-back-outline" size={30} color="white" />
-          </TouchableOpacity>
-
-          {/* Flip Camera Button */}
-          <TouchableOpacity style={styles.flipIcon} onPress={toggleCameraFacing}>
-            <Ionicons name="camera-reverse-outline" size={30} color="white" />
-          </TouchableOpacity>
-        </CameraView>
+        <View style={styles.cameraContainer}>
+          <CameraView
+            style={styles.camera}
+            facing={facing}
+            barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+            onBarcodeScanned={handleScan}
+          >
+            <View style={styles.overlay}>
+              <View style={styles.scanArea}>
+                <View style={styles.scanAreaBorder} />
+              </View>
+            </View>
+            <TouchableOpacity style={styles.backButton} onPress={() => setIsCameraVisible(false)}>
+              <Ionicons name="arrow-back-circle" size={35} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.flipIcon} onPress={toggleCameraFacing}>
+              <Ionicons name="camera-reverse-outline" size={30} color="white" />
+            </TouchableOpacity>
+          </CameraView>
+        </View>
       )}
 
       {!isCameraVisible && (
         <View style={styles.uiContainer}>
-          {loading && <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 10 }} />}
-          <Text style={styles.statusText}>
-            {validationMessage || "Welcome to the Collector Dashboard"}
-          </Text>
+          <View style={styles.header}>
+            <Ionicons name="trash-bin" size={40} color="#2E8B57" />
+            <Text style={styles.title}>Plasticle</Text>
+          </View>
 
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => setIsCameraVisible(true)}
-          >
-            <Text style={styles.buttonText}>Scan Bin QR</Text>
-          </TouchableOpacity>
+          {loading && <ActivityIndicator size="large" color="#2E8B57" />}
 
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: activePersonal ? "green" : "gray" }]}
-            onPress={toggleAvailability}
-          >
-            <Text style={styles.buttonText}>
-              Mark as {activePersonal ? "Unavailable" : "Available"}
-            </Text>
-          </TouchableOpacity>
+          {validationMessage ? (
+            <View style={[
+              styles.messageContainer,
+              validationMessage.startsWith("Error") 
+                ? styles.errorContainer 
+                : styles.successContainer
+            ]}>
+              {validationMessage.startsWith("Error") ? (
+                <Ionicons name="close-circle" size={24} color="#FF3B30" style={styles.icon} />
+              ) : (
+                <Ionicons name="checkmark-circle" size={24} color="#2E8B57" style={styles.icon} />
+              )}
+              <Text style={styles.statusText}>
+                {validationMessage}
+              </Text>
+            </View>
+          ) : null}
 
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={updateCollectorStatus}
-          >
-            <Text style={styles.buttonText}>Update Location</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.primaryButton]}
+              onPress={() => setIsCameraVisible(true)}
+            >
+              <Ionicons name="qr-code" size={24} color="white" style={styles.buttonIcon} />
+              <Text style={styles.buttonText}>Scan Bin</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                activePersonal ? styles.activeButton : styles.inactiveButton
+              ]}
+              onPress={toggleAvailability}
+            >
+              <Ionicons 
+                name={activePersonal ? "checkmark-circle" : "close-circle"} 
+                size={24} 
+                color="white" 
+                style={styles.buttonIcon} 
+              />
+              <Text style={styles.buttonText}>
+                {activePersonal ? "Available" : "Unavailable"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.secondaryButton]}
+              onPress={updateCollectorStatus}
+            >
+              <Ionicons name="navigate" size={24} color="white" style={styles.buttonIcon} />
+              <Text style={styles.buttonText}>Update Location</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
-
-      <View style={{ marginVertical: 10 }}>
-        <Button title="Logout" color="red" onPress={handleLogout} />
-      </View>
-    </View>
+    </LinearGradient>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  message: { textAlign: "center", marginTop: 20 },
-  camera: { flex: 1 },
-  overlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scanArea: {
-    width: 250,
-    height: 250,
-    borderWidth: 2,
-    borderColor: "white",
-    borderRadius: 10,
-  },
-  uiContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    flex: 1,
-  },
-  actionButton: {
-    backgroundColor: "black",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-  },
-  statusText: {
-    textAlign: "center",
-    marginTop: 30,
-    fontSize: 16,
-    fontWeight: "500",
-    color: "green",
-    paddingHorizontal: 20,
-  },
-  flipIcon: {
-    position: "absolute",
-    right: 20,
-    bottom: 30,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 10,
-    borderRadius: 50,
-  },
-  backIcon: {
-    position: "absolute",
-    left: 20,
-    top: 40,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 10,
-    borderRadius: 50,
-  },
-});
