@@ -7,12 +7,14 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import Checkbox from "expo-checkbox";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -28,38 +30,104 @@ export default function CollectorDashboard() {
   const [location, setLocation] = useState(null);
   const [activePersonal, setActivePersonal] = useState(false);
 
+  // Dropdown state
+  const [fullBinLocations, setFullBinLocations] = useState([]);
+  const [showBinsDropdown, setShowBinsDropdown] = useState(false);
+  const [selectedBins, setSelectedBins] = useState([]);
+
   useEffect(() => {
-    const fetchUserId = async () => {
+    const fetchUserIdAndBins = async () => {
       try {
         const token = await AsyncStorage.getItem("userToken");
         if (!token) {
           Alert.alert("Error", "User token not found. Please log in again.");
           return;
         }
-        const response = await fetch(`${API_URL}/auth/user`, {
+        // Fetch logged-in user info
+        const userRes = await fetch(`${API_URL}/auth/user`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
-
-        const data = await response.json();
-        if (response.ok) {
-          setUserId(data.user._id);
-        } else {
-          Alert.alert("Error", data.error || "Failed to fetch user details");
+        if (!userRes.ok) {
+          throw new Error("Failed to fetch user data");
         }
+        const userData = await userRes.json();
+        setUserId(userData.user._id);
+
+        // Fetch full bin locations
+        const binsRes = await fetch(`${API_URL}/collector/full-bin-locations`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!binsRes.ok) {
+          throw new Error("Failed to fetch bin locations");
+        }
+        const binsData = await binsRes.json();
+        setFullBinLocations(binsData);
       } catch (error) {
-        console.error("Fetch User ID Error:", error);
-        Alert.alert("Error", "Something went wrong while fetching user details");
+        console.error(error);
+        Alert.alert("Error", error.message || "Failed to load data.");
       }
     };
-
-    fetchUserId();
+    fetchUserIdAndBins();
   }, []);
 
-  
+  const toggleBinSelection = (binId) => {
+    setSelectedBins((prevSelected) => {
+      if (prevSelected.includes(binId)) {
+        return prevSelected.filter((id) => id !== binId);
+      } else {
+        if (prevSelected.length < 3) {
+          return [...prevSelected, binId];
+        } else {
+          Alert.alert("Limit Reached", "You can select up to 3 locations only.");
+          return prevSelected;
+        }
+      }
+    });
+  };
+
+  const submitPreferredBins = async () => {
+    try {
+      if (selectedBins.length === 0) {
+        Alert.alert("No selection", "Please select at least one location.");
+        return;
+      }
+
+      setLoading(true);
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        Alert.alert("Error", "User token not found.");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/collector/update-preferred-bins`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId, binIds: selectedBins }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("Success", data.message || "Preferred locations updated.");
+      } else {
+        Alert.alert("Error", data.message || "Failed to update preferences.");
+      }
+    } catch (error) {
+      console.error("Submit preferred bins error:", error);
+      Alert.alert("Error", "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleScan = async ({ data }) => {
     if (!scanned) {
       setScanned(true);
@@ -124,6 +192,7 @@ export default function CollectorDashboard() {
           latitude,
           longitude,
           activePersonal,
+          selectedBins,
         }),
       });
 
@@ -173,7 +242,7 @@ export default function CollectorDashboard() {
       )}
 
       {!isCameraVisible && (
-        <View style={styles.uiContainer}>
+        <ScrollView contentContainerStyle={styles.uiContainer}>
           {loading && <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 10 }} />}
           <Text style={styles.statusText}>
             {validationMessage || "Welcome to the Collector Dashboard"}
@@ -201,7 +270,45 @@ export default function CollectorDashboard() {
           >
             <Text style={styles.buttonText}>Update Location</Text>
           </TouchableOpacity>
-        </View>
+
+          <Text style={styles.instructionText}>
+            Select your preferred area to collect
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: showBinsDropdown ? "#0056b3" : "#007bff" }]}
+            onPress={() => setShowBinsDropdown(!showBinsDropdown)}
+          >
+            <Text style={styles.buttonText}>{showBinsDropdown ? "Hide" : "Show"} Filled Bins</Text>
+          </TouchableOpacity>
+
+          {showBinsDropdown && (
+            <>
+              <View style={styles.dropdownContainer}>
+                {fullBinLocations.length === 0 && (
+                  <Text style={{ padding: 10 }}>No filled bins available.</Text>
+                )}
+                {fullBinLocations.map((bin) => (
+                  <View key={bin._id} style={styles.checkboxContainer}>
+                    <Checkbox
+                      value={selectedBins.includes(bin._id)}
+                      onValueChange={() => toggleBinSelection(bin._id)}
+                      color={selectedBins.includes(bin._id) ? "#007bff" : undefined}
+                    />
+                    <Text style={styles.checkboxLabel}>{bin.location}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: "#28a745", marginTop: 10 }]}
+                onPress={submitPreferredBins}
+              >
+                <Text style={styles.buttonText}>Submit Preferred Locations</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </ScrollView>
       )}
     </View>
   );
@@ -226,7 +333,8 @@ const styles = StyleSheet.create({
   uiContainer: {
     justifyContent: "center",
     alignItems: "center",
-    flex: 1,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
   },
   actionButton: {
     backgroundColor: "black",
@@ -238,6 +346,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontSize: 18,
+    textAlign: "center",
   },
   statusText: {
     textAlign: "center",
@@ -254,5 +363,29 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.4)",
     padding: 10,
     borderRadius: 50,
+  },
+  dropdownContainer: {
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: "#007bff",
+    borderRadius: 8,
+    padding: 10,
+    width: "100%",
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  checkboxLabel: {
+    marginLeft: 10,
+    fontSize: 16,
+  },
+  instructionText: {
+    fontSize: 16,
+    color: "green",
+    marginTop: 20,
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
 });

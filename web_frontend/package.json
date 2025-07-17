@@ -12,7 +12,9 @@
     "axios": "^1.8.3",
     "next": "^15.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-circular-progressbar": "^2.2.0",
+    "react-dom": "^19.0.0",
+    "react-modal": "^3.16.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
