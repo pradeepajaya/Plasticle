@@ -402,6 +402,8 @@ export default function Settings() {
     hometown: '',
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isDobSet, setIsDobSet] = useState(false);
+
 
   // Fetch profile data
   useEffect(() => {
@@ -429,6 +431,9 @@ export default function Settings() {
             gender: user.gender || '',
             hometown: user.hometown || '',
           });
+          if (user.dateOfBirth) {
+    setIsDobSet(true); // ✅ DOB already set
+  }
         }
       } catch (err) {
         console.error("Error loading profile", err);
@@ -607,13 +612,16 @@ export default function Settings() {
 
             <Text style={styles.inputLabel}>Date of Birth</Text>
             <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={styles.input}
-            >
-              <Text style={{ color: form.dateOfBirth ? '#333' : '#999' }}>
-                {form.dateOfBirth ? form.dateOfBirth.toDateString() : 'Select your birth date'}
-              </Text>
-            </TouchableOpacity>
+  onPress={() => {
+    if (!isDobSet) setShowDatePicker(true);
+    else Alert.alert("Not Allowed", "Date of Birth cannot be changed once set.");
+  }}
+  style={[styles.input, isDobSet && { backgroundColor: '#e0e0e0' }]}
+>
+  <Text style={{ color: '#333' }}>
+    {form.dateOfBirth ? form.dateOfBirth.toDateString() : 'Select your birth date'}
+  </Text>
+</TouchableOpacity>
             {showDatePicker && (
               <DateTimePicker
                 value={form.dateOfBirth || new Date()}
@@ -672,8 +680,8 @@ export default function Settings() {
     </View>
   );
 }
-/*
-const styles = StyleSheet.create({
+
+/*const styles = StyleSheet.create({
  container: {
     flex: 1,
     backgroundColor: '#7afa69ff', // Blue background for top
@@ -739,19 +747,7 @@ subGreetingText: {
     borderWidth: 3,
     borderColor: '#fff',
   },
-  /*bottomContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '70%',
-    //backgroundColor: '#ebf3d6ff',
-    backgroundColor: 'transparent',
-    borderTopLeftRadius: 60,
-    borderTopRightRadius: 60,
-    paddingTop: 10, // Space for profile image
-  },*/ /*
-
+ 
   bottomContainer: {
   position: 'absolute',
   bottom: 0,
