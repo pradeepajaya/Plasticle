@@ -1,25 +1,42 @@
 "use client";
 import { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
+import { FaChevronDown } from 'react-icons/fa';
+
+
+
 
 export default function MachinesPage() {
   const [machines, setMachines] = useState([]);
   const [form, setForm] = useState({ name: "", description: "" });
   const [editId, setEditId] = useState(null);
+  const [taskHandlers, setTaskHandlers] = useState([]);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
+  // Fetch task handlers
+  const fetchTaskHandler = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/getTaskHandler`);
+      const data = await response.json();
+      console.log("Fetched Task Handlers:", data);
+      setTaskHandlers(data);
+    } catch (error) {
+      console.error('Error fetching task handlers:', error);
+    }
+  };
+    
 
   //fetch machine list 
   const fetchMachines = async () => {
-    const res = await fetch("http://localhost:5000/api/admin/getMachine");
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/getMachine`);
     const data = await res.json();
-    //const response = await getTaskHandlers();
-    //setTaskHandlers(response.data);
     console.log("Fetched Machines:", data)
     setMachines(data);
   };
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    await fetch("http://localhost:5000/api/admin/getMachine", {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/createMachine`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -29,24 +46,55 @@ export default function MachinesPage() {
   };
 
   const handleDelete = async (id) => {
-    await fetch(`/api/machines/${id}`, { method: "DELETE" });
+    const isConfirmed = window.confirm("Are you sure you want to delete this machine?");
+    if (!isConfirmed) return;
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/deleteMachine`, { 
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
     fetchMachines();
   };
 
   const handleEdit = async (id) => {
-    await fetch(`/api/machines/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/updateMachine`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ id, ...form }),
     });
     setEditId(null);
     setForm({ name: "", description: "" });
     fetchMachines();
   };
 
+  const handleAssign = async (machineId, handlerId) => {
+   
+   try{
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/assignMachine`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ machineId, handlerId }),
+    });
+
+   }catch(e){console.log(e)}
+    
+    
+  }
+
+
   useEffect(() => {
     fetchMachines();
+    fetchTaskHandler();
   }, []);
+
+const assinedHandler = (machineId) => {
+  const machine = machines.find(m => m._id === machineId);
+  if (machine && machine.assignedTo) {
+    const handler = taskHandlers.find(th => th._id === machine.assignedTo);
+    return handler ? handler.username : "Not Assigned";
+  }
+}
 
   return (
     <><Navbar/>
@@ -82,6 +130,7 @@ export default function MachinesPage() {
           <li key={machine._id} className="border p-3 mb-2">
             <h3 className="text-lg font-semibold">{machine.name}</h3>
             <p>{machine.description}</p>
+            <p className="text-sm text-gray-500 inline-block">Assigned To:</p> <p className="inline-block">{assinedHandler(machine._id)}</p>
             <div className="mt-2 space-x-2">
               <button
                 className="bg-yellow-400 text-black px-2 py-1 rounded"
@@ -92,12 +141,45 @@ export default function MachinesPage() {
               >
                 Edit
               </button>
+
               <button
                 className="bg-red-500 text-white px-2 py-1 rounded"
                 onClick={() => handleDelete(machine._id)}
               >
                 Delete
               </button>
+
+              <button
+                className="bg-green-400 text-black px-2 py-1 rounded hover:bg-green-500 float-right w-40 flex justify-between items-center" 
+                onClick={() => {
+                  setOpenDropdownId(openDropdownId === machine._id ? null : machine._id)
+                 
+                }}
+              >
+                Assgin Handler <FaChevronDown />
+                
+              </button>
+
+            {openDropdownId === machine._id && (
+            <ul className="mt-2 border rounded max-h-48 overflow-y-auto">
+            {taskHandlers.map((taskHandlers) => (
+              <li
+                key={taskHandlers._id}
+                className="px-4 py-2 cursor-pointer hover:bg-emerald-100 hover:text-zinc-950 "
+              onClick={()=>{
+                handleAssign(machine._id, taskHandlers._id);
+
+              }}
+              >
+              
+              
+                {taskHandlers.username}
+                
+              </li>
+            ))}
+            </ul>
+            )}
+
             </div>
           </li>
         ))}
@@ -105,4 +187,4 @@ export default function MachinesPage() {
     </div>
     </>
   );
-}
+ }

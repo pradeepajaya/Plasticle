@@ -38,6 +38,7 @@ exports.createTaskHandler = async (req, res) => {
 
 // Fetch Existing Task Handlers
 exports.getTaskHandlers = async (req, res) => {
+  
   try {
     const taskHandlers = await User.find({ role: "taskhandler" });
     if (!taskHandlers) {
@@ -52,6 +53,10 @@ exports.getTaskHandlers = async (req, res) => {
 //machine crud operations
 //create
 exports.createMachine = async (req, res) => {
+  // if (req.user.role !== "admin") {
+  //   return res.status(403).json({ message: "Access Denied" });
+  // }
+
   try {
     const { name, description } = req.body;
     const newMachine = new Machine({
@@ -78,8 +83,11 @@ exports.getMachine = async (req, res) => {
 
 //update
 exports.updateMachine = async (req, res) => {
+  // if (req.user.role !== "admin") {
+  //   return res.status(403).json({ message: "Access Denied" });
+  // }
+
   try {
-    // const { id } = req.body;
     const { id, name, description } = req.body;
 
     const updatedMachine = await Machine.findByIdAndUpdate(id, {
@@ -99,6 +107,10 @@ exports.updateMachine = async (req, res) => {
 
 //delete
 exports.deleteMachine = async (req, res) => {
+  // if (req.user.role !== "admin") {
+  //   return res.status(403).json({ message: "Access Denied" });
+  // }
+
   try {
     const { id } = req.body;
     console.log(id);
@@ -132,39 +144,39 @@ exports.getTaskHandler = async (req, res) => {
 
 //assgin Machine to task handler
 exports.assignMachine = async (req, res) => {
+  // if (req.user.role !== "admin") {
+  //   return res.status(403).json({ message: "Access Denied" });
+  // }
   try {
-    // Log the request body for debugging
-    console.log("Request Body:", req.body);
 
-    const { machineId, taskHandlerId } = req.body; // Extract machineId and taskHandlerId from the request body
+    
+    const { machineId, handlerId } = req.body; 
+    console.log("Request Body:", machineId);
+    console.log("Request Body:", handlerId);
 
-    // Validate input
-    if (!machineId || !taskHandlerId) {
+    if (!machineId || !handlerId) {
       return res.status(400).json({ message: "machineId and taskHandlerId are required." });
     }
 
-    const machineToAssign = await Machine.findById(machineId);
-    //const user = await User.findById("taskHandlerId");
 
     // Find the machine by machineId
     const machine = await Machine.findById(machineId);
 
-    // Log the found machine (or null if not found)
-    console.log("Found machine:", machine);
+    //console.log("Found machine:", machine);
 
-    if (!machineToAssign) {
+    if (!machine) {
       return res.status(404).json({ message: "Machine not found." });
     }
 
     // Check if the machine is already assigned
-    if (machineToAssign.assignedTo) {
-      return res.status(400).json({ message: "Machine already assigned." });
-    }
+    // if (machine.assignedTo) {
+    //   return res.status(400).json({ message: "Machine already assigned." });
+    // }
 
-    // Update the machine's assignedTo field with the task handler's ID
+    
     const updatedMachine = await Machine.findByIdAndUpdate(
       machineId,
-      { assignedTo: taskHandlerId }, // Assign the machine to the task handler
+      { assignedTo: handlerId }, 
       { new: true } // Return the updated document
     );
     console.log("Updated Machine:", updatedMachine);
