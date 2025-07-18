@@ -5,8 +5,12 @@
     "owner": "kangaroo3",
     "version": "1.0.0",
     "orientation": "portrait",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "assets": [
       "./assets/fonts/",
+      "./assets/images/",
       "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons"
     ],
     "icon": "./assets/images/logoplasticle.png",

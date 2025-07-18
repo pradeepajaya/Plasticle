@@ -1,6 +1,5 @@
 /*import { useState } from 'react';
 import {View,Text,TextInput,Button,Modal,StyleSheet,Alert,TouchableOpacity,ScrollView,} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
