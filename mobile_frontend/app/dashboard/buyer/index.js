@@ -297,7 +297,6 @@ export default function BuyerDashboard() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
