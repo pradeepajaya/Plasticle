@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getDueLocations, getAvailableCollectors, allocateCollector } from '../../services/api';
+import {
+  getDueLocations,
+  getAvailableCollectors,
+  allocateCollector,
+} from '../../services/api';
 
 export default function DueLocationsPage() {
   const [locations, setLocations] = useState({});
@@ -23,47 +27,52 @@ export default function DueLocationsPage() {
 
         const resCollectors = await getAvailableCollectors();
         if (resCollectors?.data) {
+          console.log('Collectors with preferredBins:', resCollectors.data);
           setCollectors(resCollectors.data);
         }
-       } catch (err) {
-      if (err?.response?.status === 404) {
-        // No collectors available
-        setCollectors([]);
-      } else {
-        console.error('Failed to fetch data:', err);
-        alert('Error fetching due locations or collectors');
+      } catch (err) {
+        if (err?.response?.status === 404) {
+          setCollectors([]);
+        } else {
+          console.error('Failed to fetch data:', err);
+          alert('Error fetching due locations or collectors');
+        }
+      } finally {
+        setFetching(false);
       }
-    } finally {
-      setFetching(false);
-    }
-  };
+    };
 
     fetchData();
   }, []);
 
-  const handleAllocateCollector = async (binId, collectorId, selectedDate) => {
-    if (!collectorId || !binId || !selectedDate) {
+  const handleAllocateCollector = async (binObjectId, collectorId, selectedDate) => {
+    if (!collectorId || !binObjectId || !selectedDate) {
       alert('Please select a collector and a date.');
       return;
     }
 
     setLoading(true);
     try {
-      const res = await allocateCollector(binId, collectorId, selectedDate);
-      if (res?.status === 200 || res?.data?.message === 'Collector allocated successfully') {
+      const res = await allocateCollector(binObjectId, collectorId, selectedDate);
+      if (
+        res?.status === 200 ||
+        res?.data?.message === 'Collector allocated successfully'
+      ) {
         alert('Collector allocated successfully!');
 
+        const collector = collectors.find((c) => c._id === collectorId);
         const collectorName =
-          collectors.find((c) => c._id === collectorId)?.userId ||
+          collector?.userId?.nickname ||
+          collector?.userId?.username ||
           `Collector ${collectorId.slice(-4)}`;
 
         setAllocatedCollectors((prev) => ({
           ...prev,
-          [binId]: collectorName,
+          [binObjectId]: collectorName,
         }));
 
-        setSelectedCollectors((prev) => ({ ...prev, [binId]: '' }));
-        setSelectedDates((prev) => ({ ...prev, [binId]: '' }));
+        setSelectedCollectors((prev) => ({ ...prev, [binObjectId]: '' }));
+        setSelectedDates((prev) => ({ ...prev, [binObjectId]: '' }));
       } else {
         alert('Failed to allocate collector.');
       }
@@ -76,115 +85,150 @@ export default function DueLocationsPage() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div
+      className="min-h-screen p-6"
+      style={{
+        background: 'linear-gradient(to top right, #faffd1, #79f744ff, #ffffff)',
+      }}
+    >
       <Link href="/dashboard">
-        <span className="text-blue-600 hover:underline text-sm">&larr; Back to Dashboard</span>
+        <span className="text-green-900 hover:underline text-sm">
+          &larr; Back to Dashboard
+        </span>
       </Link>
 
-      <h1 className="text-3xl font-bold mb-4 mt-2 text-center">Due Locations</h1>
+      <h1 className="text-3xl font-bold mb-6 mt-2 text-center">Due Locations</h1>
+      <div className="text-center mb-4 text-lg font-semibold text-red-700">
+        Total Full Bins: {
+          Object.values(locations)
+            .flat()
+            .filter((bin) => bin.isCritical === true).length
+        }
+      </div>
 
-      <div className="bg-gradient-to-r from-lime-500 to-white p-6 rounded-lg text-white shadow-md">
+      <div className="max-w-4xl mx-auto">
         {fetching ? (
           <p>Loading...</p>
         ) : Object.entries(locations).length === 0 ? (
-          <p>No due locations found.</p>
+          <p className="text-center">No due locations found.</p>
         ) : (
           Object.entries(locations).map(([city, areas]) => (
-            <div key={city} className="mb-6">
-              <ul className="ml-4 list-disc text-black">
-                {areas.map((area, index) => {
-                  const binId = area.binId || 'unknown-bin';
-                  const areaText =
-                    typeof area.area === 'string'
-                      ? area.area
-                      : JSON.stringify(area.area);
+            <div key={city} className="mb-8">
+              <ul className="space-y-4">
+                {areas
+                  .sort((a, b) => (b.isCritical === true) - (a.isCritical === true))
+                  .map((area, index) => {
+                    const binObjectId = area._id || area.binId || 'unknown-bin';
+                    const areaText =
+                      typeof area.area === 'string'
+                        ? area.area
+                        : JSON.stringify(area.area);
 
-                  return (
-                    <li key={index} className={area.isCritical ? 'text-red-800' : ''}>
-                      <div className="flex flex-col mb-2">
-                        <span>
-                          {areaText}{' '}
-                          {allocatedCollectors[binId] ? (
-                            <span className="text-green-600 font-semibold">
-                               Allocated to collect ({allocatedCollectors[binId]})
-                            </span>
-                          ) : area.isCritical ? (
-                            <span className="text-red-600 font-semibold">
-                               Full - Needs Collection
-                            </span>
-                          ) : (
-                            <span className="text-gray-600">(Not Critical)</span>
-                          )}
-                        </span>
+                    const isCritical = area.isCritical;
 
-                        <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
-                          <select
-                            className="p-2 rounded bg-white text-black"
-                            onChange={(e) =>
-                              setSelectedCollectors((prev) => ({
-                                ...prev,
-                                [binId]: e.target.value,
-                              }))
-                            }
-                            value={selectedCollectors[binId] || ''}
-                          >
-                            <option value="">Select Collector</option>
-                            {collectors.length === 0 ? (
-                              <option disabled>No collectors available</option>
+                    return (
+                      <li key={index}>
+                        <div
+                          className={`p-4 rounded-xl border shadow-md transition-all duration-300 ${
+                            isCritical
+                              ? 'bg-red-50 border-red-600'
+                              : 'bg-lime-50 border-lime-400'
+                          }`}
+                        >
+                          <span className="font-medium text-lg">
+                            {areaText}{' '}
+                            {allocatedCollectors[binObjectId] ? (
+                              <span className="text-green-700 font-semibold">
+                                • Allocated to {allocatedCollectors[binObjectId]}
+                              </span>
+                            ) : isCritical ? (
+                              <span className="text-red-600 font-semibold">
+                                • Full – Needs Collection
+                              </span>
                             ) : (
-                              collectors
-                                .filter((c) => c.activePersonal)
-                                .map((c) => (
-                                  <option key={c._id} value={c._id}>
-                                    {c.userId
-                                      ? `Collector ${c.userId.slice(-4)}`
-                                      : `Collector ${c._id.slice(-4)}`} – [
-                                    {c.location?.coordinates[1].toFixed(2)},{' '}
-                                    {c.location?.coordinates[0].toFixed(2)}]
-                                  </option>
-                                ))
+                              <span className="text-gray-600">• Not Critical</span>
                             )}
-                          </select>
+                          </span>
 
-                          <input
-                            type="date"
-                            className="p-2 rounded bg-white text-black border"
-                            value={selectedDates[binId] || ''}
-                            onChange={(e) =>
-                              setSelectedDates((prev) => ({
-                                ...prev,
-                                [binId]: e.target.value,
-                              }))
-                            }
-                          />
+                          <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                            <select
+                              className="p-2 rounded border bg-white text-black"
+                              onChange={(e) =>
+                                setSelectedCollectors((prev) => ({
+                                  ...prev,
+                                  [binObjectId]: e.target.value,
+                                }))
+                              }
+                              value={selectedCollectors[binObjectId] || ''}
+                            >
+                              <option value="">Select Collector</option>
+                              {collectors.length === 0 ? (
+                                <option disabled>No collectors available</option>
+                              ) : (
+                                collectors
+                                  .filter((c) => {
+                                    const prefersThisBin = Array.isArray(c.preferredBins) &&
+                                      c.preferredBins.some((b) =>
+                                        b._id?.toString() === binObjectId?.toString()
+                                      );
+                                    const hasNoPrefs =
+                                      !Array.isArray(c.preferredBins) ||
+                                      c.preferredBins.length === 0;
+                                    return c.activePersonal && (prefersThisBin || hasNoPrefs);
+                                  })
+                                  .map((c) => (
+                                    <option key={c._id} value={c._id}>
+                                      {`${c.userId?.nickname || 'Collector'} (${c._id.slice(-4)}) – [${c.location?.coordinates[1]?.toFixed(2)}, ${c.location?.coordinates[0]?.toFixed(2)}]`}
+                                    </option>
+                                  ))
+                              )}
+                            </select>
 
-                          <button
-                            onClick={() =>
-                              handleAllocateCollector(
-                                binId,
-                                selectedCollectors[binId],
-                                selectedDates[binId]
-                              )
-                            }
-                            disabled={
-                              loading ||
-                              !selectedCollectors[binId] ||
-                              !selectedDates[binId]
-                            }
-                            className="p-2 bg-blue-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {loading ? 'Allocating...' : 'Allocate Collector'}
-                          </button>
+                            <input
+                              type="date"
+                              className="p-2 rounded border bg-white text-black"
+                              value={selectedDates[binObjectId] || ''}
+                              onChange={(e) =>
+                                setSelectedDates((prev) => ({
+                                  ...prev,
+                                  [binObjectId]: e.target.value,
+                                }))
+                              }
+                            />
+
+                            <button
+                              onClick={() =>
+                                handleAllocateCollector(
+                                  binObjectId,
+                                  selectedCollectors[binObjectId],
+                                  selectedDates[binObjectId]
+                                )
+                              }
+                              disabled={
+                                loading ||
+                                !selectedCollectors[binObjectId] ||
+                                !selectedDates[binObjectId]
+                              }
+                              className="p-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {loading ? 'Allocating...' : 'Allocate Collector'}
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  );
-                })}
+                      </li>
+                    );
+                  })}
               </ul>
             </div>
           ))
         )}
       </div>
+
+      <Link href="/vehiclearrival">
+        <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mt-6 mx-auto block">
+          View Vehicle Arrivals
+        </button>
+      </Link>
     </div>
   );
 }

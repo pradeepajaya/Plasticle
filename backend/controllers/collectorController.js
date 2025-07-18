@@ -1,6 +1,7 @@
 const Bottle = require("../models/Bottle");
 const Bin = require("../models/Bin");
 const Collector = require("../models/Collector");
+const User = require("../models/User");
 
 const validateBin = async (req, res) => {
   try {
@@ -116,4 +117,165 @@ const updateCollectorStatus = async (req, res) => {
   }
 };
 
-module.exports = { validateBin, updateCollectorStatus };
+
+// update collector profile information
+
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { nickname, dateOfBirth, gender, hometown } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { nickname, dateOfBirth, gender, hometown },
+      { new: true }
+    );
+
+    res.json({ message: "Profile updated successfully", user });
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+    res.status(500).json({ message: "Server error while updating profile" });
+  }
+};  
+
+// update buyer profile image
+
+const updateProfilePicture = async (req, res) => {
+  try {
+    const { profilePicture } = req.body;
+
+    if (!profilePicture) {
+      return res.status(400).json({ message: "Profile picture is required" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { profilePicture },
+      { new: true }
+    );
+
+    res.json({ message: "Profile picture updated", profilePicture: user.profilePicture });
+  } catch (err) {
+    console.error("Profile picture update error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// get profile picture
+
+const getProfilepicture = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-passwordHash');
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user });
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
+const getCollectorAllocations = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Find the collector by the logged-in user's ID
+    const collector = await Collector.findOne({ userId });
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    // Find bins assigned to this collector with a collection date
+    const bins = await Bin.find({
+      collectorId: collector._id,
+      collectionDate: { $ne: null },
+    }).select("binId collectionDate location city locationName");
+    
+    res.status(200).json(bins);
+  } catch (error) {
+    console.error("Error fetching collector allocations:", error);
+    res.status(500).json({ message: "Failed to fetch collector allocations." });
+  }
+};
+
+
+const updateBinCollectionStatus = async (req, res) => {
+  try {
+    const { binId, vehicleId } = req.body;
+
+    // Find the bin first to get the currentFill before updating
+    const bin = await Bin.findOne({ binId });
+
+    if (!bin) {
+      return res.status(404).json({ message: "Bin not found" });
+    }
+
+    const previousFill = bin.currentFill; //  Save current fill before resetting
+
+    const updatedBin = await Bin.findOneAndUpdate(
+      { binId },
+      {
+        status: "active",
+        currentFill: 0,
+        collected: true,
+        vehicleId: vehicleId || "",
+        previousFill, 
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "Bin marked as collected",
+      binId: updatedBin.binId,
+      collectionDate: updatedBin.collectionDate,
+    });
+  } catch (err) {
+    console.error("Error in updateBinCollectionStatus:", err);
+    res.status(500).json({ message: "Error updating bin" });
+  }
+};
+
+const getFullBins = async (req, res) => {
+  try {
+    const fullBins = await Bin.find({ status: "full" }).select("location");
+    res.status(200).json(fullBins);
+  } catch (error) {
+    console.error("Error fetching full bins:", error);
+    res.status(500).json({ message: "Failed to fetch full bins." });
+  }
+};
+
+const updatePreferredBins = async (req, res) => {
+  try {
+    const { userId, binIds } = req.body;
+
+    if (!userId || !Array.isArray(binIds)) {
+      return res.status(400).json({ message: "Invalid input" });
+    }
+
+    const collector = await Collector.findOneAndUpdate(
+      { userId },
+      { preferredBins: binIds },
+      { new: true }
+    ).populate('preferredBins');
+
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    res.status(200).json({
+      message: "Preferred bins updated successfully",
+      collector,
+    });
+  } catch (err) {
+    console.error("Update preferred bins error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, updatePreferredBins, };
