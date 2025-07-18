@@ -21,22 +21,13 @@ export default function DueLocationsPage() {
     const fetchData = async () => {
       try {
         const resLocations = await getDueLocations();
-        if (resLocations?.data) {
-          setLocations(resLocations.data);
-        }
+        if (resLocations?.data) setLocations(resLocations.data);
 
         const resCollectors = await getAvailableCollectors();
-        if (resCollectors?.data) {
-          console.log('Collectors with preferredBins:', resCollectors.data);
-          setCollectors(resCollectors.data);
-        }
+        if (resCollectors?.data) setCollectors(resCollectors.data);
       } catch (err) {
-        if (err?.response?.status === 404) {
-          setCollectors([]);
-        } else {
-          console.error('Failed to fetch data:', err);
-          alert('Error fetching due locations or collectors');
-        }
+        if (err?.response?.status === 404) setCollectors([]);
+        else alert('Error fetching due locations or collectors');
       } finally {
         setFetching(false);
       }
@@ -54,12 +45,8 @@ export default function DueLocationsPage() {
     setLoading(true);
     try {
       const res = await allocateCollector(binObjectId, collectorId, selectedDate);
-      if (
-        res?.status === 200 ||
-        res?.data?.message === 'Collector allocated successfully'
-      ) {
+      if (res?.status === 200 || res?.data?.message === 'Collector allocated successfully') {
         alert('Collector allocated successfully!');
-
         const collector = collectors.find((c) => c._id === collectorId);
         const collectorName =
           collector?.userId?.nickname ||
@@ -77,7 +64,6 @@ export default function DueLocationsPage() {
         alert('Failed to allocate collector.');
       }
     } catch (err) {
-      console.error('Error allocating collector:', err);
       alert('Error allocating collector');
     } finally {
       setLoading(false);
@@ -86,19 +72,17 @@ export default function DueLocationsPage() {
 
   return (
     <div
-      className="min-h-screen p-6"
-      style={{
-        background: 'linear-gradient(to top right, #faffd1, #79f744ff, #ffffff)',
-      }}
+      className="min-h-screen p-6 bg-gradient-to-br from-green-400 via-white to-green-300 dark:from-green-800 dark:via-gray-900 dark:to-black text-black dark:text-white"
     >
       <Link href="/dashboard">
-        <span className="text-green-900 hover:underline text-sm">
+        <span className="text-green-900 dark:text-green-300 hover:underline text-sm">
           &larr; Back to Dashboard
         </span>
       </Link>
 
       <h1 className="text-3xl font-bold mb-6 mt-2 text-center">Due Locations</h1>
-      <div className="text-center mb-4 text-lg font-semibold text-red-700">
+
+      <div className="text-center mb-4 text-lg font-semibold text-red-700 dark:text-red-400">
         Total Full Bins: {
           Object.values(locations)
             .flat()
@@ -108,7 +92,7 @@ export default function DueLocationsPage() {
 
       <div className="max-w-4xl mx-auto">
         {fetching ? (
-          <p>Loading...</p>
+          <p className="text-center">Loading...</p>
         ) : Object.entries(locations).length === 0 ? (
           <p className="text-center">No due locations found.</p>
         ) : (
@@ -131,28 +115,28 @@ export default function DueLocationsPage() {
                         <div
                           className={`p-4 rounded-xl border shadow-md transition-all duration-300 ${
                             isCritical
-                              ? 'bg-red-50 border-red-600'
-                              : 'bg-lime-50 border-lime-400'
+                              ? 'bg-red-50 border-red-600 dark:bg-red-900 dark:border-red-400'
+                              : 'bg-lime-50 border-lime-400 dark:bg-lime-900 dark:border-lime-400'
                           }`}
                         >
                           <span className="font-medium text-lg">
                             {areaText}{' '}
                             {allocatedCollectors[binObjectId] ? (
-                              <span className="text-green-700 font-semibold">
+                              <span className="text-green-700 dark:text-green-300 font-semibold">
                                 • Allocated to {allocatedCollectors[binObjectId]}
                               </span>
                             ) : isCritical ? (
-                              <span className="text-red-600 font-semibold">
+                              <span className="text-red-600 dark:text-red-300 font-semibold">
                                 • Full – Needs Collection
                               </span>
                             ) : (
-                              <span className="text-gray-600">• Not Critical</span>
+                              <span className="text-gray-600 dark:text-gray-300">• Not Critical</span>
                             )}
                           </span>
 
                           <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
                             <select
-                              className="p-2 rounded border bg-white text-black"
+                              className="p-2 rounded border bg-white text-black dark:bg-gray-700 dark:text-white"
                               onChange={(e) =>
                                 setSelectedCollectors((prev) => ({
                                   ...prev,
@@ -186,7 +170,7 @@ export default function DueLocationsPage() {
 
                             <input
                               type="date"
-                              className="p-2 rounded border bg-white text-black"
+                              className="p-2 rounded border bg-white text-black dark:bg-gray-700 dark:text-white"
                               value={selectedDates[binObjectId] || ''}
                               onChange={(e) =>
                                 setSelectedDates((prev) => ({
