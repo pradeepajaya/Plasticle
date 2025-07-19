@@ -19,12 +19,16 @@ router.get('/daily-collection-stats', adminController.getDailyCollectionStats);
 router.get('/manufacturers', adminController.getManufacturers);
 router.put('/manufacturers/:userId', adminController.updateManufacturerDetails);
 
+
 router.post("/createMachine", adminController.createMachine); 
 router.get("/getMachine", adminController.getMachine); 
 router.patch("/updateMachine", adminController.updateMachine); 
 router.delete("/deleteMachine", adminController.deleteMachine); 
 router.patch("/assignMachine", adminController.assignMachine);
 router.get("/getTaskHandler", adminController.getTaskHandler);
+
+router.get('/check-status', adminController.checkFullBinsAndCollectors);
+
 
 
 module.exports = router;

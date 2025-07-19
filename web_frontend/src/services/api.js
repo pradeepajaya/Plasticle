@@ -28,3 +28,7 @@ export const getFilledBinsWithCollectors = () =>
 export const updateManufacturer = async (userId, updatedData) => {
   return await API.put(`/admin/manufacturers/${userId}`, updatedData);
 };
+
+export const checkFullBinsAndCollectors = () =>
+  API.get('/admin/check-status');
+
