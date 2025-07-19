@@ -341,3 +341,24 @@ exports.updateManufacturerDetails = async (req, res) => {
     res.status(500).json({ message: 'Server error updating manufacturer' });
   }
 };
+
+// notify-all-collectors
+exports.notifyAllCollectors = async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    await Collector.updateMany({}, {
+      notification: {
+        message,
+        date: new Date(),
+        status: 'unread'
+      }
+    });
+
+    res.status(200).json({ success: true, message: 'Notification sent to all collectors.' });
+  } catch (err) {
+    console.error('Error notifying collectors:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
