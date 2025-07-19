@@ -16,34 +16,49 @@ export default function DueLocationsPage() {
   const [selectedCollectors, setSelectedCollectors] = useState({});
   const [selectedDates, setSelectedDates] = useState({});
   const [allocatedCollectors, setAllocatedCollectors] = useState({});
+  const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const resLocations = await getDueLocations();
-        if (resLocations?.data) {
-          setLocations(resLocations.data);
-        }
 
-        const resCollectors = await getAvailableCollectors();
-        if (resCollectors?.data) {
-          console.log('Collectors with preferredBins:', resCollectors.data);
-          setCollectors(resCollectors.data);
-        }
-      } catch (err) {
-        if (err?.response?.status === 404) {
-          setCollectors([]);
-        } else {
-          console.error('Failed to fetch data:', err);
-          alert('Error fetching due locations or collectors');
-        }
-      } finally {
-        setFetching(false);
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const resLocations = await getDueLocations();
+      const resCollectors = await getAvailableCollectors();
+
+      let allBins = [];
+      let fullBins = [];
+
+      if (resLocations?.data) {
+        setLocations(resLocations.data);
+        allBins = Object.values(resLocations.data).flat();
+        fullBins = allBins.filter((bin) => bin.isCritical === true);
       }
-    };
 
-    fetchData();
-  }, []);
+      if (resCollectors?.data) {
+        setCollectors(resCollectors.data);
+      } else {
+        setCollectors([]);
+      }
+
+      const allBinsFull = allBins.length > 0 && fullBins.length === allBins.length;
+      const noActiveCollectors =
+        resCollectors?.data?.filter((c) => c.activePersonal)?.length === 0;
+
+      if (allBinsFull && noActiveCollectors) {
+        
+        setShowModal(true);
+      }
+
+    } catch (err) {
+      console.error('Failed to fetch due locations or collectors:', err);
+      alert('Error fetching due locations or collectors');
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  fetchData();
+}, []);
 
   const handleAllocateCollector = async (binObjectId, collectorId, selectedDate) => {
     if (!collectorId || !binObjectId || !selectedDate) {
@@ -83,28 +98,68 @@ export default function DueLocationsPage() {
       setLoading(false);
     }
   };
+  {showModal && (
+  <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
+      <h2 className="text-2xl font-bold text-red-700 mb-4">🚨 Alert</h2>
+      <p className="text-gray-800 text-lg">
+        All bins are full and no active collectors are available. Please allocate a task handler.
+      </p>
+      <button
+        onClick={() => setShowModal(false)}
+        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
+
 
   return (
     <div
-      className="min-h-screen p-6"
+      className="min-h-screen p-6 bg-cover bg-center"
       style={{
-        background: 'linear-gradient(to top right, #faffd1, #79f744ff, #ffffff)',
+        backgroundImage: `linear-gradient(to top right, rgba(94, 190, 65, 0.6), rgba(39, 95, 15, 0.6), rgba(47, 99, 64, 0.6)), url('/background.jpg')`,
       }}
     >
+ {showModal && (
+  <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
+      <h2 className="text-2xl font-bold text-red-700 mb-4">🚨 Alert</h2>
+      <p className="text-gray-800 text-lg">
+        All bins are full and no active collectors are available. Please allocate a task handler.
+      </p>
+      <button
+        onClick={() => setShowModal(false)}
+        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
       <Link href="/dashboard">
         <span className="text-green-900 hover:underline text-sm">
           &larr; Back to Dashboard
         </span>
       </Link>
 
-      <h1 className="text-3xl font-bold mb-6 mt-2 text-center">Due Locations</h1>
-      <div className="text-center mb-4 text-lg font-semibold text-red-700">
-        Total Full Bins: {
-          Object.values(locations)
-            .flat()
-            .filter((bin) => bin.isCritical === true).length
-        }
+      <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-100 via-lime-400 to-green-100 text-center mb-6 mt-2 drop-shadow-lg tracking-wide uppercase">
+        Due Locations
+      </h1>
+
+
+      <div className="flex justify-center mb-4">
+        <div className="bg-red-200 border border-red-400 text-red-800 px-4 py-2 rounded shadow-md text-lg font-semibold text-center">
+          Total Full Bins: {
+            Object.values(locations)
+              .flat()
+              .filter((bin) => bin.isCritical === true).length
+          }
+        </div>
       </div>
+
 
       <div className="max-w-4xl mx-auto">
         {fetching ? (
@@ -114,7 +169,7 @@ export default function DueLocationsPage() {
         ) : (
           Object.entries(locations).map(([city, areas]) => (
             <div key={city} className="mb-8">
-              <ul className="space-y-4">
+              <ul className="space-y-4  text-white">
                 {areas
                   .sort((a, b) => (b.isCritical === true) - (a.isCritical === true))
                   .map((area, index) => {
@@ -129,11 +184,10 @@ export default function DueLocationsPage() {
                     return (
                       <li key={index}>
                         <div
-                          className={`p-4 rounded-xl border shadow-md transition-all duration-300 ${
-                            isCritical
-                              ? 'bg-red-50 border-red-600'
-                              : 'bg-lime-50 border-lime-400'
-                          }`}
+                          className={`p-4 rounded-xl border shadow-md transition-all duration-300 ${isCritical
+                            ? 'bg-red-50 border-red-600 text-red-700'
+                            : 'bg-lime border-lime-400'
+                            }`}
                         >
                           <span className="font-medium text-lg">
                             {areaText}{' '}
@@ -146,7 +200,7 @@ export default function DueLocationsPage() {
                                 • Full – Needs Collection
                               </span>
                             ) : (
-                              <span className="text-gray-600">• Not Critical</span>
+                              <span className="text-white">• Not Critical</span>
                             )}
                           </span>
 

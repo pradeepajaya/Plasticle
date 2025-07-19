@@ -192,7 +192,6 @@ exports.allocateCollector = async (req, res) => {
 };
 
 // Fetch Available Collectors (Only Admins)
-// Get Available Collectors (with populated preferredBins)
 exports.getAvailableCollectors = async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Access Denied" });
@@ -204,11 +203,6 @@ exports.getAvailableCollectors = async (req, res) => {
         path: 'userId',
         select: 'nickname email username',
         model: 'User'
-      })
-      .populate({
-        path: 'preferredBins',
-        select: '_id binId',  // populate at least _id and binId
-        model: 'Bin'
       });
 
     if (!availableCollectors.length) {
@@ -345,6 +339,30 @@ exports.updateManufacturerDetails = async (req, res) => {
   }
 };
 
+exports.checkFullBinsAndCollectors = async (req, res) => {
+  try {
+    const bins = await Bin.find({});
+    const collectors = await Collector.find({});
+
+    const allBinsFull = bins.every(
+      (bin) => bin.currentFill >= bin.capacity || bin.status === 'full'
+    );
+
+    const noAvailableCollectors = collectors.every(
+      (collector) => collector.activePersonal === false
+    );
+
+    return res.status(200).json({
+      allBinsFull,
+      noAvailableCollectors,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+
+
 //code from SK 
 //machine crud operations
 //create
@@ -472,3 +490,4 @@ exports.assignMachine = async (req, res) => {
     return res.status(500).json({ message: "Server error while assigning machine." });
   }
 }
+

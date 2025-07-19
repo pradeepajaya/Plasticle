@@ -19,12 +19,6 @@ const collectorSchema = new mongoose.Schema({
   },
   activePersonal: { type: Boolean, default: false },
 
-  preferredBins: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Bin',
-    },
-  ],
 });
 collectorSchema.index({ location: "2dsphere" }); // for geospatial queries
 
