@@ -4,6 +4,9 @@ const Collector = require('../models/Collector');
 const Bin = require('../models/Bin');
 const Machine = require("../models/Machine");
 //const API = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
+const Collector = require('../models/Collector');
+const Bin = require('../models/Bin');
+//const API = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
 
 
 // Create Task Handler (Only Admins)
@@ -50,10 +53,6 @@ exports.getTaskHandlers = async (req, res) => {
 
 // deactivate Task Handler
 exports.deactivateTaskHandler = async (req, res) => {
-  // if (req.user.role !== "admin") {
-  //   return res.status(403).json({ message: "Access Denied" });
-  // }
-
   try {
     const { id } = req.params;
 
@@ -149,6 +148,50 @@ exports.getFilledBinsWithCollectors = async (req, res) => {
 };
 
 
+// Allocate Collector to Bin (Only Admins)
+exports.allocateCollector = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access Denied" });
+  }
+
+  const { binId, collectorId, collectionDate } = req.body;
+
+  if (!binId || !collectorId || !collectionDate) {
+    return res.status(400).json({ message: "Bin ID and Collector ID and Collection Date are required" });
+  }
+
+  try {
+    const bin = await Bin.findOne({ binId, status: "full", collected: { $ne: true } });
+    if (!bin) {
+      return res.status(404).json({ message: "Bin not found or already collected" });
+    }
+
+    // DEBUG LOGS: Inspect bin location fields before saving
+    console.log('Bin before save:', bin);
+    console.log('Location:', bin.location);
+    console.log('Location type:', bin.location?.type);
+    console.log('Location coordinates:', bin.location?.coordinates);
+
+    const collector = await Collector.findById(collectorId);
+    if (!collector || !collector.activePersonal) {
+      return res.status(400).json({ message: "Collector not available" });
+    }
+
+    bin.collectorId = collectorId;
+    bin.status = "assigned";
+    bin.collectionDate = new Date(collectionDate);
+
+    await bin.save();
+
+    collector.activePersonal = false;
+    await collector.save();
+
+    res.status(200).json({ message: "Collector allocated successfully" });
+  } catch (err) {
+    console.error("Error allocating collector:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // Fetch Available Collectors (Only Admins)
 // Get Available Collectors (with populated preferredBins)
@@ -156,10 +199,6 @@ exports.getAvailableCollectors = async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Access Denied" });
   }
-
-  // if (req.user.role !== "admin") {
-  //   return res.status(403).json({ message: "Access Denied" });
-  // }
 
   try {
     const availableCollectors = await Collector.find({ activePersonal: true })
@@ -275,131 +314,35 @@ exports.getDailyCollectionStats = async (req, res) => {
 };
 
 
-
-
-//machine crud operations
-//create
-exports.createMachine = async (req, res) => {
+exports.getManufacturers = async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const newMachine = new Machine({
-      name,
-      description,
-    });
-    await newMachine.save();
-    res.send('Machine created');
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}
-
-
-//read
-exports.getMachine = async (req, res) => {
-  try {
-    const machines = await Machine.find();
-    res.json(machines);
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}
-
-//update
-exports.updateMachine = async (req, res) => {
-  try {
-    const { id, name, description } = req.body;
-
-    const updatedMachine = await Machine.findByIdAndUpdate(id, {
-      name,
-      description,
-    }, { new: true });
-
-    if (!updatedMachine) {
-      return res.status(404).json({ error: "Machine not found" });
-    }
-    res.json(updatedMachine);
-  }
-  catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}
-
-//delete
-exports.deleteMachine = async (req, res) => {
-  try {
-    const { id } = req.body;
-    console.log(id);
-    if (!id) {
-      return res.status(400).json({ error: "ID is required" });
-    }
-
-    const dltMachine = await Machine.findByIdAndDelete(id);
-
-    if (!dltMachine) {
-      return res.status(404).json({ error: "Machine not found" });
-    }
-
-
-    res.json({ message: "Machine deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}
-
-//get task handler
-exports.getTaskHandler = async (req, res) => {
-  try {
-    const taskhandler = await User.find({ role: "taskhandler" });
-    res.json(taskhandler);
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}
-
-
-//assgin Machine to task handler
-exports.assignMachine = async (req, res) => {
-  try {
-    // Log the request body for debugging
-    console.log("Request Body:", req.body);
-
-    const { machineId, handlerId } = req.body; // Extract machineId and taskHandlerId from the request body
-
-    // Validate input
-    if (!machineId || !handlerId) {
-      return res.status(400).json({ message: "machineId and taskHandlerId are required." });
-    }
-
-    const machineToAssign = await Machine.findById(machineId);
-    //const user = await User.findById("taskHandlerId");
-
-    // Find the machine by machineId
-    const machine = await Machine.findById(machineId);
-
-    // Log the found machine (or null if not found)
-    //console.log("Found machine:", machine);
-
-    if (!machine) {
-      return res.status(404).json({ message: "Machine not found." });
-    }
-
-    // Check if the machine is already assigned
-    if (machine.assignedTo) {
-      return res.status(400).json({ message: "Machine already assigned." });
-    }
-
-    // Update the machine's assignedTo field with the task handler's ID
-    const updatedMachine = await Machine.findByIdAndUpdate(
-      machineId,
-      { assignedTo: handlerId }, // Assign the machine to the task handler
-      { new: true } // Return the updated document
+    const manufacturers = await User.find({ role: 'manufacturer' }).select(
+      'username email companyLocation companyName companyRegNumber'
     );
-    //console.log("Updated Machine:", updatedMachine);
-
-    // Return success response
-    return res.status(200).json({ message: "Machine successfully assigned" });
-  } catch (error) {
-    console.error("Error assigning machine:", error);
-    return res.status(500).json({ message: "Server error while assigning machine." });
+    res.status(200).json(manufacturers);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch manufacturers' });
   }
-}
+};
+
+exports.updateManufacturerDetails = async (req, res) => {
+  const { userId } = req.params;
+  const { companyName, companyLocation, companyRegNumber, companyTelephone } = req.body;
+
+  try {
+    const updated = await User.findByIdAndUpdate(
+      userId,
+      { companyName, companyLocation, companyRegNumber, companyTelephone },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Manufacturer not found' });
+    }
+
+    res.json({ message: 'Manufacturer updated successfully', updated });
+  } catch (err) {
+    console.error('Update error:', err);
+    res.status(500).json({ message: 'Server error updating manufacturer' });
+  }
+};
