@@ -20,6 +20,4 @@ router.get('/manufacturers', adminController.getManufacturers);
 router.put('/manufacturers/:userId', adminController.updateManufacturerDetails);
 
 
-router.get("/filled-bins-with-collectors", adminController.getFilledBinsWithCollectors);
-router.post('/allocate-collector', auth, adminController.allocateCollector);
 module.exports = router;

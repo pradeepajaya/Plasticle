@@ -14,9 +14,6 @@ exports.createBin = async (req, res) => {
       location,
       capacity,
       currentFill: 0, 
-      city: city || 'Unknown',
-      locationName: locationName || location || 'Unnamed Area',
-    
     });
 
     // Save the new bin document
