@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 const { validateBin, updateCollectorStatus, updatePreferredBins } = require("../controllers/collectorController"); // Import from collectorController
