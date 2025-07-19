@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { FaChevronDown } from 'react-icons/fa';
-
+import Sidebar from '../components/sidebar';
 
 
 
@@ -96,10 +96,11 @@ const assinedHandler = (machineId) => {
 }
 
   return (
-    
+    <div className="flex">
+    <Sidebar />
     <div className="max-w-xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Machine Management</h1>
-
+       
       <form onSubmit={editId ? () => handleEdit(editId) : handleCreate} className="mb-6">
         <input
           type="text"
@@ -185,6 +186,7 @@ const assinedHandler = (machineId) => {
           </li>
         ))}
       </ul>
+    </div>
     </div>
     
   );
