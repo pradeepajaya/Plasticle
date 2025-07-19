@@ -65,7 +65,7 @@ function AdminManufacturerList() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-lime-400 via-white to-lime-400">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-emerald-700 to-green-600">
       <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-lg">
         <h2 className="text-3xl font-bold text-center mb-6 text-green-800">Manufacturer List</h2>
         {loading ? (
@@ -73,7 +73,7 @@ function AdminManufacturerList() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm sm:text-base">
-              <thead className="bg-lime-200 text-green-900">
+              <thead className="bg-lime-400 text-green-900">
                 <tr>
                   <th className="border p-3">Username</th>
                   <th className="border p-3">Email</th>
