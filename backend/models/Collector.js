@@ -1,4 +1,3 @@
-// don't change any feild  here , this stored collector related data  you can add fields for your reqiurements but don't delete any feilds 
 // you don't need to add collector id , when user login colloctor id will create and stored here automatically 
 const mongoose = require("mongoose");
 
@@ -7,8 +6,8 @@ const collectorSchema = new mongoose.Schema({
   totalBinsCollected: { type: Number, default: 0 },
   monthlyBinsCollected: { type: Map, of: Number, default: {} },
 
-   location: {
- type: {
+  location: {
+    type: {
       type: String,
       enum: ["Point"],
       default: "Point",
@@ -19,6 +18,13 @@ const collectorSchema = new mongoose.Schema({
     },
   },
   activePersonal: { type: Boolean, default: false },
+
+  preferredBins: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Bin',
+    },
+  ],
 });
 collectorSchema.index({ location: "2dsphere" }); // for geospatial queries
 

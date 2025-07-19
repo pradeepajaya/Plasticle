@@ -1,4 +1,3 @@
-// src/app/page.js
 import Login from './login/page'; // Correct import path
 
 export default function Home() {

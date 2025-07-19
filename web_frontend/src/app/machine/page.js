@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import Navbar from "../components/navbar";
 import { FaChevronDown } from 'react-icons/fa';
 
 
@@ -97,7 +96,7 @@ const assinedHandler = (machineId) => {
 }
 
   return (
-    <><Navbar/>
+    
     <div className="max-w-xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Machine Management</h1>
 
@@ -166,9 +165,10 @@ const assinedHandler = (machineId) => {
               <li
                 key={taskHandlers._id}
                 className="px-4 py-2 cursor-pointer hover:bg-emerald-100 hover:text-zinc-950 "
-              onClick={()=>{
-                handleAssign(machine._id, taskHandlers._id);
-
+              onClick={async ()=>{
+                await handleAssign(machine._id, taskHandlers._id);
+                setOpenDropdownId(null); 
+                fetchMachines();
               }}
               >
               
@@ -185,6 +185,6 @@ const assinedHandler = (machineId) => {
         ))}
       </ul>
     </div>
-    </>
+    
   );
  }
