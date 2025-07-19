@@ -69,3 +69,19 @@ exports.getDueLocations = async (req, res) => {
     res.status(500).json({ message: "Error fetching due locations", error });
   }
 };
+
+// GET /api/bins/check-urgent
+exports.checkUrgentAllocations = async (req, res) => {
+  try {
+    const bins = await Bin.find();
+    const totalBins = bins.length;
+    const fullBins = bins.filter(bin => 
+      bin.status === 'full' || bin.currentFill >= bin.capacity
+    );
+
+    const isUrgent = fullBins.length > totalBins / 2;
+    res.json({ isUrgent });
+  } catch (err) {
+    res.status(500).json({ error: 'Server Error' });
+  }
+};

@@ -276,6 +276,80 @@ const updatePreferredBins = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+// GET /collector/notifications?userId=...
+const getCollectorNotifications = async (req, res) => {
+  const { userId } = req.query;
 
+  try {
+    const collector = await Collector.findOne({ userId });
 
-module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, updatePreferredBins, };
+    if (!collector) {
+      return res.status(404).json({ error: "Collector not found" });
+    }
+
+    // Send notifications array (empty if none)
+    res.status(200).json({
+      notifications: collector.notifications || [],
+    });
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ error: "Failed to fetch notifications" });
+  }
+};
+
+// POST /collector/notifications/respond
+const respondToNotification = async (req, res) => {
+  try {
+    const { notificationId, status } = req.body;
+    const userId = req.user._id;
+
+    if (!["accepted", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const collector = await Collector.findOne({ userId });
+
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    const notification = collector.notifications.id(notificationId);
+
+    if (!notification) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+
+    notification.status = status;
+    await collector.save();
+
+    return res.status(200).json({ message: "Notification status updated" });
+  } catch (error) {
+    console.error("Error updating notification:", error);
+    return res.status(500).json({ message: "Failed to update notification" });
+  }
+};
+
+// GET /collector/notifications/urgent
+const getUrgentNotification = async (req, res) => {
+  try {
+    const totalBins = await Bin.countDocuments({});
+    const fullBins = await Bin.countDocuments({ status: 'full'  || bin.currentFill >= bin.capacity });
+
+    const isUrgent = fullBins > totalBins / 2;
+
+    return res.status(200).json({
+      message: isUrgent
+        ? "⚠️ Urgent: More than half of the bins are full. Immediate collection required!"
+        : null,
+      fullBins,
+      totalBins,
+      isUrgent,
+    });
+  } catch (err) {
+    console.error("Urgent notification error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus,
+   getFullBins, updatePreferredBins, getCollectorNotifications, respondToNotification, getUrgentNotification,};

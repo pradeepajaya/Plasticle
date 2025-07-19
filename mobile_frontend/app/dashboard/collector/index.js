@@ -35,6 +35,8 @@ export default function CollectorDashboard() {
   const [showBinsDropdown, setShowBinsDropdown] = useState(false);
   const [selectedBins, setSelectedBins] = useState([]);
 
+  const [notifications, setNotifications] = useState([]);
+
   useEffect(() => {
     const fetchUserIdAndBins = async () => {
       try {
@@ -68,6 +70,27 @@ export default function CollectorDashboard() {
         }
         const binsData = await binsRes.json();
         setFullBinLocations(binsData);
+
+        // Fetch notifications
+        const notifyRes = await fetch(`${API_URL}/collector/notifications?userId=${userData.user._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!notifyRes.ok) {
+          const text = await notifyRes.text();
+          throw new Error(`Failed to fetch notifications: ${text}`);
+        }
+
+        const notifyJson = await notifyRes.json();
+
+        if (Array.isArray(notifyJson.notifications)) {
+          setNotifications(notifyJson.notifications);
+        } else if (notifyJson.notifications) {
+          setNotifications([notifyJson.notifications]);
+        } else {
+          setNotifications([]);
+        }
+
       } catch (error) {
         console.error(error);
         Alert.alert("Error", error.message || "Failed to load data.");
@@ -223,6 +246,48 @@ export default function CollectorDashboard() {
     );
   }
 
+  const handleNotificationAction = async (notificationId, action) => {
+    console.log("Notification ID to send:", notificationId);
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        Alert.alert("Error", "User token not found. Please log in again.");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/collector/notifications/respond`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          notificationId: notificationId,
+          status: action, // "accepted" or "rejected"
+        }),
+      });
+
+      // Read raw response text first to catch errors that are not JSON
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update notification");
+      }
+
+      // Update notifications state locally after success:
+      setNotifications((prev) =>
+        prev.map((note) =>
+          note._id === notificationId ? { ...note, status: action } : note
+        )
+      );
+
+      Alert.alert("Success", `Notification ${action}`);
+    } catch (error) {
+      console.error("Notification action error:", error);
+      Alert.alert("Error", error.message || "Failed to process notification.");
+    }
+  };
+
   return (
     <View style={styles.container}>
       {isCameraVisible && (
@@ -308,6 +373,68 @@ export default function CollectorDashboard() {
               </TouchableOpacity>
             </>
           )}
+
+          {/* Notifications Section */}
+          <View style={{ marginTop: 30, width: "100%" }}>
+            <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
+              📢 Urgent Notifications
+            </Text>
+            {Array.isArray(notifications) && notifications.length === 0 ? (
+              <Text style={{ color: "#666" }}>No notifications yet.</Text>
+            ) : (
+              Array.isArray(notifications) &&
+              notifications.map((note, idx) => (
+
+                <View
+                  key={idx}
+                  style={{
+                    backgroundColor: "#fcef81ff",
+                    padding: 10,
+                    marginBottom: 8,
+                    borderRadius: 6,
+                    borderWidth: 1,
+                    borderColor: "#ddd",
+                  }}
+                >
+                  <Text style={{ fontWeight: "bold" }}>{note.message}</Text>
+                  <Text style={{ fontSize: 12, color: "#666" }}>{note.date}</Text>
+                  <Text style={{ fontSize: 12, color: "#999", marginBottom: 8 }}>
+                    Status: {note.status || "pending"}
+                  </Text>
+
+                  {note.status === "unread" && (
+                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: "green",
+                          padding: 8,
+                          borderRadius: 5,
+                          flex: 1,
+                          marginRight: 5,
+                        }}
+                        onPress={() => handleNotificationAction(note._id, "accepted")}
+                      >
+                        <Text style={{ color: "white", textAlign: "center" }}>Accept</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: "red",
+                          padding: 8,
+                          borderRadius: 5,
+                          flex: 1,
+                          marginLeft: 5,
+                        }}
+                        onPress={() => handleNotificationAction(note._id, "rejected")}
+                      >
+                        <Text style={{ color: "white", textAlign: "center" }}>Reject</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              ))
+            )}
+          </View>
         </ScrollView>
       )}
     </View>

@@ -1,7 +1,7 @@
 
 const express = require("express");
 const router = express.Router();
-const { validateBin, updateCollectorStatus, updatePreferredBins } = require("../controllers/collectorController"); // Import from collectorController
+const { validateBin, updateCollectorStatus, updatePreferredBins, getUrgentNotification, } = require("../controllers/collectorController"); // Import from collectorController
 const authenticateToken = require("../middleware/auth");
 const collectorController = require("../controllers/collectorController");
 const adminController = require("../controllers/adminController");
@@ -28,5 +28,8 @@ router.get("/allocations", auth, collectorController.getCollectorAllocations);
 router.post("/update-bin-status", auth, collectorController.updateBinCollectionStatus);
 router.post('/update-preferred-bins', updatePreferredBins);
 router.get("/full-bin-locations", auth, collectorController.getFullBins);
+router.get('/notifications', auth, collectorController.getCollectorNotifications);
+router.post('/notifications/respond', auth, collectorController.respondToNotification);
+router.get("/notifications/urgent", getUrgentNotification);
 
 module.exports = router;

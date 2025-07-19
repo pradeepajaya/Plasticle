@@ -1,32 +1,32 @@
-// you don't need to add collector id , when user login colloctor id will create and stored here automatically 
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const collectorSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  totalBinsCollected: { type: Number, default: 0 },
-  monthlyBinsCollected: { type: Map, of: Number, default: {} },
-
-  location: {
-    type: {
-      type: String,
-      enum: ["Point"],
-      default: "Point",
-    },
-    coordinates: {
-      type: [Number], // [longitude, latitude]
-      default: [0, 0],
-    },
+const notificationSchema = new mongoose.Schema({
+  message: String,
+  binId: String,
+  collectionDate: Date,
+  status: {
+    type: String,
+    enum: ["unread", "accepted", "rejected"],
+    default: "unread",
   },
-  activePersonal: { type: Boolean, default: false },
+}, { timestamps: true });
 
-  preferredBins: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Bin',
-    },
-  ],
+// Define the collector schema
+const collectorSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  totalBinsCollected: { type: Number, default: 0 },
+  monthlyBinsCollected: {
+    type: Map,
+    of: Number,
+    default: {},
+  },
+  location: {
+    lat: Number,
+    lng: Number,
+  },
+  activePersonal: { type: Boolean, default: true },
+  preferredBins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Bin' }],
+  notifications: [notificationSchema],
 });
-collectorSchema.index({ location: "2dsphere" }); // for geospatial queries
 
-const Collector = mongoose.model("Collector", collectorSchema);
-module.exports = Collector;
+module.exports = mongoose.model('Collector', collectorSchema);

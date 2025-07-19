@@ -28,3 +28,12 @@ export const getFilledBinsWithCollectors = () =>
 export const updateManufacturer = async (userId, updatedData) => {
   return await API.put(`/admin/manufacturers/${userId}`, updatedData);
 };
+export const checkUrgentAllocations = () => API.get('/bins/check-urgent');
+
+export const notifyAllCollectors = async (message) => {
+  return await API.post('/admin/notify-all-collectors', { message });
+};
+
+export const getCollectorNotifications = async (userId) => {
+  return await API.get(`/collector/notifications?userId=${userId}`);
+};

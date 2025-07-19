@@ -18,6 +18,7 @@ router.get("/vehiclearrival-basic", adminController.getVehicleArrivalBasic);
 router.get('/daily-collection-stats', adminController.getDailyCollectionStats);
 router.get('/manufacturers', adminController.getManufacturers);
 router.put('/manufacturers/:userId', adminController.updateManufacturerDetails);
+router.post('/notify-all-collectors', adminController.notifyAllCollectors);
 
 
 module.exports = router;
