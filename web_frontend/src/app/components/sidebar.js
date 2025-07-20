@@ -32,7 +32,7 @@ export default function Sidebar() {
 
 'use client';
 import Link from 'next/link';
-import { Home, MapPin, Truck, Factory, PlusCircle } from 'lucide-react';
+import { Home, MapPin, Truck, Factory, PlusCircle, Settings } from 'lucide-react';
 
 export default function Sidebar() {
   return (
@@ -70,6 +70,11 @@ export default function Sidebar() {
             <Factory size={18} />
             <span>Manufacturers</span>
           </Link>
+          <Link href="/machine" className="flex items-center space-x-2 hover:text-emerald-300 transition">
+            <Settings size={18} />
+            <span>Machines</span>
+          </Link>
+
         </nav>
       </div>
 
