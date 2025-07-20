@@ -19,5 +19,7 @@ router.get('/daily-collection-stats', adminController.getDailyCollectionStats);
 router.get('/manufacturers', adminController.getManufacturers);
 router.put('/manufacturers/:userId', adminController.updateManufacturerDetails);
 
+router.get('/check-status', adminController.checkFullBinsAndCollectors);
+
 
 module.exports = router;
