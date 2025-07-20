@@ -128,7 +128,7 @@ export default function BuyerHome() {
                     onPress={() => router.navigate('/dashboard/buyer')}
                     activeOpacity={0.8}
                 >
-                    <MaterialCommunityIcons name="camera" size={80} color="#fff" style={{ alignSelf: 'center' }} />
+                    {/*<MaterialCommunityIcons name="camera" size={80} color="#fff" style={{ alignSelf: 'center' }} />*/}
                 </TouchableOpacity>
 
                 {/* Section title 'Community Posts' */}
