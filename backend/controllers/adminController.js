@@ -293,3 +293,45 @@ exports.getAvailableCollectors = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+//Bottle statistics controller
+
+exports.getBottleSummary = async (req, res) => {
+  try {
+    const bottles = await Bottle.find().populate("manufacturerId").populate("binId");
+
+    const monthlyData = {};
+    const yearlyData = {};
+    const districtData = {};
+    const manufacturerData = {};
+
+    bottles.forEach((bottle) => {
+      const date = new Date(bottle.generatedAt);
+      const year = date.getFullYear();
+      const month = `${year}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+      // Monthly
+      monthlyData[month] = (monthlyData[month] || 0) + 1;
+
+      // Yearly
+      yearlyData[year] = (yearlyData[year] || 0) + 1;
+
+      // Manufacturer
+      const mName = bottle.manufacturerId?.name || "Unknown Manufacturer";
+      manufacturerData[mName] = (manufacturerData[mName] || 0) + 1;
+
+      // District
+      const city = bottle.binId?.city || "Unknown District";
+      districtData[city] = (districtData[city] || 0) + 1;
+    });
+
+    res.status(200).json({
+      monthly: monthlyData,
+      yearly: yearlyData,
+      district: districtData,
+      manufacturer: manufacturerData,
+    });
+  } catch (error) {
+    console.error("Error in bottle summary:", error);
+    res.status(500).json({ message: "Error fetching bottle summary" });
+  }
+};

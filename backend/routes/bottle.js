@@ -4,6 +4,7 @@ const bottleController = require("../controllers/bottleController");
 
 // POST /api/task-handler/recycle-bottle
 router.post("/recycle-bottle", bottleController.recycleBottle);
+router.get("/summary", bottleController.getBottleSummary);
 
 module.exports = router;
 
