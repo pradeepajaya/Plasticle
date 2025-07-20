@@ -41,7 +41,7 @@ app.use("/api/bins", require("./routes/bin"));
 app.use("/api/buyer", require("./routes/buyer"));
 app.use("/api/collector", require("./routes/collector"));
 app.use("/api/task-handler", require("./routes/bottle"));
-app.use("/api/posts", require("./routes/post"));
+app.use("/api/posts", require("./routes/Post"));
 app.use('/uploads', express.static('uploads'));
 app.use("/api/stats", require("./routes/stats"));
 

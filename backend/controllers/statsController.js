@@ -1,13 +1,10 @@
 const Buyer = require("../models/Buyer");
-const User = require("../models/User");
-const mongoose = require("mongoose");
 
 const getBottleStats = async (req, res) => {
   try {
     const now = new Date();
 
-    // Base pipeline for lookup and age calculation
-    const basePipeline = [
+    const pipeline = [
       {
         $lookup: {
           from: "users",
@@ -18,21 +15,24 @@ const getBottleStats = async (req, res) => {
       },
       { $unwind: "$user" },
 
-      // Filter only docs with valid dateOfBirth
+      // Filter only docs with a non-null dateOfBirth of type string or date
       {
         $match: {
-          $and: [
-            { "user.dateOfBirth": { $ne: null } },
-            {
-              $expr: {
-                $in: [{ $type: "$user.dateOfBirth" }, ["date", "string"]],
+          $expr: {
+            $and: [
+              { $ne: ["$user.dateOfBirth", null] },
+              {
+                $or: [
+                  { $eq: [{ $type: "$user.dateOfBirth" }, "date"] },
+                  { $eq: [{ $type: "$user.dateOfBirth" }, "string"] },
+                ],
               },
-            },
-          ],
+            ],
+          },
         },
       },
 
-      // Convert to Date if it's a string
+      // Convert dateOfBirth to Date if it's string, else keep as date
       {
         $addFields: {
           dateOfBirth: {
@@ -45,7 +45,7 @@ const getBottleStats = async (req, res) => {
         },
       },
 
-      // Calculate age
+      // Calculate age in years
       {
         $addFields: {
           age: {
@@ -59,99 +59,72 @@ const getBottleStats = async (req, res) => {
         },
       },
 
-      // Determine age group
+      // Calculate ageGroup string
       {
         $addFields: {
           ageGroup: {
             $switch: {
               branches: [
-                { case: { $lt: ["$age", 18] }, then: "0-17" },
-                { case: { $lt: ["$age", 31] }, then: "18-30" },
-                { case: { $lt: ["$age", 51] }, then: "31-50" },
+                { case: { $lt: ["$age", 18] }, then: "Under 18" },
+                { case: { $lt: ["$age", 30] }, then: "18-29" },
+                { case: { $lt: ["$age", 45] }, then: "30-44" },
+                { case: { $lt: ["$age", 60] }, then: "45-59" },
               ],
-              default: "51+",
+              default: "60+",
             },
           },
         },
       },
-    ];
 
-    // Group by Province
-    const byProvince = await Buyer.aggregate([
-      ...basePipeline,
+      // Group by province, manufacturerId, ageGroup
       {
         $group: {
-          _id: "$province",
+          _id: {
+            province: "$province",
+            manufacturerId: "$manufacturerId",
+            ageGroup: "$ageGroup",
+          },
           totalBottles: { $sum: "$totalBottlesCollected" },
+          countBuyers: { $sum: 1 },
         },
       },
-      {
-        $project: {
-          _id: 0,
-          province: "$_id",
-          totalBottles: 1,
-        },
-      },
-    ]);
 
-    // Group by Age Group
-    const byAgeGroup = await Buyer.aggregate([
-      ...basePipeline,
-      {
-        $group: {
-          _id: "$ageGroup",
-          totalBottles: { $sum: "$totalBottlesCollected" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          ageGroup: "$_id",
-          totalBottles: 1,
-        },
-      },
-    ]);
-
-    // Group by Manufacturer
-    const byManufacturer = await Buyer.aggregate([
-      ...basePipeline,
-      {
-        $group: {
-          _id: "$manufacturerId",
-          totalBottles: { $sum: "$totalBottlesCollected" },
-        },
-      },
+      // Lookup manufacturer username
       {
         $lookup: {
           from: "users",
-          localField: "_id",
+          localField: "_id.manufacturerId",
           foreignField: "_id",
           as: "manufacturer",
         },
       },
       {
-        $unwind: { path: "$manufacturer", preserveNullAndEmptyArrays: true },
+        $unwind: {
+          path: "$manufacturer",
+          preserveNullAndEmptyArrays: true,
+        },
       },
+
+      // Final projection
       {
         $project: {
           _id: 0,
+          province: "$_id.province",
           manufacturer: "$manufacturer.username",
+          ageGroup: "$_id.ageGroup",
           totalBottles: 1,
+          countBuyers: 1,
         },
       },
-    ]);
+    ];
 
-    return res.json({
-      byProvince,
-      byAgeGroup,
-      byManufacturer,
-    });
+    const results = await Buyer.aggregate(pipeline);
+
+    return res.json(results);
   } catch (error) {
     console.error("Error fetching bottle stats:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
-module.exports = {
-  getBottleStats,
-};
+module.exports = { getBottleStats };
