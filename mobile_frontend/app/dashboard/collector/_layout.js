@@ -3,11 +3,11 @@
 
 export default function CollectorLayout() {
   return (
-	<Tabs>
-	  <Tabs.Screen name="index" options={{ title: 'Home' }} />
-	  <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
-	  <Tabs.Screen name="analytics" options={{ title: 'Analytics' }} />
-	</Tabs>
+  <Tabs>
+    <Tabs.Screen name="index" options={{ title: 'Home' }} />
+    <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+    <Tabs.Screen name="analytics" options={{ title: 'Analytics' }} />
+  </Tabs>
   );
 }*/
 
@@ -33,6 +33,7 @@ export default function CollectorLayout() {
           if (route.name === "index") iconName = focused ? "home" : "home-outline";
           else if (route.name === "settings") iconName = focused ? "settings" : "settings-outline";
           else if (route.name === "analytics") iconName = focused ? "bar-chart" : "bar-chart-outline";
+          else if (route.name === "calendar") iconName = focused ? "calendar" : "calendar-outline";
 
           return <Ionicons name={iconName} size={focused ? 26 : 22} color={color} />;
         },
@@ -42,6 +43,7 @@ export default function CollectorLayout() {
       })}
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
+      <Tabs.Screen name="calendar" options={{ title: "Calendar" }} />
       <Tabs.Screen name="settings" options={{ title: "Settings" }} />
       <Tabs.Screen name="analytics" options={{ title: "Analytics" }} />
     </Tabs>

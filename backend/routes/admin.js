@@ -11,4 +11,24 @@ router.get("/task-handlers", auth, adminController.getTaskHandlers);
 router.put('/deactivate-taskhandler/:id', adminController.deactivateTaskHandler);
 
 
+router.get("/available-collectors", auth, adminController.getAvailableCollectors);
+router.get("/filled-bins-with-collectors", adminController.getFilledBinsWithCollectors);
+router.post('/allocate-collector', auth, adminController.allocateCollector);
+router.get("/vehiclearrival-basic", adminController.getVehicleArrivalBasic);
+router.get('/daily-collection-stats', adminController.getDailyCollectionStats);
+router.get('/manufacturers', adminController.getManufacturers);
+router.put('/manufacturers/:userId', adminController.updateManufacturerDetails);
+
+router.get('/check-status', adminController.checkFullBinsAndCollectors);
+
+router.post("/createMachine", adminController.createMachine); 
+router.get("/getMachine", adminController.getMachine); 
+router.patch("/updateMachine", adminController.updateMachine); 
+router.delete("/deleteMachine", adminController.deleteMachine); 
+router.patch("/assignMachine", adminController.assignMachine);
+router.get("/getTaskHandler", adminController.getTaskHandler);
+
+
+
+
 module.exports = router;

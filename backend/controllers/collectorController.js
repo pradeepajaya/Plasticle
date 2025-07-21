@@ -178,4 +178,76 @@ const getProfilepicture = async (req, res) => {
 };
 
 
-module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture };
+
+const getCollectorAllocations = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Find the collector by the logged-in user's ID
+    const collector = await Collector.findOne({ userId });
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    // Find bins assigned to this collector with a collection date
+    const bins = await Bin.find({
+      collectorId: collector._id,
+      collectionDate: { $ne: null },
+    }).select("binId collectionDate location city locationName");
+    
+    res.status(200).json(bins);
+  } catch (error) {
+    console.error("Error fetching collector allocations:", error);
+    res.status(500).json({ message: "Failed to fetch collector allocations." });
+  }
+};
+
+
+const updateBinCollectionStatus = async (req, res) => {
+  try {
+    const { binId, vehicleId } = req.body;
+
+    // Find the bin first to get the currentFill before updating
+    const bin = await Bin.findOne({ binId });
+
+    if (!bin) {
+      return res.status(404).json({ message: "Bin not found" });
+    }
+
+    const previousFill = bin.currentFill; //  Save current fill before resetting
+
+    const updatedBin = await Bin.findOneAndUpdate(
+      { binId },
+      {
+        status: "active",
+        currentFill: 0,
+        collected: true,
+        vehicleId: vehicleId || "",
+        previousFill, 
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "Bin marked as collected",
+      binId: updatedBin.binId,
+      collectionDate: updatedBin.collectionDate,
+    });
+  } catch (err) {
+    console.error("Error in updateBinCollectionStatus:", err);
+    res.status(500).json({ message: "Error updating bin" });
+  }
+};
+
+const getFullBins = async (req, res) => {
+  try {
+    const fullBins = await Bin.find({ status: "full" }).select("location");
+    res.status(200).json(fullBins);
+  } catch (error) {
+    console.error("Error fetching full bins:", error);
+    res.status(500).json({ message: "Failed to fetch full bins." });
+  }
+};
+
+
+module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, };

@@ -1,4 +1,4 @@
- // you don't need to add collector id , when user login colloctor id will create and stored here automatically 
+// you don't need to add collector id , when user login colloctor id will create and stored here automatically 
 const mongoose = require("mongoose");
 
 const collectorSchema = new mongoose.Schema({
@@ -6,8 +6,8 @@ const collectorSchema = new mongoose.Schema({
   totalBinsCollected: { type: Number, default: 0 },
   monthlyBinsCollected: { type: Map, of: Number, default: {} },
 
-   location: {
- type: {
+  location: {
+    type: {
       type: String,
       enum: ["Point"],
       default: "Point",
@@ -18,6 +18,7 @@ const collectorSchema = new mongoose.Schema({
     },
   },
   activePersonal: { type: Boolean, default: false },
+
 });
 collectorSchema.index({ location: "2dsphere" }); // for geospatial queries
 
