@@ -118,16 +118,43 @@ const updateCollectorStatus = async (req, res) => {
 };
 
 
+// collector availability toggle status
+const toggleAvailabilityStatus = async (req, res) => {
+  try {
+    const { userId, activePersonal } = req.body;
+
+    if (!userId || activePersonal == null) {
+      return res.status(400).json({ message: "Missing userId or activePersonal status" });
+    }
+
+    const collector = await Collector.findOneAndUpdate(
+      { userId },
+      { activePersonal },
+      { new: true }
+    );
+
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    res.status(200).json({ message: "Availability status updated", collector });
+  } catch (error) {
+    console.error("Error toggling availability status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 // update collector profile information
 
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { nickname, dateOfBirth, gender, hometown } = req.body;
+    const { nickname, dateOfBirth, gender, district } = req.body;
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { nickname, dateOfBirth, gender, hometown },
+      { nickname, dateOfBirth, gender, district },
       { new: true }
     );
 
@@ -250,4 +277,4 @@ const getFullBins = async (req, res) => {
 };
 
 
-module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, };
+module.exports = { validateBin, updateCollectorStatus,  toggleAvailabilityStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, };

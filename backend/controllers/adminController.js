@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Collector = require('../models/Collector');
 const Bin = require('../models/Bin');
 const Machine = require("../models/Machine");
+const TaskHandler = require("../models/taskhandler");
 //const API = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
 
 
@@ -25,6 +26,18 @@ exports.createTaskHandler = async (req, res) => {
 
     user = new User({ username, email, passwordHash, role, isVerified: true,});
     await user.save();
+
+  
+
+// ...
+const taskhandler = new TaskHandler({  // Capitalized constructor
+  userId: user._id,
+  username: user.username,
+  isActive: true,
+  region: "",
+});
+await taskhandler.save();
+
 
     res.status(201).json({ message: "Task Handler Created" });
   } catch (err) {
@@ -54,6 +67,7 @@ exports.deactivateTaskHandler = async (req, res) => {
 
     // Find user first to construct new values
     const user = await User.findOne({ _id: id, role: 'taskhandler' });
+    
 
     if (!user) {
       return res.status(404).json({ message: 'Task handler not found or invalid role' });
@@ -67,6 +81,14 @@ exports.deactivateTaskHandler = async (req, res) => {
     };
 
     const updatedHandler = await User.findByIdAndUpdate(id, updatedFields, { new: true });
+
+     await TaskHandler.findOneAndUpdate(
+      { userId: id },
+      {
+        isActive: false,
+        username: `deactivated-${user._id}`,
+      }
+    );
 
     res.status(200).json({ message: 'Task handler deactivated', user: updatedHandler });
   } catch (error) {

@@ -48,5 +48,5 @@ app.use("/api/stats", require("./routes/stats"));
 
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://192.168.8.137:${PORT}`)); 
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://192.168.94.221:${PORT}`)); 
 
