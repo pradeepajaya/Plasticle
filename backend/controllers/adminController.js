@@ -453,9 +453,7 @@ exports.assignMachine = async (req, res) => {
       return res.status(400).json({ message: "machineId and taskHandlerId are required." });
     }
 
-    const machineToAssign = await Machine.findById(machineId);
-    //const user = await User.findById("taskHandlerId");
-
+ 
     // Find the machine by machineId
     const machine = await Machine.findById(machineId);
 

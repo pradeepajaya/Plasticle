@@ -4,8 +4,10 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const User = require("./models/User");
 const bcrypt = require("bcryptjs");
-const collectorRoutes = require('./routes/collector');
 
+const http = require('http');
+const socketIO = require('socket.io');
+const socketHandler = require('./sockets/socketHandler');
 
 dotenv.config();
 connectDB();
@@ -13,6 +15,20 @@ connectDB();
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+
+// Create HTTP server
+const server = http.createServer(app);
+
+// Setup socket
+const io = socketIO(server, {
+  cors: {
+    origin: "*", // or set specific frontend URL
+    methods: ["GET", "POST"]
+  }
+});
+
+socketHandler(io);
 
 const createAdminUser = async () => {
     const adminExists = await User.findOne({ role: "admin" });
@@ -44,8 +60,8 @@ app.use("/api/collector", require("./routes/collector"));
 app.use("/api/task-handler", require("./routes/bottle"));
 app.use("/api/posts", require("./routes/post"));
 app.use('/uploads', express.static('uploads'));
-
+//app.use('/api', require('./routes/socket'));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://192.168.8.137:${PORT}`)); 
+server.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://192.168.8.137:${PORT}`)); 
 
