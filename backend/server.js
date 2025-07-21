@@ -58,9 +58,10 @@ app.use("/api/bins", require("./routes/bin"));
 app.use("/api/buyer", require("./routes/buyer"));
 app.use("/api/collector", require("./routes/collector"));
 app.use("/api/task-handler", require("./routes/bottle"));
-app.use("/api/posts", require("./routes/post"));
+app.use("/api/posts", require("./routes/Post"));
 app.use('/uploads', express.static('uploads'));
-//app.use('/api', require('./routes/socket'));
+app.use("/api/stats", require("./routes/stats"));
+
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://192.168.8.137:${PORT}`)); 

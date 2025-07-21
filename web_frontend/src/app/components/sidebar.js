@@ -74,6 +74,10 @@ export default function Sidebar() {
             <Settings size={18} />
             <span>Machines</span>
           </Link>
+          <Link href="/stats" className="flex items-center space-x-2 hover:text-emerald-300 transition">
+            <Settings size={18} />
+            <span>Stat</span>
+          </Link>
 
         </nav>
       </div>
