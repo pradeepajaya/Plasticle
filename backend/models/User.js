@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
   nickname: { type: String },
   dateOfBirth: { type: Date },
   gender: { type: String, enum: ["male", "female", "other"] },
-  hometown: { type: String },
+  district: { type: String },
 
   // Manufacturer-specific fields
   companyName: { type: String },

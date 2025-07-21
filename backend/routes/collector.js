@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { validateBin, updateCollectorStatus, updatePreferredBins } = require("../controllers/collectorController"); // Import from collectorController
+const { validateBin, updateCollectorStatus, updatePreferredBins,toggleAvailabilityStatus } = require("../controllers/collectorController"); // Import from collectorController
 const authenticateToken = require("../middleware/auth");
 const collectorController = require("../controllers/collectorController");
 const adminController = require("../controllers/adminController");
@@ -9,6 +9,8 @@ const auth = require("../middleware/auth");
 // Define route to validate bin (specific to collectors)
 router.post("/validate-bin", validateBin);
 router.post("/update-status", updateCollectorStatus);
+
+router.post("/toggle-availability", toggleAvailabilityStatus);
 
 // update collector information 
 
