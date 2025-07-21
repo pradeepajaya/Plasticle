@@ -21,11 +21,15 @@ router.put('/manufacturers/:userId', adminController.updateManufacturerDetails);
 
 router.get('/check-status', adminController.checkFullBinsAndCollectors);
 
+
+//sk
 router.post("/createMachine", adminController.createMachine); 
-router.get("/getMachine", adminController.getMachine); 
 router.patch("/updateMachine", adminController.updateMachine); 
 router.delete("/deleteMachine", adminController.deleteMachine); 
-router.patch("/assignMachine", adminController.assignMachine);
+router.get("/assignedMachines", adminController.assignedMachines); 
+router.get("/notAssignedMachines", adminController.notAssignedMachines); 
+
+router.put("/assignMachine", adminController.assignMachine);
 router.get("/getTaskHandler", adminController.getTaskHandler);
 
 

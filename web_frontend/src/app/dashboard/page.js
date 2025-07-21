@@ -254,6 +254,7 @@ export default function AdminDashboard() {
               type="text"
               name="username"
               placeholder="Username"
+              autoComplete="off"
               value={formData.username}
               onChange={handleChange}
               required
@@ -272,6 +273,7 @@ export default function AdminDashboard() {
               type="password"
               name="password"
               placeholder="Password"
+              autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
               required
