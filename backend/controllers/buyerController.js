@@ -95,11 +95,11 @@ const validateBottleQRCode = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { nickname, dateOfBirth, gender, district} = req.body;
+    const { nickname, dateOfBirth, gender, province} = req.body;
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { nickname, dateOfBirth, gender, district },
+      { nickname, dateOfBirth, gender, province },
       { new: true }
     );
 
