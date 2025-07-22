@@ -32,8 +32,11 @@ const ManufacturerDashboard = () => {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
+  const [produceCount, setProduceCount] = useState(0);
+  const [recycleCount, setRecycleCount] = useState(0);
 
-  useEffect(() => {
+
+ useEffect(() => {
     const checkMediaPermission = async () => {
       try {
         const { status, canAskAgain } = await MediaLibrary.getPermissionsAsync();
@@ -88,7 +91,43 @@ const ManufacturerDashboard = () => {
     fetchUserId();
   }, []);
 
- 
+useEffect(() => {
+  const fetchStats = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        Alert.alert("Error", "User token not found. Please log in again.");
+        return;
+      }
+
+      const statsRes = await fetch(`${API_URL}/manufacturer/stats`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const statsData = await statsRes.json();
+
+      if (statsRes.ok) {
+        setProduceCount(statsData.stats.totalBottlesProduced || 0);
+        setRecycleCount(statsData.stats.totalBottlesRecycled || 0);
+      } else {
+        console.error("Stats Fetch Error", statsData.message);
+        Alert.alert("Error", statsData.message || "Failed to fetch stats");
+      }
+
+    } catch (error) {
+      console.error("Fetch Stats Error:", error);
+      Alert.alert("Error", "Something went wrong while fetching stats");
+    }
+  };
+
+  fetchStats();
+}, []);
+
+
 
   const generateQRCodes = async () => {
     if (!userId) {
@@ -112,6 +151,7 @@ const ManufacturerDashboard = () => {
       const data = await response.json();
       if (response.ok) {
         setQRCodes(data.bottles);
+        setProduceCount(prev => prev + parseInt(count)); 
       } else {
         Alert.alert("Error", data.error || "Failed to generate QR codes");
       }
@@ -245,66 +285,91 @@ const downloadAllQRCodes = async () => {
   };
 
   return (
-    <LinearGradient colors={['#e8f5e9', '#c8e6c9', '#a5d6a7']} style={styles.gradient}>
-      <ScrollView 
-        contentContainerStyle={[styles.container, { minHeight: height }]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.contentContainer}>
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Enter the number of QR Codes to generate:</Text>
-            <TextInput
-              placeholder="Enter Count"
-              placeholderTextColor="#888"
-              keyboardType="numeric"
-              value={count.toString()}
-              onChangeText={(text) =>
-                setCount(isNaN(parseInt(text, 10)) ? "" : parseInt(text, 10))
-              }
-              style={styles.input}
-            />
-
-            {loading ? (
-              <ActivityIndicator size="large" color="#2e7d32" />
-            ) : qrCodes.length === 0 ? (
-              <TouchableOpacity 
-                style={[styles.actionButton, styles.generateButton]} 
-                onPress={generateQRCodes}
-              >
-                <Ionicons name="qr-code-outline" size={20} color="white" style={styles.buttonIcon} />
-                <Text style={styles.buttonText}>Generate QR Codes</Text>
-              </TouchableOpacity>
-            ) : null}
-
-            {qrCodes.length > 0 && (
-              <>
-                <TouchableOpacity 
-                  style={[styles.actionButton, styles.downloadButton]} 
-                  onPress={downloadAllQRCodes} 
-                  disabled={loading}
-                >
-                  <Ionicons name="download-outline" size={20} color="white" style={styles.buttonIcon} />
-                  <Text style={styles.buttonText}>Download All QR Codes</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.pdfButton]}
-                  onPress={saveQRCodesAsPDF}
-                  disabled={loading}
-                >
-                  <Ionicons name="document-outline" size={20} color="white" style={styles.buttonIcon} />
-                  <Text style={styles.buttonText}>Save All as PDF</Text>
-                </TouchableOpacity>
-              </>
-            )}
+    <LinearGradient colors={['#1b5e20', '#2e7d32', '#4caf50', '#81c784']} style={styles.gradient}>
+    <ScrollView 
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={true}
+    >
+      <View style={styles.contentContainer}>
+        {/* Top Welcome Section */}
+        <View style={styles.topSection}>
+          <Image source={require('../../../assets/images/logoplasticle.png')} style={styles.logo} />
+          <View style={styles.welcomeTextContainer}>
+            <Text style={styles.helloText}>Hello,</Text>
+            <Text style={styles.welcomeText}>Welcome back</Text>
           </View>
+        </View>
+
+        {/* Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{produceCount}</Text>
+            <Text style={styles.statText}>Bottles Generated</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{recycleCount}</Text>
+            <Text style={styles.statText}>Bottles Recycled</Text>
+          </View>
+        </View>
+
+        {/* QR Code Generator Card */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Enter the number of QR Codes to generate:</Text>
+          <TextInput
+            placeholder="Enter Count"
+            placeholderTextColor="#888"
+            keyboardType="numeric"
+            value={count.toString()}
+            onChangeText={(text) =>
+              setCount(isNaN(parseInt(text, 10)) ? "" : parseInt(text, 10))
+            }
+            style={styles.input}
+          />
+
+          {loading ? (
+            <ActivityIndicator size="large" color="#2e7d32" />
+          ) : qrCodes.length === 0 ? (
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.generateButton]} 
+              onPress={generateQRCodes}
+            >
+              <Ionicons name="qr-code-outline" size={20} color="white" style={styles.buttonIcon} />
+              <Text style={styles.buttonText}>Generate QR Codes</Text>
+            </TouchableOpacity>
+          ) : null}
 
           {qrCodes.length > 0 && (
-            <View style={[styles.card, { flex: 1 }]}>
-              <Text style={styles.sectionTitle}>Generated QR Codes:</Text>
-              <ScrollView 
-                style={styles.scrollContainer}
-                contentContainerStyle={styles.qrRow}
+            <>
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.downloadButton]} 
+                onPress={downloadAllQRCodes} 
+                disabled={loading}
               >
+                <Ionicons name="download-outline" size={20} color="white" style={styles.buttonIcon} />
+                <Text style={styles.buttonText}>Download All QR Codes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.pdfButton]}
+                onPress={saveQRCodesAsPDF}
+                disabled={loading}
+              >
+                <Ionicons name="document-outline" size={20} color="white" style={styles.buttonIcon} />
+                <Text style={styles.buttonText}>Save All as PDF</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
+        {/* QR Code Grid */}
+        {qrCodes.length > 0 && (
+          <View style={[styles.card]}>
+            <Text style={styles.sectionTitle}>Generated QR Codes:</Text>
+            <ScrollView 
+              style={styles.qrScrollContainer}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
+              <View style={styles.qrRow}>
                 {qrCodes.map((qr, index) => (
                   <View key={index} style={styles.qrContainer}>
                     <View style={styles.qrImageContainer}>
@@ -313,14 +378,15 @@ const downloadAllQRCodes = async () => {
                     <Text style={styles.qrLabel}>QR #{index + 1}</Text>
                   </View>
                 ))}
-              </ScrollView>
-            </View>
-          )}
+              </View>
+            </ScrollView>
+          </View>
+        )}
+      </View>
+    </ScrollView>
+  </LinearGradient>
+);
 
-        </View>
-      </ScrollView>
-    </LinearGradient>
-  );
 };
 
 const styles = StyleSheet.create({
@@ -329,104 +395,211 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
+    paddingVertical: 25,
+    paddingHorizontal: 5,
   },
   contentContainer: {
     width: '100%',
     padding: 20,
     justifyContent: 'center',
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 15,
+  topSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 25,
+    paddingHorizontal: 5,
+  },
+  logo: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    marginRight: 20,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  welcomeTextContainer: {
+    flexDirection: 'column',
+    flex: 1,
+  },
+  helloText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#ffffff',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+  },
+  welcomeText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 25,
+    paddingHorizontal: 10,
+  },
+  statCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
     padding: 20,
+    flex: 0.48,
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 175, 80, 0.2)',
+  },
+  statNumber: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1b5e20',
+    marginBottom: 5,
+  },
+  statText: {
+    fontSize: 14,
+    color: '#2e7d32',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 25,
+    padding: 25,
     marginBottom: 20,
+    marginHorizontal: 5,
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 175, 80, 0.2)',
+  },
+  sectionTitle: {
+    fontWeight: '700',
+    marginBottom: 20,
+    fontSize: 20,
+    color: '#1b5e20',
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 2,
+    borderColor: '#81c784',
+    padding: 18,
+    marginVertical: 12,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 16,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 6,
-  },
-  sectionTitle: {
-    fontWeight: "bold",
-    marginBottom: 10,
-    fontSize: 16,
-    color: '#2e7d32',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#81c784",
-    padding: 15,
-    marginVertical: 10,
-    borderRadius: 10,
-    backgroundColor: 'white',
-    fontSize: 16,
+    shadowRadius: 4,
   },
   actionButton: {
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 10,
+    padding: 18,
+    borderRadius: 15,
+    marginVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    elevation: 3,
+    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    minHeight: 55,
   },
   generateButton: {
     backgroundColor: '#2e7d32',
+    borderWidth: 2,
+    borderColor: '#4caf50',
   },
   downloadButton: {
-    backgroundColor: '#5e35b1',
+    backgroundColor: '#388e3c',
+    borderWidth: 2,
+    borderColor: '#66bb6a',
   },
   pdfButton: {
-    backgroundColor: '#039be5',
+    backgroundColor: '#43a047',
+    borderWidth: 2,
+    borderColor: '#81c784',
   },
   buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "center",
+    color: '#ffffff',
+    fontWeight: '700',
+    textAlign: 'center',
     marginLeft: 8,
     fontSize: 16,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   buttonIcon: {
     marginRight: 8,
   },
   scrollContainer: {
-    maxHeight: 300,
+    marginTop: 15,
+  },
+  qrScrollContainer: {
+    maxHeight: 450,
+    borderWidth: 1,
+    borderColor: '#4caf50',
+    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     marginTop: 10,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   qrRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-evenly",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 8,
+    paddingVertical: 8,
   },
   qrContainer: {
-    margin: 10,
-    alignItems: "center",
+    marginVertical: 20,
+    marginHorizontal: 10,
+    alignItems: 'center',
     width: '40%',
+    marginBottom: 20,
   },
   qrImageContainer: {
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
     padding: 10,
-    borderRadius: 10,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'black',
-    marginBottom: 5,
+    borderColor: '#4caf50',
+    marginBottom: 10,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
   qrCode: {
-    width: 120,
-    height: 120,
+    width: 110,
+    height: 110,
+    borderRadius: 8,
   },
   qrLabel: {
     fontSize: 14,
-    color: 'black',
-    fontWeight: '500',
+    color: '#1b5e20',
+    fontWeight: '600',
+    textAlign: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 1,
+    overflow: 'hidden',
   },
 });
-
-
 
 export default ManufacturerDashboard;

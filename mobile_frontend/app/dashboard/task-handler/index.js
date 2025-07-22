@@ -23,12 +23,12 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-const capacityOptions = 
-[1000, 1500, 2000];
+const capacityOptions =
+  [1000, 1500, 2000];
 
-const TaskHandlerScreen = () => {
+export default function TaskHandlerScreen () {
   const router = useRouter();
   const [selectedOption, setSelectedOption] = useState(null);
   const [location, setLocation] = useState(null);
@@ -44,6 +44,7 @@ const TaskHandlerScreen = () => {
   const [mediaPermission, setMediaPermission] = useState(null);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [showCapacityDropdown, setShowCapacityDropdown] = useState(false);
+   const [currentView, setCurrentView] = useState("frontpage");
 
   useEffect(() => {
     (async () => {
@@ -126,7 +127,7 @@ const TaskHandlerScreen = () => {
       Alert.alert("Success", "QR Code saved to gallery.");
 
       setQrCode(null);
-      setSelectedOption("generateBinQR"); 
+      setSelectedOption("generateBinQR");
     } catch (err) {
       console.error(err);
       Alert.alert("Error", "Failed to download QR code.");
@@ -181,12 +182,12 @@ const TaskHandlerScreen = () => {
       }
 
       setValidationMessage(
-        data.message === "Bottle already recycled" 
-          ? "Bottle already recycled" 
+        data.message === "Bottle already recycled"
+          ? "Bottle already recycled"
           : "Bottle recycled successfully!"
       );
       setShowResultScreen(true);
-      
+
       setTimeout(() => {
         setShowResultScreen(false);
         setValidationMessage("");
@@ -235,206 +236,253 @@ const TaskHandlerScreen = () => {
     );
   }
 
-  return (
-    <LinearGradient colors={['#e8f5e9', '#c8e6c9', '#a5d6a7']} style={styles.gradient}>
-      <View style={styles.mainContainer}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Task Handler</Text>
-        </View>
-        
-        {/* Home Screen with Two Options */}
-        {!selectedOption && !isCameraVisible && !showResultScreen && (
-          <View style={styles.homeContainer}>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.optionButton, styles.generateButton]}
-                onPress={() => setSelectedOption("generateBinQR")}
-              >
-                <Ionicons name="qr-code-outline" size={28} color="white" />
-                <Text style={styles.buttonText}>Generate Bin QR</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.optionButton, styles.scanButton]}
-                onPress={() => setIsCameraVisible(true)}
-              >
-                <Ionicons name="scan-outline" size={28} color="white" />
-                <Text style={styles.buttonText}>Scan Bottle QR</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={20} color="white" />
-              <Text style={styles.buttonText}>Logout</Text>
+return (
+  <LinearGradient colors={['#e8f5e9', '#c8e6c9', '#a5d6a7']} style={styles.gradient}>
+    {/* Header Section - Only shown on home screen */}
+    {!selectedOption && !isCameraVisible && !showResultScreen && (
+      <View style={styles.imageContainer}>
+        <Text style={styles.welcomeText}>Hello Taskhandler,</Text>
+        <Text style={styles.Text}>Lead the change with Plasticle</Text>
+        <Image
+          source={require('../../../assets/images/recycling.jpg')}
+          style={styles.collectorImage}
+          resizeMode="contain"
+        />
+      </View>
+    )}
+
+    <View style={styles.mainContainer}>
+      {/* Home Screen with Two Options */}
+      {!selectedOption && !isCameraVisible && !showResultScreen && (
+        <View style={styles.homeContainer}>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.optionButton, styles.generateButton]}
+              onPress={() => setSelectedOption("generateBinQR")}
+            >
+              <Ionicons name="qr-code-outline" size={28} color="white" />
+              <Text style={styles.buttonText}>Generate Bin QR</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.optionButton, styles.scanButton]}
+              onPress={() => setIsCameraVisible(true)}
+            >
+              <Ionicons name="scan-outline" size={28} color="white" />
+              <Text style={styles.buttonText}>Scan Bottle QR</Text>
             </TouchableOpacity>
           </View>
-        )}
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+      )}
 
-        {/* Generate Bin QR Section */}
-        {selectedOption === "generateBinQR" && !isCameraVisible && !showResultScreen && (
-          <ScrollView style={styles.card} contentContainerStyle={styles.cardContent}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => {
-                setSelectedOption(null);
-                setQrCode(null);
-              }}
-            >
-              <Ionicons name="arrow-back" size={24} color="#2e7d32" />
-              <Text style={styles.backText}>Back to Options</Text>
-            </TouchableOpacity>
+      {/* Generate Bin QR Section */}
+      {selectedOption === "generateBinQR" && !isCameraVisible && !showResultScreen && (
+        <ScrollView style={styles.card} contentContainerStyle={styles.cardContent}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              setSelectedOption(null);
+              setQrCode(null);
+            }}
+          >
+            <Ionicons name="arrow-back" size={24} color="#2e7d32" />
+            <Text style={styles.backText}>Back to Options</Text>
+          </TouchableOpacity>
 
-            <Text style={styles.sectionTitle}>Enter Location (optional if using map):</Text>
-            <TextInput 
-              placeholder="Enter Location Name" 
-              value={textLocation} 
-              onChangeText={setTextLocation} 
-              style={styles.input} 
-              placeholderTextColor="#888"
-            />
+          <Text style={styles.sectionTitle}>Enter Location (optional if using map):</Text>
+          <TextInput
+            placeholder="Enter Location Name"
+            value={textLocation}
+            onChangeText={setTextLocation}
+            style={styles.input}
+            placeholderTextColor="#888"
+          />
 
-            <Text style={styles.sectionTitle}>Or select location on map:</Text>
-            <MapView
-              style={styles.map}
-              initialRegion={{ latitude: 6.9271, longitude: 79.8612, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
-              onPress={handleMapPress}
-            >
-              {location && <Marker coordinate={location} pinColor="#2e7d32" />}
-            </MapView>
+          <Text style={styles.sectionTitle}>Or select location on map:</Text>
+          <MapView
+            style={styles.map}
+            initialRegion={{ latitude: 6.9271, longitude: 79.8612, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
+            onPress={handleMapPress}
+          >
+            {location && <Marker coordinate={location} pinColor="#2e7d32" />}
+          </MapView>
 
-            <Text style={styles.label}>
-              Selected Location: {textLocation || (location ? `${location.latitude}, ${location.longitude}` : "None")}
+          <Text style={styles.label}>
+            Selected Location: {textLocation || (location ? `${location.latitude}, ${location.longitude}` : "None")}
+          </Text>
+
+          <Text style={styles.sectionTitle}>Select Bin Capacity :</Text>
+          <TouchableOpacity
+            style={styles.capacityInput}
+            onPress={() => setShowCapacityDropdown(true)}
+          >
+            <Text style={capacity ? styles.capacityText : styles.capacityPlaceholder}>
+              {capacity || "Select capacity"}
             </Text>
+            <Ionicons name="chevron-down" size={20} color="#2e7d32" />
+          </TouchableOpacity>
 
-            <Text style={styles.sectionTitle}>Select Bin Capacity :</Text>
-            <TouchableOpacity
-              style={styles.capacityInput}
-              onPress={() => setShowCapacityDropdown(true)}
+          <Modal
+            transparent={true}
+            visible={showCapacityDropdown}
+            onRequestClose={() => setShowCapacityDropdown(false)}
+          >
+            <Pressable
+              style={styles.modalOverlay}
+              onPress={() => setShowCapacityDropdown(false)}
             >
-              <Text style={capacity ? styles.capacityText : styles.capacityPlaceholder}>
-                {capacity || "Select capacity"}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color="#2e7d32" />
-            </TouchableOpacity>
-
-            <Modal
-              transparent={true}
-              visible={showCapacityDropdown}
-              onRequestClose={() => setShowCapacityDropdown(false)}
-            >
-              <Pressable 
-                style={styles.modalOverlay} 
-                onPress={() => setShowCapacityDropdown(false)}
-              >
-                <View style={styles.dropdownContainer}>
-                  {capacityOptions.map((option) => (
-                    <Pressable
-                      key={option}
-                      style={styles.dropdownOption}
-                      onPress={() => selectCapacity(option)}
-                    >
-                      <Text style={styles.dropdownOptionText}>{option} bottles </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </Pressable>
-            </Modal>
-
-            {!qrCode && (
-              <TouchableOpacity
-                style={[styles.actionButton, styles.generateButton]}
-                onPress={generateBinQR}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <>
-                    <Ionicons name="qr-code" size={20} color="white" style={styles.buttonIcon} />
-                    <Text style={styles.buttonText}>Generate QR</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-
-            {qrCode && (
-              <View style={styles.qrContainer}>
-                <Text style={styles.qrLabel}>Bin QR Code:</Text>
-                <View style={styles.qrImageContainer}>
-                  <Image source={{ uri: qrCode }} style={styles.qrImage} />
-                </View>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.downloadButton]}
-                  onPress={downloadQR}
-                  disabled={!mediaPermission}
-                >
-                  <Ionicons name="download-outline" size={20} color="white" style={styles.buttonIcon} />
-                  <Text style={styles.buttonText}>Download QR</Text>
-                </TouchableOpacity>
+              <View style={styles.dropdownContainer}>
+                {capacityOptions.map((option) => (
+                  <Pressable
+                    key={option}
+                    style={styles.dropdownOption}
+                    onPress={() => selectCapacity(option)}
+                  >
+                    <Text style={styles.dropdownOptionText}>{option} bottles </Text>
+                  </Pressable>
+                ))}
               </View>
-            )}
-          </ScrollView>
-        )}
+            </Pressable>
+          </Modal>
 
-        {/* Camera Screen */}
-        {isCameraVisible && !showResultScreen && (
-          <LinearGradient colors={['#e8f5e9', '#c8e6c9']} style={styles.cameraFullScreenContainer}>
-            <View style={styles.cameraInstructionContainer}>
-              <Text style={styles.scanHelpText}>Align bottle QR code within the frame</Text>
-            </View>
-            
-            <View style={styles.cameraSquareContainer}>
-              <CameraView
-                style={styles.cameraSquare}
-                facing={facing}
-                barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-                onBarcodeScanned={scanned ? undefined : handleBottleScan}
-              >
-                <View style={styles.cameraOverlay}>
-                  <View style={styles.scanFrame} />
-                </View>
-              </CameraView>
-            </View>
+          {!qrCode && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.generateButton]}
+              onPress={generateBinQR}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Ionicons name="qr-code" size={20} color="white" style={styles.buttonIcon} />
+                  <Text style={styles.buttonText}>Generate QR</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
-            <View style={styles.cameraControls}>
-              <TouchableOpacity 
-                style={styles.closeCameraButton} 
-                onPress={() => setIsCameraVisible(false)}
+          {qrCode && (
+            <View style={styles.qrContainer}>
+              <Text style={styles.qrLabel}>Bin QR Code:</Text>
+              <View style={styles.qrImageContainer}>
+                <Image source={{ uri: qrCode }} style={styles.qrImage} />
+              </View>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.downloadButton]}
+                onPress={downloadQR}
+                disabled={!mediaPermission}
               >
-                <Ionicons name="close" size={30} color="#2e7d32" />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.flipButton} 
-                onPress={toggleCameraFacing}
-              >
-                <Ionicons name="camera-reverse-outline" size={30} color="#2e7d32" />
+                <Ionicons name="download-outline" size={20} color="white" style={styles.buttonIcon} />
+                <Text style={styles.buttonText}>Download QR</Text>
               </TouchableOpacity>
             </View>
-          </LinearGradient>
-        )}
+          )}
+        </ScrollView>
+      )}
 
-        {/* Result Screen */}
-        {showResultScreen && (
-          <LinearGradient colors={['#e8f5e9', '#c8e6c9']} style={styles.resultScreen}>
-            <Text style={[
-              styles.resultText,
-              validationMessage.includes("Error") ? styles.errorText : styles.successText
-            ]}>
-              {validationMessage}
-            </Text>
-          </LinearGradient>
-        )}
-      </View>
-    </LinearGradient>
-  );
+      {/* Camera Screen */}
+      {isCameraVisible && !showResultScreen && (
+        <LinearGradient colors={['#e8f5e9', '#c8e6c9']} style={styles.cameraFullScreenContainer}>
+          <View style={styles.cameraInstructionContainer}>
+            <Text style={styles.scanHelpText}>Align bottle QR code within the frame</Text>
+          </View>
+
+          <View style={styles.cameraSquareContainer}>
+            <CameraView
+              style={styles.cameraSquare}
+              facing={facing}
+              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+              onBarcodeScanned={scanned ? undefined : handleBottleScan}
+            >
+              <View style={styles.cameraOverlay}>
+                <View style={styles.scanFrame} />
+              </View>
+            </CameraView>
+          </View>
+
+          <View style={styles.cameraControls}>
+            <TouchableOpacity
+              style={styles.closeCameraButton}
+              onPress={() => setIsCameraVisible(false)}
+            >
+              <Ionicons name="close" size={30} color="#2e7d32" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.flipButton}
+              onPress={toggleCameraFacing}
+            >
+              <Ionicons name="camera-reverse-outline" size={30} color="#2e7d32" />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      )}
+
+      {/* Result Screen */}
+      {showResultScreen && (
+        <LinearGradient colors={['#e8f5e9', '#c8e6c9']} style={styles.resultScreen}>
+          <Text style={[
+            styles.resultText,
+            validationMessage.includes("Error") ? styles.errorText : styles.successText
+          ]}>
+            {validationMessage}
+          </Text>
+        </LinearGradient>
+      )}
+    </View>
+  </LinearGradient>
+);
 };
 
 const styles = StyleSheet.create({
+  imageContainer: {
+    height: height * 0.7,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: 'rgba(248,248,248,255)',
+    paddingTop: 40,
+    borderBottomLeftRadius: 70,
+    borderBottomRightRadius: 70,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+
+   
+  },
+  welcomeText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#2E8B57',
+    marginBottom: 10,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  Text: {
+    fontSize: 18,
+    color: '#2E8B30',
+    marginBottom: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  collectorImage: {
+    width: '80%',
+    height: '80%',
+    borderRadius: 10,
+  },
   gradient: {
     flex: 1,
   },
   mainContainer: {
-    flex: 1,
+    flex: 1, 
     paddingHorizontal: 20,
-    paddingTop: 50,
   },
   header: {
     marginBottom: 30,
@@ -446,20 +494,24 @@ const styles = StyleSheet.create({
     color: '#2e7d32',
   },
   homeContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingBottom: 40,
+     flex: 1,
+    justifyContent: 'flex-end',
+    marginTop: 40,
+    
   },
   buttonContainer: {
-    flex: 1,
-    justifyContent: 'center',
+     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 5,
+    marginBottom: 100,
+    height: 120,
   },
   optionButton: {
-    width: width * 0.7,
-    padding: 25,
+    width: width * 0.40,
+    padding: 20,
     borderRadius: 15,
-    marginVertical: 15,
+    marginVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 5,
@@ -470,13 +522,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   logoutButton: {
-    backgroundColor: '#d32f2f',
-    padding: 15,
-    borderRadius: 10,
-    marginHorizontal: 20,
-    alignItems: 'center',
+    position: 'absolute',
+    top: 160,
+    right: 150,
+    backgroundColor: '#2E8B30',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
-    flexDirection: 'row',
+    alignItems: 'center',
     elevation: 3,
   },
   cameraFullScreenContainer: {
@@ -568,10 +622,20 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   generateButton: {
-    backgroundColor: '#2e7d32',
+    backgroundColor: '#2E8B57',
+    shadowColor: '#2E8B57',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    padding:30,
   },
   scanButton: {
-    backgroundColor: '#ff8f00',
+    backgroundColor: '#2E8B57',
+    shadowColor: '#2E8B57',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    padding: 30,
   },
   downloadButton: {
     backgroundColor: '#5e35b1',
@@ -669,13 +733,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 15,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: -5,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    flex: 1,
+    marginTop: 30,
   },
   cardContent: {
     paddingBottom: 20,
@@ -731,7 +795,3 @@ const styles = StyleSheet.create({
     color: '#2e7d32',
   },
 });
-
-
-
-export default TaskHandlerScreen;

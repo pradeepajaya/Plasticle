@@ -1,388 +1,547 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Image, Dimensions, ActivityIndicator, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { 
+  View, 
+  Text, 
+  Image, 
+  Dimensions, 
+  ActivityIndicator, 
+  TouchableOpacity, 
+  ScrollView,
+  Animated,
+  LayoutAnimation,
+  RefreshControl,
+  StyleSheet,
+} from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import Carousel from "react-native-reanimated-carousel";
 import { router } from "expo-router";
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get("window");
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL;
 
-const PET_FACTS = [
-    "PET bottles are 100% recyclable and can be made into new bottles or clothing.",
-    "Recycling one plastic bottle saves enough energy to power a light bulb for 3 hours.",
-    "Over 1.5 billion pounds of used PET bottles and containers are recovered in the US each year.",
-    "Recycling helps reduce landfill waste and conserves resources for our planet.",
-];
-
-function MotivationalBanner() {
-    const [factIdx, setFactIdx] = React.useState(Math.floor(Math.random() * PET_FACTS.length));
-    React.useEffect(() => {
-        const interval = setInterval(() => {
-            setFactIdx(idx => (idx + 1) % PET_FACTS.length);
-        }, 6000);
-        return () => clearInterval(interval);
-    }, []);
-    return (
-        <View style={{ alignSelf: 'center', width: width * 0.95, height: 130, borderRadius: 18, overflow: 'hidden', marginBottom: 10, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', elevation: 2 }}>
-            <Text style={{ fontFamily: 'Poppins', fontSize: 17, fontWeight: 'bold', color: '#111', textAlign: 'center' }}>
-                {PET_FACTS[factIdx]}
-            </Text>
-        </View>
-    );
-}
+const DEFAULT_IMAGE = require('../../../assets/images/recycle_default.png');
 
 export default function BuyerHome() {
-    const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [buyerName, setBuyerName] = useState("");
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [buyerName, setBuyerName] = useState("");
+  const [expandedNews, setExpandedNews] = useState(false);
 
+  // Combine stats and animation here
+  const [stats, setStats] = useState({
+    totalBottlesCollected: 0,
+    monthlyBottlesCollected: 0,
+  });
 
-    useEffect(() => {
-        // Fetch posts
-        fetch(`${API_URL}/posts/buyer-visible`)
-            .then(res => res.json())
-            .then(data => setPosts(data))
-            .catch(() => setPosts([]))
-            .finally(() => setLoading(false));
+  const bounceAnim = useRef(new Animated.Value(1)).current;
 
-        // Fetch buyer name
-        const fetchBuyerName = async () => {
-            try {
-                const token = await AsyncStorage.getItem("userToken");
-                if (!token) return;
-                const res = await axios.get(`${API_URL}/auth/user`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const name = res.data?.user?.username || res.data?.user?.name || "Buyer";
-                setBuyerName(name);
-            } catch (err) {
-                setBuyerName("Buyer");
-            }
-        };
-        fetchBuyerName();
-    }, []);
+  useEffect(() => {
+    fetchData();
+    fetchStats();
+    animateScanButton();
+  }, []);
 
-    if (loading) {
-        return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" color="#10B981" />
-            </View>
-        );
+  const animateScanButton = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true
+        })
+      ])
+    ).start();
+  };
+
+  // Fetch stats reusable function
+  const fetchStats = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) return;
+
+      const response = await axios.get(`${API_URL}/buyer/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data) {
+        setStats({
+          totalBottlesCollected: response.data.totalBottlesCollected || 0,
+          monthlyBottlesCollected: response.data.monthlyBottlesCollected || 0,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching buyer stats:", error);
     }
+  };
 
-    if (!posts || posts.length === 0) {
-        return (
-            <View style={styles.centered}>
-                <Text style={{ fontFamily: 'Poppins', fontSize: 17, fontWeight: 'bold', color: '#065f46', textAlign: 'center', textShadowColor: '#fff', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 2 }}>No posts to show.</Text>
-            </View>
-        );
+  const fetchData = async () => {
+    try {
+      const [postsRes, userRes] = await Promise.all([
+        fetch(`${API_URL}/posts/buyer-visible`),
+        axios.get(`${API_URL}/auth/user`, {
+          headers: { 
+            Authorization: `Bearer ${await AsyncStorage.getItem("userToken")}` 
+          }
+        })
+      ]);
+      
+      const postsData = await postsRes.json();
+      setPosts(postsData || []);
+      
+      const name = userRes.data?.user?.username || "Buyer";
+      setBuyerName(name);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  };
 
-    //first post without image, or default
-    let newsPost = posts.find(p => !p.image) || {
-        _id: 'default-news',
-        title: 'Plasticle News',
-        content: 'Stay tuned for updates and news from Plasticle Corporation.'
-    };
-    //Community Posts (all except the news)
-    let communityPosts = posts.filter(p => p._id !== newsPost._id);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    await fetchStats();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setRefreshing(false);
+  };
 
+  const toggleNewsExpansion = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedNews(!expandedNews);
+    Haptics.selectionAsync();
+  };
 
+  const handleScanPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.navigate('/dashboard/buyer');
+  };
+
+  const StatItem = ({ icon, value, label }) => (
+    <View style={styles.statItem}>
+      <MaterialCommunityIcons name={icon} size={32} color="#ffffff" />
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+
+  if (loading) {
     return (
-        <LinearGradient
-            colors={['#34C759', '#2E865F']}
-            style={{ flex: 1 }}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-        >
-            <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-                {/* Centered logo */}
-                <View style={{ alignSelf: 'center', marginTop: 28 }}>
-                    <Image source={require('../../../assets/images/logoplasticle.png')} style={{ width: 120, height: 120, borderRadius: 60, resizeMode: 'cover' }} />
-                </View>
-
-                {/* Welcome message */}
-                <Text style={{ fontFamily: 'Poppins', fontSize: 24, fontWeight: 'bold', color: '#fff', alignSelf: 'center', marginTop: 12, textShadowColor: '#000', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 2 }}>
-                    Welcome {buyerName}
-                </Text>
-
-                {/* Glassmorphic news card*/}
-                <View style={{ marginHorizontal: 20, marginTop: 24, backgroundColor: '#fff', borderRadius: 14, padding: 16, elevation: 2 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <MaterialCommunityIcons name="newspaper" size={24} color="#219653" style={{ marginRight: 8 }} />
-                        <Text style={{ fontFamily: 'Poppins', fontSize: 19, fontWeight: 'bold', color: '#219653', marginBottom: 6 }}>News & Updates</Text>
-                    </View>
-                    <Text style={{ fontFamily: 'Poppins', fontSize: 16, color: '#222', textAlign: 'center' }}>{newsPost.content}</Text>
-                </View>
-
-                {/* Add space between news card and Community Posts */}
-                <View style={{ height: 24 }} />
-
-                {/* Floating scan button */}
-                <TouchableOpacity
-                    style={{ position: 'absolute', top: 120, right: 20, elevation: 4 }}
-                    onPress={() => router.navigate('/dashboard/buyer')}
-                    activeOpacity={0.8}
-                >
-                    <MaterialCommunityIcons name="camera" size={80} color="#fff" style={{ alignSelf: 'center' }} />
-                </TouchableOpacity>
-
-                {/* Section title 'Community Posts' */}
-                <Text style={{ fontFamily: 'Poppins', fontSize: 18, fontWeight: '500', color: '#fff', marginLeft: 20, marginTop: 24 }}>
-                    Community Posts
-                </Text>
-
-                {/* Community Posts */}
-                {communityPosts.length > 1 ? (
-                    <Carousel
-                        width={width * 0.96}
-                        height={240}
-                        data={communityPosts}
-                        renderItem={({ item }) => (
-                            <View
-                                style={{ borderRadius: 18, marginHorizontal: 6, padding: 0, alignItems: 'center', elevation: 3, width: width * 0.94, height: 450, justifyContent: 'flex-start', overflow: 'hidden', backgroundColor: '#fff' }}
-                            >
-                                {(item._id === 'default') ? (
-    <Image
-        source={require('../../../assets/images/recycle_default.png')}
-        style={{ width: '100%', height: 170, borderTopLeftRadius: 18, borderTopRightRadius: 18 }}
-        resizeMode="cover"
-    />
-) : ( (item.imageUrl || item.image) && (
-    <Image
-        source={{ uri: item.imageUrl ? item.imageUrl : `${API_URL}/uploads/${item.image}` }}
-        style={{ width: '100%', height: 170, borderTopLeftRadius: 18, borderTopRightRadius: 18 }}
-        resizeMode="cover"
-    />
-))}
-                                <Text style={{ fontFamily: 'Poppins', fontSize: 16, color: '#222', padding: 12, textAlign: 'center', width: '100%' }} numberOfLines={3}>{item.content}</Text>
-                            </View>
-                        )}
-                        style={{ alignSelf: 'center', marginTop: 12 }}
-                        loop
-                        autoPlay
-                        autoPlayInterval={7000}
-                    />
-                ) : (
-                    communityPosts.map(post => (
-                        <View
-                            key={post._id}
-                            style={{ marginHorizontal: 20, marginTop: 16, marginBottom: 16, backgroundColor: '#fff', borderRadius: 14, padding: 16, elevation: 2 }}
-                        >
-                            {(post._id === 'default') ? (
-    <Image
-        source={require('../../../assets/images/recycle_default.png')}
-        style={{ width: '100%', height: 170, borderTopLeftRadius: 14, borderTopRightRadius: 14 }}
-        resizeMode="cover"
-    />
-) : ( (post.imageUrl || post.image) && (
-    <Image
-        source={{ uri: post.imageUrl ? post.imageUrl : `${API_URL}/uploads/${post.image}` }}
-        style={{ width: '100%', height: 170, borderTopLeftRadius: 14, borderTopRightRadius: 14 }}
-        resizeMode="cover"
-    />
-))}
-                            <Text style={{ fontFamily: 'Poppins', fontSize: 16, color: '#222', padding: 12, textAlign: 'center', width: '100%' }} numberOfLines={3}>{post.content}</Text>
-                        </View>
-                    ))
-                )}
-
-                <View style={{ height: 28 }} />
-
-                <MotivationalBanner />
-            </ScrollView>
-        </LinearGradient>
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#10B981" />
+      </View>
     );
+  }
+
+  // Process posts
+  let newsPost = posts.find(p => !p.image) || {
+    _id: 'default-news',
+    title: 'Plasticle News',
+    content: 'Stay tuned for updates from Plasticle Corporation.',
+    date: 'Today'
+  };
+
+  let communityPosts = posts.filter(p => p._id !== newsPost._id);
+  if (communityPosts.length === 0) {
+    communityPosts = [{
+      _id: 'default-community',
+      content: 'Join our community to share recycling tips and earn rewards! With Plasticle, every bottle gets a unique QR code at the manufacturer store. When collected and recycled, you can track its journey and environmental impact.',
+      image: 'recycle_default.png',
+      likes: 24,
+      time: 'Today',
+      isDefault: true
+    }];
+  }
+
+  const renderCommunityCard = ({ item }) => (
+    <View style={styles.communityCard}>
+      <Image
+        source={
+          item.isDefault 
+            ? DEFAULT_IMAGE 
+            : item.imageUrl 
+              ? { uri: item.imageUrl } 
+              : item.image 
+                ? { uri: `${API_URL}/uploads/${item.image}` }
+                : DEFAULT_IMAGE
+        }
+        style={styles.communityImage}
+        resizeMode="cover"
+        defaultSource={DEFAULT_IMAGE}
+      />
+      
+      <View style={styles.communityContent}>
+        <ScrollView 
+          style={styles.communityTextScroll}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.communityText}>
+            {item.content}
+          </Text>
+        </ScrollView>
+        <View style={styles.communityFooter}>
+          <Text style={styles.communityLikes}>❤️ {item.likes || 0} Likes</Text>
+          <Text style={styles.communityTime}>{item.time || 'Recently'}</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Header with gradient */}
+      <LinearGradient
+        colors={['#2d5016', '#4caf50']}
+        style={styles.headerContainer}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+      >
+        <View style={styles.headerContent}>
+          <View style={styles.profileContainer}>
+            <Image 
+              source={require('../../../assets/images/logoplasticle.png')} 
+              style={styles.logo} 
+            />
+            <View style={styles.userInfo}>
+              <Text style={styles.welcomeText}>Welcome back</Text>
+              <Text style={styles.userName}>{buyerName}</Text>
+            </View>
+          </View>
+          
+          <Animated.View style={[styles.scanButtonContainer, { transform: [{ scale: bounceAnim }] }]}>
+            <TouchableOpacity
+              style={styles.scanButton}
+              onPress={handleScanPress}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="camera" size={24} color="#fff" />
+              <Text style={styles.scanButtonText}>Scan</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+        
+        <View style={styles.statsContainer}>
+          <StatItem icon="recycle" value={stats.totalBottlesCollected} label="Total Bottles" />
+          <StatItem icon="calendar-month" value={stats.monthlyBottlesCollected} label="This Month" />
+          <StatItem icon="star" value={stats.totalBottlesCollected} label="Points" />
+        </View>
+      </LinearGradient>
+
+      {/* Rest of the content */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#4caf50"
+          />
+        }
+      >
+        {/* News Section */}
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={styles.sectionHeader}
+            onPress={toggleNewsExpansion}
+            activeOpacity={0.7}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="newspaper" size={22} color="#4caf50" />
+              <Text style={styles.sectionTitle}>News & Updates</Text>
+            </View>
+            <Ionicons 
+              name={expandedNews ? "chevron-up" : "chevron-down"} 
+              size={22} 
+              color="#4caf50" 
+            />
+          </TouchableOpacity>
+
+          {expandedNews ? (
+            <View style={styles.newsContainer}>
+              {[newsPost, ...posts.filter(p => p._id !== newsPost._id && !p.image)].map((news, index) => (
+                <View 
+                  key={news._id} 
+                  style={[
+                    styles.newsCard,
+                    index === 0 && styles.firstNewsCard,
+                    index === posts.filter(p => !p.image).length && styles.lastNewsCard
+                  ]}
+                >
+                  <Text style={styles.newsTitle}>{news.title}</Text>
+                  <Text style={styles.newsContent}>{news.content}</Text>
+                  <View style={styles.newsFooter}>
+                    <Text style={styles.newsDate}>{news.date || 'Today'}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={[styles.newsCard, styles.singleNewsCard]}>
+              <Text style={styles.newsTitle}>{newsPost.title}</Text>
+              <Text 
+                style={styles.newsContent}
+                numberOfLines={3}
+                ellipsizeMode="tail"
+              >
+                {newsPost.content}
+              </Text>
+              <View style={styles.newsFooter}>
+                <Text style={styles.newsDate}>{newsPost.date || 'Today'}</Text>
+                <Ionicons name="chevron-forward" size={18} color="#4caf50" />
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Community Posts */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="people" size={22} color="#4caf50" />
+              <Text style={styles.sectionTitle}>Community Posts</Text>
+            </View>
+          </View>
+
+          <Carousel
+            width={width * 0.95}
+            height={400}
+            data={communityPosts}
+            renderItem={renderCommunityCard}
+            mode="parallax"
+            modeConfig={{
+              parallaxScrollingScale: 0.9,
+              parallaxScrollingOffset: 50,
+            }}
+            style={{ marginBottom: 20 }}
+            loop
+            autoPlay
+            autoPlayInterval={3000}
+          />
+        </View>
+      </ScrollView>
+    </View>
+  );
 }
 
 
 const styles = StyleSheet.create({
-    logoContainer: {
-        alignItems: 'center',
-        marginTop: 40,
-        marginBottom: 10,
-    },
-    logoImage: {
-        width: 110,
-        height: 110,
-        borderRadius: 55,
-        backgroundColor: 'rgba(255,255,255,0.5)',
-        shadowColor: '#219653',
-        shadowOpacity: 0.18,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        resizeMode: 'cover',
-    },
-    welcomeText: {
-        fontFamily: 'Dancing Script, cursive',
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#219653',
-        alignSelf: 'center',
-        marginTop: 12,
-        textShadowColor: '#fff',
-        textShadowOffset: { width: 1, height: 1 },
-        textShadowRadius: 2,
-    },
-    glassCard: {
-        marginHorizontal: 20,
-        marginTop: 24,
-        backgroundColor: 'rgba(255,255,255,0.45)',
-        borderRadius: 14,
-        padding: 16,
-        elevation: 2,
-        shadowColor: '#219653',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.09,
-        shadowRadius: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(200,255,200,0.18)',
-    },
-    cameraButton: {
-        position: 'absolute',
-        top: 120,
-        right: 20,
-        elevation: 4,
-        backgroundColor: 'rgba(255,255,255,0.65)',
-        borderRadius: 50,
-        padding: 18,
-        shadowColor: '#219653',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.18,
-        shadowRadius: 15,
-        marginBottom: 6,
-    },
-    cameraIcon: {
-        alignSelf: 'center',
-    },
-    sectionTitle: {
-        fontFamily: 'Poppins',
-        fontSize: 18,
-        fontWeight: '500',
-        color: '#222',
-        marginLeft: 20,
-        marginTop: 24,
-    },
-    postCard: {
-        marginHorizontal: 20,
-        marginTop: 12,
-        backgroundColor: 'rgba(255,255,255,0.55)',
-        borderRadius: 14,
-        padding: 16,
-        elevation: 2,
-        shadowColor: '#219653',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        borderWidth: 1,
-        borderColor: 'rgba(200,255,200,0.13)',
-        overflow: 'hidden',
-    },
-    postImage: {
-        width: '100%',
-        height: 170,
-        borderTopLeftRadius: 14,
-        borderTopRightRadius: 14,
-    },
-    postContent: {
-        fontFamily: 'Poppins',
-        fontSize: 16,
-        color: '#222',
-        padding: 12,
-        textAlign: 'center',
-        width: '100%',
-    },
-    motivationalBanner: {
-        backgroundColor: 'rgba(33,150,83,0.15)',
-        borderRadius: 16,
-        padding: 16,
-        width: '90%',
-        shadowColor: '#219653',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.10,
-        shadowRadius: 6,
-        borderWidth: 1,
-        borderColor: 'rgba(33,150,83,0.08)',
-        alignSelf: 'center',
-        marginVertical: 18,
-    },
-    petGallery: {
-        marginLeft: 18,
-        marginBottom: 32,
-    },
-    petImage: {
-        width: 120,
-        height: 90,
-        borderRadius: 14,
-        marginRight: 12,
-        backgroundColor: '#e5f9ee',
-    },
-    centered: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    card: {
-        backgroundColor: "#fff",
-        borderRadius: 20,
-        padding: 24,
-        alignItems: "center",
-        elevation: 4,
-        shadowColor: "#000",
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        minHeight: 320,
-        marginVertical: 20,
-        width: width * 0.9,
-    },
-    image: {
-        width: "100%",
-        height: 180,
-        borderRadius: 12,
-        marginBottom: 16,
-        backgroundColor: "#e5e7eb",
-    },
-    title: {
-        fontSize: 22,
-        fontWeight: "bold",
-        color: "#065f46",
-        marginBottom: 6,
-        textAlign: "center",
-    },
-    type: {
-        fontSize: 14,
-        color: "#10B981",
-        marginBottom: 10,
-        textAlign: "center",
-    },
-    content: {
-        fontSize: 16,
-        color: "#222",
-        textAlign: "center",
-    },
-    fab: {
-        position: "absolute",
-        right: 24,
-        bottom: 36,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: "#10B981",
-        justifyContent: "center",
-        alignItems: "center",
-        elevation: 6,
-        shadowColor: "#000",
-        shadowOpacity: 0.18,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 4 },
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  headerContainer: {
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  profileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  userInfo: {
+    marginLeft: 15,
+  },
+  welcomeText: {
+    fontFamily: 'Poppins',
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  userName: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 18,
+    color: '#fff',
+    marginTop: 2,
+  },
+  scanButtonContainer: {
+    alignSelf: 'flex-start',
+  },
+  scanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  scanButtonText: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 14,
+    color: '#fff',
+    marginLeft: 5,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  statItem: {
+    alignItems: 'center',
+    padding: 10,
+  },
+  statValue: {
+    fontFamily: 'Poppins-Bold',
+    fontSize: 20,
+    color: '#fff',
+    marginVertical: 5,
+  },
+  statLabel: {
+    fontFamily: 'Poppins',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scrollContainer: {
+    paddingBottom: 40,
+  },
+  section: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    paddingVertical: 5,
+  },
+  sectionTitle: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 18,
+    color: '#4caf50',
+    marginLeft: 10,
+  },
+  newsContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  newsCard: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  firstNewsCard: {
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  lastNewsCard: {
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    borderBottomWidth: 0,
+  },
+  singleNewsCard: {
+    borderRadius: 12,
+  },
+  newsTitle: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 16,
+    color: '#2d5016',
+    marginBottom: 8,
+  },
+  newsContent: {
+    fontFamily: 'Poppins',
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 20,
+    marginBottom: 15,
+  },
+  newsFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  newsDate: {
+    fontFamily: 'Poppins',
+    fontSize: 12,
+    color: '#888',
+  },
+  carousel: {
+    marginTop: 10,
+  },
+  communityCard: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    height: '100%',
+  },
+  communityImage: {
+    width: '100%',
+    height: 150,
+  },
+  communityContent: {
+    flex: 1,
+    padding: 15,
+  },
+  communityTextScroll: {
+    flex: 1,
+    minHeight: 80,
+  },
+  communityText: {
+    fontFamily: 'Poppins',
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  communityFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  communityLikes: {
+    fontFamily: 'Poppins',
+    fontSize: 12,
+    color: '#4CAF50',
+  },
+  communityTime: {
+    fontFamily: 'Poppins',
+    fontSize: 12,
+    color: '#888',
+  },
 });
-
-

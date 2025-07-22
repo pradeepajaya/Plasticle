@@ -181,6 +181,8 @@ import {
   deactivateTaskHandler,
 } from '../../services/api';
 import { useRouter } from 'next/navigation';
+import Sidebar from '../components/sidebar';
+
 
 export default function AdminDashboard() {
   const [taskHandlers, setTaskHandlers] = useState([]);
@@ -235,8 +237,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-green-900 via-emerald-700 to-green-600">
-      <div className="flex-grow bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 text-white min-h-screen">
-        <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 text-white">
+  <Sidebar />
+  <div className="flex-grow bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 text-white min-h-screen"><div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 text-white">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <button

@@ -119,7 +119,6 @@ const updateCollectorStatus = async (req, res) => {
 
 
 // update collector profile information
-
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -139,7 +138,6 @@ const updateProfile = async (req, res) => {
 };  
 
 // update buyer profile image
-
 const updateProfilePicture = async (req, res) => {
   try {
     const { profilePicture } = req.body;
@@ -162,7 +160,6 @@ const updateProfilePicture = async (req, res) => {
 };
 
 // get profile picture
-
 const getProfilepicture = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-passwordHash');
@@ -277,5 +274,31 @@ const updatePreferredBins = async (req, res) => {
   }
 };
 
+const getCollectionCount = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, updatePreferredBins, };
+    const collector = await Collector.findOne({ userId });
+
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    // Get current month in "YYYY-MM" format (to match your existing monthlyBinsCollected keys)
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    // Get the monthly count or default to 0
+    const monthlyCount = collector.monthlyBinsCollected.get(currentMonth) || 0;
+
+    res.status(200).json({
+      totalBinsCollected: collector.totalBinsCollected,
+      monthlyBinsCollected: monthlyCount,
+    });
+  } catch (error) {
+    console.error("Error fetching collection count:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, updatePreferredBins, getCollectionCount, };

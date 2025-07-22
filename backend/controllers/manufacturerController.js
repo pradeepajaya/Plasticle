@@ -12,6 +12,34 @@ const isValidBase64 = (str) => {
     return /^data:image\/\w+;base64,/.test(str);
 };
 
+exports.getStats = async (req, res) => {
+  try {
+    const manufacturer = await Manufacturer.findOne({ userId: req.user.id });
+
+    if (!manufacturer) {
+      return res.status(404).json({
+        success: false,
+        error: "Manufacturer not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalBottlesProduced: manufacturer.totalBottlesProduced || 0,
+        totalBottlesRecycled: manufacturer.totalBottlesRecycled || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Stats Error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to fetch manufacturer stats",
+    });
+  }
+};
+
+
 exports.generateQrCodes = async (req, res) => {
     try {
         console.log("\n[API REQUEST]: /generate-qr", req.body);

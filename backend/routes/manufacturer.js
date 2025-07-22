@@ -12,5 +12,9 @@ router.put("/update-profile",authenticateToken,manufacturerController.updateProf
 //API to generate-pdf
 router.post("/generate-pdf", authenticateToken, manufacturerController.generatePdf); 
 
+// API to get manufacturer stats (total bottles produced and recycled)
+router.get("/stats", authenticateToken, manufacturerController.getStats);
+
+
 module.exports = router;
 

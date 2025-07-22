@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 const { validateBin, updateCollectorStatus, updatePreferredBins } = require("../controllers/collectorController"); // Import from collectorController
@@ -12,12 +11,12 @@ router.post("/validate-bin", validateBin);
 router.post("/update-status", updateCollectorStatus);
 
 // update collector information 
-
 router.put("/update-profile",authenticateToken, collectorController.updateProfile);
 
+// get collection counts
+router.get("/collection-count", authenticateToken, collectorController.getCollectionCount);
 
 //update collector profile image
-
 router.put("/update-profile-picture", authenticateToken, collectorController.updateProfilePicture);
 
 // Get collector  profile picture
