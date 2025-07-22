@@ -4,10 +4,13 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const User = require("./models/User");
 const bcrypt = require("bcryptjs");
+const collectorRoutes = require('./routes/collector');
 
 const http = require('http');
 const socketIO = require('socket.io');
 const socketHandler = require('./sockets/socketHandler');
+require('./controllers/socketCon').watchChanges(); // Ensure the change stream is set up
+
 
 dotenv.config();
 connectDB();
@@ -27,6 +30,7 @@ const io = socketIO(server, {
     methods: ["GET", "POST"]
   }
 });
+global._io = io;
 
 socketHandler(io);
 
@@ -48,8 +52,8 @@ const createAdminUser = async () => {
       console.log("Admin user created: admin@example.com / test1");
     }
   };
-  
   createAdminUser();
+
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/admin", require("./routes/admin"));
@@ -64,5 +68,5 @@ app.use("/api/stats", require("./routes/stats"));
 
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://192.168.8.137:${PORT}`)); 
+server.listen(PORT, '0.0.0.0', () => console.log(`Server running on ${process.env.API_BASE_URL}`)); 
 

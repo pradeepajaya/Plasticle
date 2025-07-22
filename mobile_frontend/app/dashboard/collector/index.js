@@ -14,6 +14,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import socket from "../../utils/socket";
+
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const { width } = Dimensions.get("window");
@@ -60,6 +62,37 @@ export default function CollectorDashboard() {
 
     fetchUserId();
   }, []);
+
+  useEffect(() => {
+    if (!userId) return; 
+
+    socket.connect();
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      socket.emit("joinCollector", { userId }); 
+    });
+
+    socket.on("machine-assigned", (data) => {
+      console.log("Received machine assignment:", data);
+      alert("Bin Assigned", `Bin ID: ${data.binId} assigned to you.`);
+    });
+
+    // socket.on("welcome", (data) => {
+    //   Alert.alert("Welcome", data.message);
+    // });
+
+
+    // return () => {
+    //   socket.off("machine-assigned");
+    //   socket.disconnect();
+    // };
+  
+  }, [userId]); 
+
+
+
+  
 
   const handleScan = async ({ data }) => {
     if (!scanned) {
