@@ -376,7 +376,7 @@ picker: {
 */
 
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, Modal, StyleSheet, Alert, Platform } from 'react-native';
+import { View, Text, TextInput, Modal, Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useRouter } from "expo-router";

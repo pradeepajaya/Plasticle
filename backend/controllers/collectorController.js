@@ -174,8 +174,6 @@ const getProfilepicture = async (req, res) => {
   }
 };
 
-
-
 const getCollectorAllocations = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -198,7 +196,6 @@ const getCollectorAllocations = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch collector allocations." });
   }
 };
-
 
 const updateBinCollectionStatus = async (req, res) => {
   try {
@@ -299,6 +296,5 @@ const getCollectionCount = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, updatePreferredBins, getCollectionCount, };

@@ -91,7 +91,6 @@ const validateBottleQRCode = async (req, res) => {
 };
 
  // update buyer profile  
-
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -109,9 +108,6 @@ const updateProfile = async (req, res) => {
     res.status(500).json({ message: "Server error while updating profile" });
   }
 };  
-
-// update buyer profile end 
-
 
 // update buyer profile image
 

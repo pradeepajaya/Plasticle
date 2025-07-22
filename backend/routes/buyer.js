@@ -21,7 +21,4 @@ router.get('/profile', authenticateToken, buyerController.getProfilepicture);
 // Get buyer stats
 router.get("/stats", authenticateToken, buyerController.getStats);
 
-
 module.exports = router;
-
-

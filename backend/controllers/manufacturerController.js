@@ -4,8 +4,6 @@ const PDFDocument = require("pdfkit");
 const Manufacturer = require("../models/Manufacturer");
 const Bottle = require("../models/Bottle");
 const User = require("../models/User");
-const fs = require("fs");
-const path = require("path");
 
 // Helper function to validate base64 image
 const isValidBase64 = (str) => {

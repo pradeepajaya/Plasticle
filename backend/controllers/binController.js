@@ -1,6 +1,7 @@
 const QRCode = require("qrcode");
 const Bin = require("../models/Bin");
 const { v4: uuidv4 } = require('uuid');  
+
 exports.createBin = async (req, res) => {
   try {
     const { location, capacity } = req.body;
@@ -38,7 +39,6 @@ exports.createBin = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
-
 
 // Get bins grouped by city, and flag full + uncollected bins
 exports.getDueLocations = async (req, res) => {
