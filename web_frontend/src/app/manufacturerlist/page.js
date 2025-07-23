@@ -1,13 +1,19 @@
 'use client';
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-import { getManufacturers, updateManufacturer } from '@/services/api'; // make sure updateManufacturer exists
+import {
+  getManufacturers,
+  updateManufacturer,
+  deleteManufacturer,
+  getDeletedManufacturers
+} from '@/services/api';
 import Modal from 'react-modal';
 
-Modal.setAppElement('body'); // Required for accessibility
+Modal.setAppElement('body');
 
 function AdminManufacturerList() {
   const [manufacturers, setManufacturers] = useState([]);
+  const [deletedManufacturers, setDeletedManufacturers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedManufacturer, setSelectedManufacturer] = useState(null);
@@ -18,19 +24,32 @@ function AdminManufacturerList() {
     companyTelephone: '',
   });
 
+  const fetchManufacturers = async () => {
+    try {
+      const res = await getManufacturers();
+      setManufacturers(res.data);
+    } catch (err) {
+      console.error('Error fetching manufacturers:', err);
+    }
+  };
+
+  const fetchDeletedManufacturers = async () => {
+    try {
+      const res = await getDeletedManufacturers();
+      setDeletedManufacturers(res.data);
+    } catch (err) {
+      console.error('Error fetching deleted manufacturers:', err);
+    }
+  };
+
   useEffect(() => {
-    const fetchManufacturers = async () => {
-      try {
-        const res = await getManufacturers();
-        setManufacturers(res.data);
-      } catch (err) {
-        console.error('Error fetching manufacturers:', err);
-      } finally {
-        setLoading(false);
-      }
+    const fetchAll = async () => {
+      setLoading(true);
+      await Promise.all([fetchManufacturers(), fetchDeletedManufacturers()]);
+      setLoading(false);
     };
 
-    fetchManufacturers();
+    fetchAll();
   }, []);
 
   const openUpdateModal = (manufacturer) => {
@@ -58,22 +77,29 @@ function AdminManufacturerList() {
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (userId) => {
     if (confirm('Are you sure you want to delete this manufacturer?')) {
-      setManufacturers((prev) => prev.filter((m) => m._id !== id));
+      try {
+        await deleteManufacturer(userId);
+        await fetchManufacturers(); // Refresh lists
+        await fetchDeletedManufacturers();
+      } catch (err) {
+        console.error('Error deleting manufacturer:', err);
+        alert('Failed to delete manufacturer');
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-lime-400 via-white to-lime-400">
-      <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-lg">
+    <div className="min-h-screen flex flex-col items-center justify-start py-10 bg-gradient-to-br from-green-900 via-emerald-700 to-green-600">
+      <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-lg mb-10">
         <h2 className="text-3xl font-bold text-center mb-6 text-green-800">Manufacturer List</h2>
         {loading ? (
           <p className="text-center">Loading...</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm sm:text-base">
-              <thead className="bg-lime-200 text-green-900">
+              <thead className="bg-lime-400 text-green-900">
                 <tr>
                   <th className="border p-3">Username</th>
                   <th className="border p-3">Email</th>
@@ -88,7 +114,7 @@ function AdminManufacturerList() {
                   <tr key={m._id} className="text-center hover:bg-green-50">
                     <td className="border p-3">{m.username}</td>
                     <td className="border p-3">{m.email}</td>
-                    <td className="border p-3">{m.companyName || '-'}</td>
+                    <td className="border p-3">{m.companyName}</td>
                     <td className="border p-3">{m.companyLocation || '-'}</td>
                     <td className="border p-3">{m.companyRegNumber || '-'}</td>
                     <td className="border p-3 flex justify-center gap-2">
@@ -120,6 +146,39 @@ function AdminManufacturerList() {
         )}
       </div>
 
+      {/* Deleted Accounts Section */}
+      <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-lg">
+        <h3 className="text-xl font-semibold mb-4 text-red-700 text-center underline">Deleted Accounts</h3>
+        {deletedManufacturers.length === 0 ? (
+          <p className="text-center text-gray-500">No deleted manufacturers.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm sm:text-base">
+              <thead className="bg-gray-200 text-gray-700">
+                <tr>
+                  <th className="border p-3">UserID</th>
+                  <th className="border p-3">Email</th>
+                  <th className="border p-3">Company Name</th>
+                  <th className="border p-3">Company Location</th>
+                  <th className="border p-3">Company Reg. Number</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletedManufacturers.map((m) => (
+                  <tr key={m._id} className="text-center text-gray-500">
+                    <td className="border p-3">{m.username}</td>
+                    <td className="border p-3">{m.email}</td>
+                    <td className="border p-3">{m.companyName || '-'}</td>
+                    <td className="border p-3">{m.companyLocation || '-'}</td>
+                    <td className="border p-3">{m.companyRegNumber || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {/* Update Modal */}
       <Modal
         isOpen={isModalOpen}
@@ -129,7 +188,6 @@ function AdminManufacturerList() {
         overlayClassName="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-start pt-20"
       >
         <h2 className="text-2xl font-bold mb-4 text-green-700">Update Manufacturer</h2>
-
         <div className="space-y-4">
           <input
             className="w-full p-2 border rounded"
@@ -156,18 +214,11 @@ function AdminManufacturerList() {
             onChange={(e) => setForm({ ...form, companyTelephone: e.target.value })}
           />
         </div>
-
         <div className="mt-4 flex justify-end gap-2">
-          <button
-            className="px-4 py-2 bg-gray-300 rounded"
-            onClick={() => setIsModalOpen(false)}
-          >
+          <button className="px-4 py-2 bg-gray-300 rounded" onClick={() => setIsModalOpen(false)}>
             Cancel
           </button>
-          <button
-            className="px-4 py-2 bg-green-600 text-white rounded"
-            onClick={handleUpdate}
-          >
+          <button className="px-4 py-2 bg-green-600 text-white rounded" onClick={handleUpdate}>
             Save
           </button>
         </div>

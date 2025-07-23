@@ -117,16 +117,41 @@ const updateCollectorStatus = async (req, res) => {
   }
 };
 
+// collector availability toggle status
+const toggleAvailabilityStatus = async (req, res) => {
+  try {
+    const { userId, activePersonal } = req.body;
+
+    if (!userId || activePersonal == null) {
+      return res.status(400).json({ message: "Missing userId or activePersonal status" });
+    }
+
+    const collector = await Collector.findOneAndUpdate(
+      { userId },
+      { activePersonal },
+      { new: true }
+    );
+
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    res.status(200).json({ message: "Availability status updated", collector });
+  } catch (error) {
+    console.error("Error toggling availability status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // update collector profile information
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { nickname, dateOfBirth, gender, hometown } = req.body;
+    const { nickname, dateOfBirth, gender, province } = req.body;
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { nickname, dateOfBirth, gender, hometown },
+      { nickname, dateOfBirth, gender, province },
       { new: true }
     );
 
@@ -137,7 +162,7 @@ const updateProfile = async (req, res) => {
   }
 };  
 
-// update buyer profile image
+// update collector profile image
 const updateProfilePicture = async (req, res) => {
   try {
     const { profilePicture } = req.body;
@@ -243,34 +268,6 @@ const getFullBins = async (req, res) => {
   }
 };
 
-const updatePreferredBins = async (req, res) => {
-  try {
-    const { userId, binIds } = req.body;
-
-    if (!userId || !Array.isArray(binIds)) {
-      return res.status(400).json({ message: "Invalid input" });
-    }
-
-    const collector = await Collector.findOneAndUpdate(
-      { userId },
-      { preferredBins: binIds },
-      { new: true }
-    ).populate('preferredBins');
-
-    if (!collector) {
-      return res.status(404).json({ message: "Collector not found" });
-    }
-
-    res.status(200).json({
-      message: "Preferred bins updated successfully",
-      collector,
-    });
-  } catch (err) {
-    console.error("Update preferred bins error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
 const getCollectionCount = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -297,4 +294,4 @@ const getCollectionCount = async (req, res) => {
   }
 };
 
-module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, updatePreferredBins, getCollectionCount, };
+module.exports = { validateBin, updateCollectorStatus,  toggleAvailabilityStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, getCollectionCount, };

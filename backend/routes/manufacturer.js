@@ -16,4 +16,3 @@ router.post("/generate-pdf", authenticateToken, manufacturerController.generateP
 router.get("/stats", authenticateToken, manufacturerController.getStats);
 
 module.exports = router;
-

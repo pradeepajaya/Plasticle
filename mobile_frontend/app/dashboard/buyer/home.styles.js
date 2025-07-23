@@ -94,7 +94,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   scrollContainer: {
-    paddingBottom: 40,
+    paddingBottom: 30,
   },
   section: {
     marginTop: 20,
@@ -104,8 +104,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
-    paddingVertical: 5,
+    paddingVertical: 10,
   },
   sectionTitle: {
     fontFamily: 'Poppins-SemiBold',
@@ -119,7 +118,7 @@ export const styles = StyleSheet.create({
   },
   newsCard: {
     backgroundColor: '#fff',
-    padding: 20,
+    padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
@@ -161,11 +160,10 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
   },
-  carousel: {
-    marginTop: 10,
-  },
   communityCard: {
     backgroundColor: '#fff',
+    flex:1,
+    padding:12,
     borderRadius: 15,
     overflow: 'hidden',
     elevation: 3,
@@ -173,15 +171,16 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    height: '100%',
   },
   communityImage: {
     width: '100%',
-    height: 150,
+    height: 200,
   },
   communityContent: {
     flex: 1,
     padding: 15,
+    flexGrow: 1,
+    Height:500,
   },
   communityTextScroll: {
     flex: 1,
@@ -192,6 +191,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     lineHeight: 20,
+    flexShrink: 1,
   },
   communityFooter: {
     flexDirection: 'row',

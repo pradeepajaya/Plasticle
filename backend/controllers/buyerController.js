@@ -94,11 +94,11 @@ const validateBottleQRCode = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { nickname, dateOfBirth, gender, hometown} = req.body;
+    const { nickname, dateOfBirth, gender, province} = req.body;
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { nickname, dateOfBirth, gender, hometown },
+      { nickname, dateOfBirth, gender, province },
       { new: true }
     );
 
@@ -110,7 +110,6 @@ const updateProfile = async (req, res) => {
 };  
 
 // update buyer profile image
-
 const updateProfilePicture = async (req, res) => {
   try {
     const { profilePicture } = req.body;
@@ -133,7 +132,6 @@ const updateProfilePicture = async (req, res) => {
 };
 
 // get profile picture
-
 const getProfilepicture = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-passwordHash');
@@ -148,6 +146,7 @@ const getProfilepicture = async (req, res) => {
   }
 };
 
+//get stats
 const getStats = async (req, res) => {
   try {
     const userId = req.user.id;

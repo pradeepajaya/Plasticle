@@ -6,3 +6,4 @@ const bottleController = require("../controllers/bottleController");
 router.post("/recycle-bottle", bottleController.recycleBottle);
 
 module.exports = router;
+

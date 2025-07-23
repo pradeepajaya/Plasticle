@@ -2,6 +2,8 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const Collector = require('../models/Collector');
 const Bin = require('../models/Bin');
+const Machine = require("../models/Machine");
+const TaskHandler = require("../models/taskhandler");
 //const API = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
 
 
@@ -13,7 +15,7 @@ exports.createTaskHandler = async (req, res) => {
 
   const { username, email, password } = req.body;
   const role = "taskhandler";
-  
+
 
   try {
     let user = await User.findOne({ email });
@@ -22,8 +24,20 @@ exports.createTaskHandler = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    user = new User({ username, email, passwordHash, role, isVerified: true,});
+    user = new User({ username, email, passwordHash, role, isVerified: true, });
     await user.save();
+
+  
+
+// ...
+const taskhandler = new TaskHandler({  // Capitalized constructor
+  userId: user._id,
+  username: user.username,
+  isActive: true,
+  region: "",
+});
+await taskhandler.save();
+
 
     res.status(201).json({ message: "Task Handler Created" });
   } catch (err) {
@@ -34,7 +48,7 @@ exports.createTaskHandler = async (req, res) => {
 // Fetch Existing Task Handlers
 exports.getTaskHandlers = async (req, res) => {
   try {
-    const taskHandlers = await User.find({ role: "taskhandler",isActive: true  });
+    const taskHandlers = await User.find({ role: "taskhandler", isActive: true });
     if (!taskHandlers) {
       return res.status(404).json({ message: "No Task Handlers found" });
     }
@@ -53,6 +67,7 @@ exports.deactivateTaskHandler = async (req, res) => {
 
     // Find user first to construct new values
     const user = await User.findOne({ _id: id, role: 'taskhandler' });
+    
 
     if (!user) {
       return res.status(404).json({ message: 'Task handler not found or invalid role' });
@@ -66,6 +81,14 @@ exports.deactivateTaskHandler = async (req, res) => {
     };
 
     const updatedHandler = await User.findByIdAndUpdate(id, updatedFields, { new: true });
+
+     await TaskHandler.findOneAndUpdate(
+      { userId: id },
+      {
+        isActive: false,
+        username: `deactivated-${user._id}`,
+      }
+    );
 
     res.status(200).json({ message: 'Task handler deactivated', user: updatedHandler });
   } catch (error) {
@@ -189,7 +212,6 @@ exports.allocateCollector = async (req, res) => {
 };
 
 // Fetch Available Collectors (Only Admins)
-// Get Available Collectors (with populated preferredBins)
 exports.getAvailableCollectors = async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Access Denied" });
@@ -201,11 +223,6 @@ exports.getAvailableCollectors = async (req, res) => {
         path: 'userId',
         select: 'nickname email username',
         model: 'User'
-      })
-      .populate({
-        path: 'preferredBins',
-        select: '_id binId',  // populate at least _id and binId
-        model: 'Bin'
       });
 
     if (!availableCollectors.length) {
@@ -311,7 +328,7 @@ exports.getDailyCollectionStats = async (req, res) => {
 
 exports.getManufacturers = async (req, res) => {
   try {
-    const manufacturers = await User.find({ role: 'manufacturer' }).select(
+    const manufacturers = await User.find({ role: 'manufacturer', isActive: true }).select(
       'username email companyLocation companyName companyRegNumber'
     );
     res.status(200).json(manufacturers);
@@ -341,3 +358,192 @@ exports.updateManufacturerDetails = async (req, res) => {
     res.status(500).json({ message: 'Server error updating manufacturer' });
   }
 };
+
+exports.deleteManufacturer = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findOne({ _id: userId, role: 'manufacturer' });
+    if (!user) {
+      return res.status(404).json({ message: "Manufacturer not found" });
+    }
+
+    const updated = await User.findByIdAndUpdate({ _id: userId }
+      , {
+        isActive: false,
+        username: `deleted-${user._id}`,
+        email: `${user._id}@deleted.com`,
+      }, { new: true });
+
+    res.status(200).json({ message: "Manufacturer deleted (soft)", deleted: updated });
+  } catch (err) {
+    console.error("Error deleting manufacturer:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getDeletedManufacturers = async (req, res) => {
+  try {
+    const deletedManufacturers = await User.find({
+      role: 'manufacturer',
+      isActive: false
+    }).select('username email companyLocation companyName companyRegNumber');
+
+    res.status(200).json(deletedManufacturers);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch deleted manufacturers' });
+  }
+};
+
+
+exports.checkFullBinsAndCollectors = async (req, res) => {
+  try {
+    const bins = await Bin.find({});
+    const collectors = await Collector.find({});
+
+    const allBinsFull = bins.every(
+      (bin) => bin.currentFill >= bin.capacity || bin.status === 'full'
+    );
+
+    const noAvailableCollectors = collectors.every(
+      (collector) => collector.activePersonal === false
+    );
+
+    return res.status(200).json({
+      allBinsFull,
+      noAvailableCollectors,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+//code from SK 
+//machine crud operations
+//create
+exports.createMachine = async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    const newMachine = new Machine({
+      name,
+      description,
+    });
+    await newMachine.save();
+    res.send('Machine created');
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+}
+
+
+//read
+exports.getMachine = async (req, res) => {
+  try {
+    const machines = await Machine.find();
+    res.json(machines);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+}
+
+//update
+exports.updateMachine = async (req, res) => {
+  try {
+    const { id, name, description } = req.body;
+
+    const updatedMachine = await Machine.findByIdAndUpdate(id, {
+      name,
+      description,
+    }, { new: true });
+
+    if (!updatedMachine) {
+      return res.status(404).json({ error: "Machine not found" });
+    }
+    res.json(updatedMachine);
+  }
+  catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+}
+
+//delete
+exports.deleteMachine = async (req, res) => {
+  try {
+    const { id } = req.body;
+    console.log(id);
+    if (!id) {
+      return res.status(400).json({ error: "ID is required" });
+    }
+
+    const dltMachine = await Machine.findByIdAndDelete(id);
+
+    if (!dltMachine) {
+      return res.status(404).json({ error: "Machine not found" });
+    }
+
+
+    res.json({ message: "Machine deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+}
+
+//get task handler
+exports.getTaskHandler = async (req, res) => {
+  try {
+    const taskhandler = await User.find({ role: "taskhandler" });
+    res.json(taskhandler);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+}
+
+
+//assgin Machine to task handler
+exports.assignMachine = async (req, res) => {
+  try {
+    // Log the request body for debugging
+    console.log("Request Body:", req.body);
+
+    const { machineId, handlerId } = req.body; // Extract machineId and taskHandlerId from the request body
+
+    // Validate input
+    if (!machineId || !handlerId) {
+      return res.status(400).json({ message: "machineId and taskHandlerId are required." });
+    }
+
+    const machineToAssign = await Machine.findById(machineId);
+    //const user = await User.findById("taskHandlerId");
+
+    // Find the machine by machineId
+    const machine = await Machine.findById(machineId);
+
+    // Log the found machine (or null if not found)
+    //console.log("Found machine:", machine);
+
+    if (!machine) {
+      return res.status(404).json({ message: "Machine not found." });
+    }
+
+    // Check if the machine is already assigned
+    if (machine.assignedTo) {
+      return res.status(400).json({ message: "Machine already assigned." });
+    }
+
+    // Update the machine's assignedTo field with the task handler's ID
+    const updatedMachine = await Machine.findByIdAndUpdate(
+      machineId,
+      { assignedTo: handlerId }, // Assign the machine to the task handler
+      { new: true } // Return the updated document
+    );
+    //console.log("Updated Machine:", updatedMachine);
+
+    // Return success response
+    return res.status(200).json({ message: "Machine successfully assigned" });
+  } catch (error) {
+    console.error("Error assigning machine:", error);
+    return res.status(500).json({ message: "Server error while assigning machine." });
+  }
+}
+
+

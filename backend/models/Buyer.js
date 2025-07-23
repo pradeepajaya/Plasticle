@@ -1,4 +1,3 @@
- // you don't need to add buyer(consumer) id , when user login buyer id will create and stored here automatically 
 const mongoose = require("mongoose");
 
 const buyerSchema = new mongoose.Schema({
@@ -6,6 +5,11 @@ const buyerSchema = new mongoose.Schema({
   totalBottlesCollected: { type: Number, default: 0 },
   monthlyContribution: { type: Map, of: Number, default: {} },
   leaderboardRank: { type: Number, default: null },
+  
+  // Optional fields for analytics
+  province: { type: String },
+  manufacturerId: { type: mongoose.Schema.Types.ObjectId, ref: "Manufacturer" },
+  username: { type: String },
 });
 
 const Buyer = mongoose.model("Buyer", buyerSchema);

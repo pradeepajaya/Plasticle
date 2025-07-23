@@ -143,38 +143,69 @@ export default function BuyerHome() {
     );
   }
 
-  // Process posts
-  let newsPost = posts.find(p => !p.image) || {
+  // Separate posts by type
+  const newsPosts = posts.filter(p => p.type === "news");
+  const blogPosts = posts.filter(p => p.type === "blog");
+
+  // Use default news if no news posts
+  const newsPost = newsPosts.length > 0 ? newsPosts[0] : {
     _id: 'default-news',
     title: 'Plasticle News',
     content: 'Stay tuned for updates from Plasticle Corporation.',
-    date: 'Today'
+    date: 'Today',
+    image: null,
+    imageUrl: null,
   };
 
-  let communityPosts = posts.filter(p => p._id !== newsPost._id);
-  if (communityPosts.length === 0) {
-    communityPosts = [{
-      _id: 'default-community',
-      content: 'Join our community to share recycling tips and earn rewards! With Plasticle, every bottle gets a unique QR code at the manufacturer store. When collected and recycled, you can track its journey and environmental impact.',
-      image: 'recycle_default.png',
-      likes: 24,
-      time: 'Today',
-      isDefault: true
-    }];
-  }
+  // Use default blog if no blog posts
+  const communityPosts = blogPosts.length > 0 ? blogPosts : [{
+    _id: 'default-community',
+    content: 'Join our community to share recycling tips and earn rewards! With Plasticle, every bottle gets a unique QR code at the manufacturer store. When collected and recycled, you can track its journey and environmental impact.',
+    image: 'recycle_default.png',
+    likes: 24,
+    time: 'Today',
+    isDefault: true
+  }];
 
+  const getImageSource = (item) => {
+    if(item.isDefault) return DEFAULT_IMAGE;
+    if(item.imageUrl) return { uri: item.imageUrl };
+    if(item.image) return { uri: `${API_URL}/uploads/${item.image}` };
+    return DEFAULT_IMAGE;
+  };
+
+  // Render news card with image
+  const renderNewsCard = (news, index) => (
+    <View 
+      key={news._id} 
+      style={[
+        styles.newsCard,
+        index === 0 && styles.firstNewsCard,
+        index === newsPosts.length - 1 && styles.lastNewsCard,
+        { minHeight: 220 } 
+      ]}
+    >
+      { (news.image || news.imageUrl) && (
+        <Image
+          source={getImageSource(news)}
+          style={{ width: '100%', height: 200, borderRadius: 10, marginBottom: 8 }}
+          resizeMode="cover"
+          defaultSource={DEFAULT_IMAGE}
+        />
+      )}
+      <Text style={styles.newsTitle}>{news.title}</Text>
+      <Text style={styles.newsContent}>{news.content}</Text>
+      <View style={styles.newsFooter}>
+        <Text style={styles.newsDate}>{news.date || 'Today'}</Text>
+      </View>
+    </View>
+  );
+
+  // Render community card - unchanged
   const renderCommunityCard = ({ item }) => (
     <View style={styles.communityCard}>
       <Image
-        source={
-          item.isDefault 
-            ? DEFAULT_IMAGE 
-            : item.imageUrl 
-              ? { uri: item.imageUrl } 
-              : item.image 
-                ? { uri: `${API_URL}/uploads/${item.image}` }
-                : DEFAULT_IMAGE
-        }
+        source={getImageSource(item)}
         style={styles.communityImage}
         resizeMode="cover"
         defaultSource={DEFAULT_IMAGE}
@@ -268,66 +299,41 @@ export default function BuyerHome() {
 
           {expandedNews ? (
             <View style={styles.newsContainer}>
-              {[newsPost, ...posts.filter(p => p._id !== newsPost._id && !p.image)].map((news, index) => (
-                <View 
-                  key={news._id} 
-                  style={[
-                    styles.newsCard,
-                    index === 0 && styles.firstNewsCard,
-                    index === posts.filter(p => !p.image).length && styles.lastNewsCard
-                  ]}
-                >
-                  <Text style={styles.newsTitle}>{news.title}</Text>
-                  <Text style={styles.newsContent}>{news.content}</Text>
-                  <View style={styles.newsFooter}>
-                    <Text style={styles.newsDate}>{news.date || 'Today'}</Text>
-                  </View>
-                </View>
-              ))}
+              {[newsPost, ...newsPosts.slice(1)].map((news, index) => renderNewsCard(news, index))}
             </View>
           ) : (
-            <View style={[styles.newsCard, styles.singleNewsCard]}>
-              <Text style={styles.newsTitle}>{newsPost.title}</Text>
-              <Text 
-                style={styles.newsContent}
-                numberOfLines={3}
-                ellipsizeMode="tail"
-              >
-                {newsPost.content}
-              </Text>
-              <View style={styles.newsFooter}>
-                <Text style={styles.newsDate}>{newsPost.date || 'Today'}</Text>
-                <Ionicons name="chevron-forward" size={18} color="#4caf50" />
-              </View>
-            </View>
+            renderNewsCard(newsPost, 0)
           )}
         </View>
 
-        {/* Community Posts */}
-        <View style={styles.section}>
+        {/* Community Posts Section */}
+        <View style={[styles.section, { marginTop: 20 }]}>
           <View style={styles.sectionHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="people" size={22} color="#4caf50" />
+              <MaterialCommunityIcons name="account-group" size={22} color="#4caf50" />
               <Text style={styles.sectionTitle}>Community Posts</Text>
             </View>
           </View>
 
-          <Carousel
-            width={width * 0.95}
-            height={400}
-            data={communityPosts}
-            renderItem={renderCommunityCard}
-            mode="parallax"
-            modeConfig={{
-              parallaxScrollingScale: 0.9,
-              parallaxScrollingOffset: 50,
-            }}
-            style={{ marginBottom: 20 }}
-            loop
-            autoPlay
-            autoPlayInterval={3000}
-          />
+          <View style={styles.communityPostsContainer}>
+            <Carousel
+              width={width * 0.9}
+              height={520}
+              data={communityPosts}
+              autoPlay={true}
+              autoPlayInterval={5000}
+              loop={true}
+              scrollAnimationDuration={1000}
+              mode="parallax"
+              modeConfig={{
+                parallaxScrollingScale: 0.9,
+                parallaxScrollingOffset: 40,
+              }}
+              renderItem={renderCommunityCard}
+            />
+          </View>
         </View>
+
       </ScrollView>
     </View>
   );
