@@ -9,7 +9,7 @@ const collectorRoutes = require('./routes/collector');
 const http = require('http');
 const socketIO = require('socket.io');
 const socketHandler = require('./sockets/socketHandler');
-require('./controllers/socketCon').watchChanges(); // Ensure the change stream is set up
+// require('./controllers/socketCon').watchChanges(); // Ensure the change stream is set up
 
 
 dotenv.config();

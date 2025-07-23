@@ -7,8 +7,10 @@ module.exports = (io) => {
     // socket.on("joinCollector", ({ userId }) => {
     // console.log("Collector joined:", userId); })
     // userSocketMap[userId] = socket.id;
-    socketController.socketById(socket);
-    socketController.handleDisconnect(socket);
+    //socketController.handleJoin(socket);
+    socketController.watchChanges(socket);
+    //socketController.handleDisconnect(socket);
+   
 
     socket.on('disconnect', () => {
       console.log('Socket disconnected:', socket.id);
