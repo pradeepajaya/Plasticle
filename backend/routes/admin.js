@@ -18,7 +18,8 @@ router.get("/vehiclearrival-basic", adminController.getVehicleArrivalBasic);
 router.get('/daily-collection-stats', adminController.getDailyCollectionStats);
 router.get('/manufacturers', adminController.getManufacturers);
 router.put('/manufacturers/:userId', adminController.updateManufacturerDetails);
-
+router.get('/manufacturers/deleted', adminController.getDeletedManufacturers);
+router.delete('/manufacturers/:userId', adminController.deleteManufacturer);
 router.get('/check-status', adminController.checkFullBinsAndCollectors);
 
 router.post("/createMachine", adminController.createMachine); 
