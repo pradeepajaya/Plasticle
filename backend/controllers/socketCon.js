@@ -1,5 +1,13 @@
 const Bin = require('../models/Bin');
-const Collector = require('../models/Collector');
+const userSocketMap = {};
+
+exports.handleJoin = (socket) => {
+  socket.on("join", ({ userId }) => {
+    userSocketMap[userId] = socket.id;
+    console.log(`User ${userId} joined with socket ${socket.id}`);
+  });
+};
+
 
 // Listen for changes in the Machine collection
 exports.watchChanges=() => {
@@ -21,8 +29,9 @@ exports.watchChanges=() => {
         
         // Only emit if new value is not null/empty
         if (newAssignedCollector !== null && newAssignedCollector !== '') {
-         if(global._io) {
-            global._io.emit('bin-assigned', {
+          const socketId = userSocketMap[newAssignedCollector];
+          if(global._io, socketId) {
+            global._io.to(socketId).emit('bin-assigned', {
                 binId: changedBinId,
                 locationName: bin.locationName,            
             });
@@ -37,6 +46,21 @@ exports.watchChanges=() => {
 
 
 
+exports.handleDisconnect = (socket) => {
+  socket.on("disconnect", () => {
+    for (const [userId, sid] of Object.entries(userSocketMap)) {
+      if (sid === socket.id) {
+        delete userSocketMap[userId];
+        console.log(`User ${userId} disconnected`);
+        break;
+      }
+    }
+  });
+};
+
+exports.getSocketIdByUserId = (userId) => {
+  return userSocketMap[userId];
+};
 
 
 
