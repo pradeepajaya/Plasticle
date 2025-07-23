@@ -5,7 +5,7 @@ const Collector = require('../models/Collector');
 exports.watchChanges=() => {
   const changeStream = Bin.watch();
 
-  changeStream.on('change',async (change) => {
+  changeStream.on('change', (change) => {
     // You can filter here for only "update" or "insert"
     if (change.operationType === 'update') {
     const updatedFields = change.updateDescription.updatedFields;
@@ -15,10 +15,38 @@ exports.watchChanges=() => {
         const newAssignedCollector = updatedFields.collectorId;
 
         const changedBinId = change.documentKey._id;
-        const bin = await Bin.findById(changedBinId, { locationName: 1, _id: 0 });
-        console.log("Location Name:", bin ? bin.locationName : "Bin not found");
+        //const changedBinId = change.documentKey.binId; 
+
+        // const bin = (async (changedBinId) => {
+        //   const bin = await Bin.findOne({ binId: changedBinId }, { locationName: 1, _id: 0 });
+        //   console.log("Location Name:", bin.locationName);
+        //   return bin;
+        // })(changedBinId);
+
+
+        async function getBinById(changedBinId) {
+        const bin = await Bin.findOne({ binId: changedBinId }, { locationName: 1, _id: 0 });
+  
+          if (bin) {
+            console.log("Location Name:", bin.locationName);
+          } else {
+            console.log("Bin not found");
+          }
+
+          return bin;
+        }
+        const bin = await getBinById(changedBinId);
+
         
+
+
+        // const collectorUserId = (async (newAssignedCollector) => {
+        //   const collectorUser = await Collector.findOne({ _id: newAssignedCollector }, { userId: 1, _id: 0 });
+        //   console.log("Location Name:", collectorUser.userId);
+        //   return collectorUser.userId;
+        // })();
         
+          
         // Only emit if new value is not null/empty
         if (newAssignedCollector !== null && newAssignedCollector !== '') {
          if(global._io) {
@@ -27,8 +55,8 @@ exports.watchChanges=() => {
                 locationName: bin.locationName,            
             });
         }
-
-      }
+          //console.log(`Bin assigned to ${collectorUserId}, notification emitted.`);
+        }
       }
     }
   });

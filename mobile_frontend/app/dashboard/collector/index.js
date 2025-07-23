@@ -73,9 +73,9 @@ export default function CollectorDashboard() {
       socket.emit("joinCollector", { userId }); 
     });
 
-    socket.on("machine-assigned", (data) => {
-      console.log("Received machine assignment:", data);
-      alert("Bin Assigned", `Bin ID: ${data.binId} assigned to you.`);
+    socket.on("bin-assigned", (data) => {
+      console.log("Received bin assigning:", data);
+      Alert.alert("Bin Assigned", `Bin Location: ${data.locationName} assigned to you.`);
     });
 
     // socket.on("welcome", (data) => {
