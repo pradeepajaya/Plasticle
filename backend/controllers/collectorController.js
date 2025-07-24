@@ -249,33 +249,5 @@ const getFullBins = async (req, res) => {
   }
 };
 
-const updatePreferredBins = async (req, res) => {
-  try {
-    const { userId, binIds } = req.body;
 
-    if (!userId || !Array.isArray(binIds)) {
-      return res.status(400).json({ message: "Invalid input" });
-    }
-
-    const collector = await Collector.findOneAndUpdate(
-      { userId },
-      { preferredBins: binIds },
-      { new: true }
-    ).populate('preferredBins');
-
-    if (!collector) {
-      return res.status(404).json({ message: "Collector not found" });
-    }
-
-    res.status(200).json({
-      message: "Preferred bins updated successfully",
-      collector,
-    });
-  } catch (err) {
-    console.error("Update preferred bins error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-
-module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, updatePreferredBins, };
+module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, };

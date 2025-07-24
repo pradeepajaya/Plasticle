@@ -58,18 +58,18 @@ export default function VehicleArrivalPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-r from-lime-500 to-white py-6 px-10">
+    <div className="min-h-screen w-full bg-gradient-to-r from-green-700 via-emerald-500 to-green-600 py-6 px-10">
       <a href="/dashboard" className="text-white text-sm underline hover:text-gray-200 block mb-4">
         &larr; Back to Dashboard
       </a>
 
-      <h1 className="text-4xl font-bold mb-10 text-center drop-shadow">🚛 Vehicle Arrival Overview</h1>
+      <h1 className="text-4xl text-white font-bold mb-10 text-center drop-shadow"> Vehicle Arrival Overview</h1>
 
       {/* Vehicle Arrival Section */}
       {loadingVehicles ? (
         <p className="text-white text-center">Loading vehicle data...</p>
       ) : vehicles.length === 0 ? (
-        <p className="text-center">No vehicle arrivals recorded.</p>
+        <p className="text-center text-white">No vehicle arrivals recorded.</p>
       ) : (
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
           {vehicles.map((vehicle, index) => (
@@ -103,7 +103,7 @@ export default function VehicleArrivalPage() {
       )}
 
       {/* Daily Collector Statistics Section */}
-      <h1 className="text-3xl font-bold mb-6 text-center drop-shadow"> Daily Collector Statistics</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center drop-shadow "> Daily Collector Statistics</h1>
 
       {loadingStats ? (
         <p className="text-center">Loading daily statistics...</p>
@@ -123,7 +123,7 @@ export default function VehicleArrivalPage() {
             </thead>
             <tbody>
               {dailyStats.map(stat => (
-                <tr key={stat.date} className="hover:bg-gray-50">
+                <tr key={stat.date} className="even:bg-lime-200 odd:bg-lime-200 hover:bg-gray-100 transition">
                   <td className="border border-gray-300 px-4 py-2">{stat.date}</td>
                   <td className="border border-gray-300 px-4 py-2">{stat.totalCollectors}</td>
                   <td className="border border-gray-300 px-4 py-2">{stat.totalBinsCollected ?? "N/A"}</td>
