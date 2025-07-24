@@ -65,7 +65,7 @@ app.use("/api/task-handler", require("./routes/bottle"));
 app.use("/api/posts", require("./routes/Post"));
 app.use('/uploads', express.static('uploads'));
 app.use("/api/stats", require("./routes/stats"));
-
+app.use("/api/taskhandlers", require("./routes/taskHandler"));
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => console.log(`Server running on ${process.env.API_BASE_URL}`)); 

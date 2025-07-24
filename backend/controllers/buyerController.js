@@ -91,15 +91,14 @@ const validateBottleQRCode = async (req, res) => {
 };
 
  // update buyer profile  
-
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { nickname, dateOfBirth, gender, district} = req.body;
+    const { nickname, dateOfBirth, gender, province} = req.body;
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { nickname, dateOfBirth, gender, district },
+      { nickname, dateOfBirth, gender, province },
       { new: true }
     );
 
@@ -110,11 +109,7 @@ const updateProfile = async (req, res) => {
   }
 };  
 
-// update buyer profile end 
-
-
 // update buyer profile image
-
 const updateProfilePicture = async (req, res) => {
   try {
     const { profilePicture } = req.body;
@@ -137,7 +132,6 @@ const updateProfilePicture = async (req, res) => {
 };
 
 // get profile picture
-
 const getProfilepicture = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-passwordHash');
@@ -152,10 +146,37 @@ const getProfilepicture = async (req, res) => {
   }
 };
 
+//get stats
+const getStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const buyer = await Buyer.findOne({ userId });
+
+    if (!buyer) {
+      return res.status(404).json({ message: "Buyer not found" });
+    }
+
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    const currentMonthContribution = buyer.monthlyContribution?.get(currentMonthKey) || 0;
+
+    res.status(200).json({
+      totalBottlesCollected: buyer.totalBottlesCollected || 0,
+      monthlyBottlesCollected: currentMonthContribution
+    });
+  } catch (error) {
+    console.error("Error fetching buyer stats:", error);
+    res.status(500).json({ message: "Server error while fetching stats" });
+  }
+};
+
 module.exports = {
   validateBinQRCode,
   validateBottleQRCode,
   updateProfile,
   updateProfilePicture,
   getProfilepicture,
+  getStats,
 };

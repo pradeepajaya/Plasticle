@@ -29,6 +29,11 @@ export const updateManufacturer = async (userId, updatedData) => {
   return await API.put(`/admin/manufacturers/${userId}`, updatedData);
 };
 
+export const deleteManufacturer = async (userId) => API.delete(`/admin/manufacturers/${userId}`);
+
 export const checkFullBinsAndCollectors = () =>
   API.get('/admin/check-status');
 
+
+export const getDeletedManufacturers = async () =>
+  API.get(`admin/manufacturers/deleted`);

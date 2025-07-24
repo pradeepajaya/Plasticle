@@ -13,12 +13,12 @@ router.post("/update-status", updateCollectorStatus);
 router.post("/toggle-availability", toggleAvailabilityStatus);
 
 // update collector information 
-
 router.put("/update-profile",authenticateToken, collectorController.updateProfile);
 
+// get collection counts
+router.get("/collection-count", authenticateToken, collectorController.getCollectionCount);
 
 //update collector profile image
-
 router.put("/update-profile-picture", authenticateToken, collectorController.updateProfilePicture);
 
 // Get collector  profile picture

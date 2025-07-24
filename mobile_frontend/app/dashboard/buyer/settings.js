@@ -399,7 +399,7 @@ export default function Settings() {
     nickname: '',
     dateOfBirth: new Date(),
     gender: '',
-    district : '',
+    province : '',
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isDobSet, setIsDobSet] = useState(false);
@@ -424,12 +424,12 @@ export default function Settings() {
         setProfileName(userInfo.username || "User");
 
         // Set form data if available
-        if (user.nickname || user.dateOfBirth || user.gender || user.district) {
+        if (user.nickname || user.dateOfBirth || user.gender || user.province) {
           setForm({
             nickname: user.nickname || '',
             dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth) : new Date(),
             gender: user.gender || '',
-            district: user.district || '',
+            district: user.province || '',
           });
           if (user.dateOfBirth) {
     setIsDobSet(true); // ✅ DOB already set
@@ -651,11 +651,11 @@ export default function Settings() {
               </Picker>
             </View>
 
-            <Text style={styles.inputLabel}>District</Text>
+            <Text style={styles.inputLabel}>Province</Text>
             <TextInput
-              placeholder="Enter your district"
-              value={form.district}
-              onChangeText={(v) => setForm({ ...form, district: v })}
+              placeholder="Enter your Province"
+              value={form.province}
+              onChangeText={(v) => setForm({ ...form, province: v })}
               style={styles.input}
               placeholderTextColor="#999"
             />
