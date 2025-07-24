@@ -31,23 +31,7 @@ export default function CollectorDashboard() {
   const [monthlyBinsCollected, setMonthlyBinsCollected] = useState(0);
   const [token, setToken] = useState(null); 
 
-  
- useEffect(() => {
-    if (!userId) return; 
 
-    socket.connect();
-
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
-      socket.emit("joinCollector", { userId }); 
-    });
-
-    socket.on("bin-assigned", (data) => {
-      console.log("Received bin assigning:", data);
-      Alert.alert("Bin Assigned", `Bin Location: ${data.locationName} assigned to you.`);
-    });
-  
-  }, [userId]); 
 
 
   
@@ -83,6 +67,25 @@ export default function CollectorDashboard() {
 
     fetchTokenAndUser();
   }, []);
+
+  useEffect(() => {
+    if (!userId) return; 
+
+    socket.connect();
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      socket.emit("joinCollector", { userId }); 
+    });
+
+    socket.on("bin-assigned", (data) => {
+      console.log("Received bin assigning:", data);
+      Alert.alert("Bin Assigned", `Bin Location: ${data.locationName} assigned to you.`);
+    });
+  
+  }, [userId]); 
+
+
 
   const fetchCollectionCount = async () => {
     try {

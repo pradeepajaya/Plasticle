@@ -1,13 +1,8 @@
 import { io } from "socket.io-client";
 
 
-// Initialize socket connection
-// export default socket = io("http://10.215.234.135:5000", {
-//   transports: ["websocket"],
-//   autoConnect: false,
-// });
 
-export default socket = io("http://192.168.227.135:5000",{
+export default socket = io(`${process.env.EXPO_PUBLIC_SOCKET_URL}`,{
     // transports: ["websocket"],
     autoConnect: false,
     // reconnectionAttempts: 5, // Retry connection attempts
