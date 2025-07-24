@@ -399,7 +399,7 @@ export default function Settings() {
     nickname: '',
     dateOfBirth: new Date(),
     gender: '',
-    hometown: '',
+    province: '',
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   // New state to track if date of birth is set
@@ -423,12 +423,12 @@ export default function Settings() {
         const userInfo = res2.data.user;
         setProfileName(userInfo.username || "User");
 
-        if (user.nickname || user.dateOfBirth || user.gender || user.hometown) {
+        if (user.nickname || user.dateOfBirth || user.gender || user.province) {
           setForm({
             nickname: user.nickname || '',
             dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth) : new Date(),
             gender: user.gender || '',
-            hometown: user.hometown || '',
+            hometown: user.province || '',
           });
              if (user.dateOfBirth) {
                                      setIsDobSet(true); // ✅ DOB already set
@@ -644,11 +644,11 @@ export default function Settings() {
               </Picker>
             </View>
 
-            <Text style={styles.inputLabel}>Hometown</Text>
+            <Text style={styles.inputLabel}>Province</Text>
             <TextInput
-              placeholder="Enter your hometown"
-              value={form.hometown}
-              onChangeText={(v) => setForm({ ...form, hometown: v })}
+              placeholder="Enter your Province"
+              value={form.province}
+              onChangeText={(v) => setForm({ ...form, province: v })}
               style={styles.input}
               placeholderTextColor="#999"
             />

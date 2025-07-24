@@ -4,6 +4,7 @@ backend/.env
 backend/build/
 backend/coverage/
 backend/debug.log
+vackend/uploads/
 
 #Frontend (React)
 frontend/node_modules/

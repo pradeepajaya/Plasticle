@@ -30,7 +30,7 @@ export default function TaskHandlerLayout() {
           let iconName;
 
           if (route.name === "index") iconName = focused ? "home" : "home-outline";
-          else if (route.name === "settings") iconName = focused ? "settings" : "settings-outline";
+          else if (route.name === "settings") iconName = focused ? "trash" : "trash-outline";
           else if (route.name === "analytics") iconName = focused ? "bar-chart" : "bar-chart-outline";
 
           return <Ionicons name={iconName} size={focused ? 26 : 22} color={color} />;

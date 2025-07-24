@@ -5,21 +5,18 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  StyleSheet,
-  Dimensions,
+  Image,
+  SafeAreaView
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
+import { styles } from './index.styles';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-const { width } = Dimensions.get("window");
 
 export default function CollectorDashboard() {
-  const router = useRouter();
   const [facing, setFacing] = useState("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -29,20 +26,25 @@ export default function CollectorDashboard() {
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState(null);
   const [activePersonal, setActivePersonal] = useState(false);
+  const [totalBinsCollected, setTotalBinsCollected] = useState(0);
+  const [monthlyBinsCollected, setMonthlyBinsCollected] = useState(0);
+  const [token, setToken] = useState(null); 
 
   useEffect(() => {
-    const fetchUserId = async () => {
+    const fetchTokenAndUser = async () => {
       try {
-        const token = await AsyncStorage.getItem("userToken");
-        if (!token) {
-          Alert.alert("Error", "User token not found. Please log in again.");
+        const storedToken = await AsyncStorage.getItem('userToken');
+        if (!storedToken) {
+          Alert.alert('Error', 'User token not found. Please log in again.');
           return;
         }
+        setToken(storedToken);
+
         const response = await fetch(`${API_URL}/auth/user`, {
-          method: "GET",
+          method: 'GET',
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${storedToken}`,
+            'Content-Type': 'application/json',
           },
         });
 
@@ -50,16 +52,67 @@ export default function CollectorDashboard() {
         if (response.ok) {
           setUserId(data.user._id);
         } else {
-          Alert.alert("Error", data.error || "Failed to fetch user details");
+          Alert.alert('Error', data.error || 'Failed to fetch user details');
         }
       } catch (error) {
-        console.error("Fetch User ID Error:", error);
-        Alert.alert("Error", "Something went wrong while fetching user details");
+        console.error('Fetch User ID Error:', error);
+        Alert.alert('Error', 'Something went wrong while fetching user details');
       }
     };
 
-    fetchUserId();
+    fetchTokenAndUser();
   }, []);
+
+  const fetchCollectionCount = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+
+      if (!token) {
+        Alert.alert("Error", "Token not found. Please log in again.");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/collector/collection-count`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setTotalBinsCollected(data.totalBinsCollected);
+        setMonthlyBinsCollected(data.monthlyBinsCollected);
+      } else {
+        Alert.alert("Error", data.message || "Failed to fetch collection counts");
+      }
+
+    } catch (error) {
+      console.error("Fetch Error:", error);
+      Alert.alert("Error", "Something went wrong while fetching collection counts");
+    }
+  };
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setLoading(true);
+      await fetchCollectionCount();
+      setLoading(false);
+    };
+    
+    loadInitialData();
+  }, []);
+
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   const handleScan = async ({ data }) => {
     if (!scanned) {
@@ -80,24 +133,42 @@ export default function CollectorDashboard() {
         binId = qrData;
       }
 
+      // Check if token exists
+      if (!token) {
+        setValidationMessage("Error: Authentication token not found. Please log in again.");
+        setTimeout(() => setValidationMessage(""), 5000);
+        return;
+      }
+
       setLoading(true);
+      console.log("Making request to validate bin:", binId);
       const response = await fetch(`${API_URL}/collector/validate-bin`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ binId, userId }),
       });
+      
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
 
       const data = await response.json();
 
       if (response.ok) {
+        await fetchCollectionCount();
         setValidationMessage(data.message || "Bin successfully collected!");
         setTimeout(() => setValidationMessage(""), 5000);
       } else {
-        setValidationMessage(`Error: ${data.error || "Failed to validate bin"}`);
+        setValidationMessage(`Error: ${data.message || "Failed to validate bin"}`);
+        setTimeout(() => setValidationMessage(""), 5000);
       }
+
     } catch (error) {
-      console.error("Error parsing QR code data:", error);
-      setValidationMessage("Error: Invalid Bin QR Code format");
+      console.error("Error during fetch:", error);
+      setValidationMessage("Error: Network or server issue");
+      setTimeout(() => setValidationMessage(""), 5000);
     } finally {
       setLoading(false);
     }
@@ -130,23 +201,21 @@ export default function CollectorDashboard() {
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
+
       setValidationMessage("Success: Location updated successfully");
-      setTimeout(() => setValidationMessage(""), 5000);
+      setTimeout(() => setValidationMessage(""), 5000); 
     } catch (err) {
       console.error("Error updating status:", err);
       setValidationMessage(`Error: ${err.message || "Failed to update location"}`);
+      setTimeout(() => setValidationMessage(""), 5000); 
     }
   };
 
   const toggleAvailability = () => {
     setActivePersonal((prev) => !prev);
     setValidationMessage(`You are now ${!activePersonal ? "available" : "unavailable"}`);
-    setTimeout(() => setValidationMessage(""), 3000);
-  };
-
-  const toggleCameraFacing = () => {
-    setFacing((prev) => (prev === "back" ? "front" : "back"));
-  };
+    setTimeout(() => setValidationMessage(""), 3000); 
+    };
 
   if (!permission) return <View />;
   if (!permission.granted) {
@@ -159,7 +228,62 @@ export default function CollectorDashboard() {
   }
 
   return (
-    <LinearGradient colors={["#E8F5E9", "#C8E6C9", "#A5D6A7"]} style={styles.container}>
+    <SafeAreaView style={styles.container}>
+
+      <View style={styles.imageContainer}>
+        <Text style={styles.welcomeText}>Hello Collector</Text>
+        <Image
+          source={require('../../../assets/images/collector.jpg')}
+          style={styles.collectorImage}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Statistics Cards */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <View style={styles.statIconContainer}>
+            <Ionicons name="trophy" size={24} color="#FFD700" />
+          </View>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Total Bins Collected</Text>
+            <Text style={styles.statValue}>{totalBinsCollected}</Text>
+          </View>
+        </View>
+
+        <View style={styles.statCard}>
+          <View style={styles.statIconContainer}>
+            <Ionicons name="calendar" size={24} color="#4CAF50" />
+          </View>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>This Month</Text>
+            <Text style={styles.statValue}>{monthlyBinsCollected}</Text>
+          </View>
+        </View>
+      </View>
+
+
+      {/* Fixed Position Message Overlay */}
+      {validationMessage && (
+        <View style={[
+          styles.messageOverlay,
+          validationMessage.startsWith("Error")
+            ? styles.errorOverlay
+            : styles.successOverlay
+        ]}>
+          <View style={styles.messageContent}>
+            <Ionicons
+              name={validationMessage.startsWith("Error") ? "close-circle" : "checkmark-circle"}
+              size={22}
+              color={validationMessage.startsWith("Error") ? "#FF3B30" : "#4CAF50"}
+            />
+            <Text style={styles.messageText}>
+              {validationMessage}
+            </Text>
+          </View>
+        </View>
+      )}
+
       {isCameraVisible && (
         <View style={styles.cameraContainer}>
           <CameraView
@@ -168,241 +292,75 @@ export default function CollectorDashboard() {
             barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
             onBarcodeScanned={handleScan}
           >
-            <View style={styles.overlay}>
-              <View style={styles.scanArea}>
-                <View style={styles.scanAreaBorder} />
-              </View>
+          <View style={styles.scanOverlay}>
+            <View style={styles.scanArea}>
+              <View style={styles.scanAreaBorder} />
             </View>
-            <TouchableOpacity style={styles.backButton} onPress={() => setIsCameraVisible(false)}>
-              <Ionicons name="arrow-back-circle" size={35} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.flipIcon} onPress={toggleCameraFacing}>
-              <Ionicons name="camera-reverse-outline" size={30} color="white" />
-            </TouchableOpacity>
+          </View>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => setIsCameraVisible(false)}
+          >
+            <Ionicons name="arrow-back" size={30} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.flipButton} 
+            onPress={() => setFacing(current => (current === 'back' ? 'front' : 'back'))}
+          >
+            <Ionicons name="camera-reverse" size={30} color="white" />
+          </TouchableOpacity>
           </CameraView>
         </View>
       )}
 
       {!isCameraVisible && (
-        <View style={styles.uiContainer}>
-          <View style={styles.header}>
-            <Ionicons name="trash-bin" size={40} color="#2E8B57" />
-            <Text style={styles.title}>Plasticle</Text>
-          </View>
-
-          {loading && <ActivityIndicator size="large" color="#2E8B57" />}
-
-          {validationMessage ? (
-            <View style={[
-              styles.messageContainer,
-              validationMessage.startsWith("Error") 
-                ? styles.errorContainer 
-                : styles.successContainer
-            ]}>
-              {validationMessage.startsWith("Error") ? (
-                <Ionicons name="close-circle" size={24} color="#FF3B30" style={styles.icon} />
-              ) : (
-                <Ionicons name="checkmark-circle" size={24} color="#2E8B57" style={styles.icon} />
-              )}
-              <Text style={styles.statusText}>
-                {validationMessage}
-              </Text>
-            </View>
-          ) : null}
-
-          <View style={styles.buttonGroup}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.primaryButton]}
+        <View style={styles.buttonContainer}>
+          {/* Main Action Button - Circular Scan */}
+          <View style={styles.scanButtonContainer}>
+            <TouchableOpacity
+              style={[styles.circularScanButton, styles.scanButton]}
               onPress={() => setIsCameraVisible(true)}
             >
-              <Ionicons name="qr-code" size={24} color="white" style={styles.buttonIcon} />
-              <Text style={styles.buttonText}>Scan Bin</Text>
+              <Ionicons name="camera" size={40} color="white" />
             </TouchableOpacity>
+            <Text style={styles.scanButtonLabel}>Scan Bin</Text>
+          </View>
 
+          {/* Secondary Action Buttons */}
+          <View style={styles.secondaryButtonsRow}>
             <TouchableOpacity
               style={[
-                styles.actionButton,
-                activePersonal ? styles.activeButton : styles.inactiveButton
+                styles.secondaryButton,
+                activePersonal ? styles.activeSecondaryButton : styles.inactiveSecondaryButton
               ]}
               onPress={toggleAvailability}
             >
-              <Ionicons 
-                name={activePersonal ? "checkmark-circle" : "close-circle"} 
-                size={24} 
-                color="white" 
-                style={styles.buttonIcon} 
+              <Ionicons
+                name={activePersonal ? "checkmark-circle" : "close-circle"}
+                size={24}
+                color="white"
               />
-              <Text style={styles.buttonText}>
+              <Text style={styles.secondaryButtonText}>
                 {activePersonal ? "Available" : "Unavailable"}
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.secondaryButton]}
+            <TouchableOpacity
+              style={[styles.secondaryButton, styles.locationSecondaryButton]}
               onPress={updateCollectorStatus}
             >
-              <Ionicons name="navigate" size={24} color="white" style={styles.buttonIcon} />
-              <Text style={styles.buttonText}>Update Location</Text>
+              <Ionicons name="navigate" size={24} color="white" />
+              <Text style={styles.secondaryButtonText}>Location</Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
-    </LinearGradient>
+
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#2E8B57" />
+        </View>
+      )}
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  message: {
-    textAlign: "center",
-    marginTop: 20,
-  },
-  cameraContainer: {
-    width: width - 40,
-    height: width - 40,
-    borderRadius: 10,
-    overflow: 'hidden',
-    alignSelf: 'center',
-  },
-  camera: {
-    flex: 1,
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  scanArea: {
-    width: 250,
-    height: 250,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scanAreaBorder: {
-    width: '90%',
-    height: '90%',
-    borderWidth: 3,
-    borderColor: "#2E8B57",
-    borderRadius: 10,
-  },
-  uiContainer: {
-    width: width - 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderRadius: 15,
-    padding: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#2E8B57',
-    marginTop: 10,
-  },
-  buttonGroup: {
-    width: '100%',
-    marginTop: 20,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  primaryButton: {
-    backgroundColor: "#2E8B57",
-  },
-  secondaryButton: {
-    backgroundColor: "#3CB371",
-  },
-  activeButton: {
-    backgroundColor: "#4CAF50",
-  },
-  inactiveButton: {
-    backgroundColor: "#6c757d",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "600",
-    marginLeft: 10,
-  },
-  buttonIcon: {
-    marginRight: 5,
-  },
-  statusText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginLeft: 10,
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
-    padding: 15,
-    borderRadius: 8,
-    width: '100%',
-  },
-  errorContainer: {
-    backgroundColor: 'rgba(255, 59, 48, 0.15)',
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF3B30',
-  },
-  successContainer: {
-    backgroundColor: 'rgba(76, 175, 80, 0.15)',
-    borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
-  },
-  flipIcon: {
-    position: "absolute",
-    right: 20,
-    bottom: 30,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 10,
-    borderRadius: 50,
-  },
-  backButton: {
-    position: "absolute",
-    left: 20,
-    top: 40,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 8,
-    borderRadius: 50,
-  },
-  icon: {
-    marginRight: 10,
-  },
-});
-

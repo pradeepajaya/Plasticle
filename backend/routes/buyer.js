@@ -13,12 +13,12 @@ router.post("/validate-bottle", buyerController.validateBottleQRCode);
 router.put("/update-profile", authenticateToken, buyerController.updateProfile);
 
 //update buyer profile image
-
 router.put("/update-profile-picture", authenticateToken, buyerController.updateProfilePicture);
 
 // Get buyer profile picture
 router.get('/profile', authenticateToken, buyerController.getProfilepicture);
 
+// Get buyer stats
+router.get("/stats", authenticateToken, buyerController.getStats);
+
 module.exports = router;
-
-

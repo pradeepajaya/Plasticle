@@ -117,17 +117,41 @@ const updateCollectorStatus = async (req, res) => {
   }
 };
 
+// collector availability toggle status
+const toggleAvailabilityStatus = async (req, res) => {
+  try {
+    const { userId, activePersonal } = req.body;
+
+    if (!userId || activePersonal == null) {
+      return res.status(400).json({ message: "Missing userId or activePersonal status" });
+    }
+
+    const collector = await Collector.findOneAndUpdate(
+      { userId },
+      { activePersonal },
+      { new: true }
+    );
+
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    res.status(200).json({ message: "Availability status updated", collector });
+  } catch (error) {
+    console.error("Error toggling availability status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // update collector profile information
-
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { nickname, dateOfBirth, gender, hometown } = req.body;
+    const { nickname, dateOfBirth, gender, province } = req.body;
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { nickname, dateOfBirth, gender, hometown },
+      { nickname, dateOfBirth, gender, province },
       { new: true }
     );
 
@@ -138,8 +162,7 @@ const updateProfile = async (req, res) => {
   }
 };  
 
-// update buyer profile image
-
+// update collector profile image
 const updateProfilePicture = async (req, res) => {
   try {
     const { profilePicture } = req.body;
@@ -162,7 +185,6 @@ const updateProfilePicture = async (req, res) => {
 };
 
 // get profile picture
-
 const getProfilepicture = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-passwordHash');
@@ -176,8 +198,6 @@ const getProfilepicture = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 const getCollectorAllocations = async (req, res) => {
   try {
@@ -201,7 +221,6 @@ const getCollectorAllocations = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch collector allocations." });
   }
 };
-
 
 const updateBinCollectionStatus = async (req, res) => {
   try {
@@ -249,5 +268,30 @@ const getFullBins = async (req, res) => {
   }
 };
 
+const getCollectionCount = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-module.exports = { validateBin, updateCollectorStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, };
+    const collector = await Collector.findOne({ userId });
+
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    // Get current month in "YYYY-MM" format (to match your existing monthlyBinsCollected keys)
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    // Get the monthly count or default to 0
+    const monthlyCount = collector.monthlyBinsCollected.get(currentMonth) || 0;
+
+    res.status(200).json({
+      totalBinsCollected: collector.totalBinsCollected,
+      monthlyBinsCollected: monthlyCount,
+    });
+  } catch (error) {
+    console.error("Error fetching collection count:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = { validateBin, updateCollectorStatus,  toggleAvailabilityStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, getCollectionCount, };

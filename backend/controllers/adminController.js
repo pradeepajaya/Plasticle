@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Collector = require('../models/Collector');
 const Bin = require('../models/Bin');
 const Machine = require("../models/Machine");
+const TaskHandler = require("../models/taskhandler");
 //const API = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL });
 
 
@@ -14,7 +15,7 @@ exports.createTaskHandler = async (req, res) => {
 
   const { username, email, password } = req.body;
   const role = "taskhandler";
-  
+
 
   try {
     let user = await User.findOne({ email });
@@ -23,8 +24,20 @@ exports.createTaskHandler = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    user = new User({ username, email, passwordHash, role, isVerified: true,});
+    user = new User({ username, email, passwordHash, role, isVerified: true, });
     await user.save();
+
+  
+
+// ...
+const taskhandler = new TaskHandler({  // Capitalized constructor
+  userId: user._id,
+  username: user.username,
+  isActive: true,
+  region: "",
+});
+await taskhandler.save();
+
 
     res.status(201).json({ message: "Task Handler Created" });
   } catch (err) {
@@ -35,7 +48,7 @@ exports.createTaskHandler = async (req, res) => {
 // Fetch Existing Task Handlers
 exports.getTaskHandlers = async (req, res) => {
   try {
-    const taskHandlers = await User.find({ role: "taskhandler",isActive: true  });
+    const taskHandlers = await User.find({ role: "taskhandler", isActive: true });
     if (!taskHandlers) {
       return res.status(404).json({ message: "No Task Handlers found" });
     }
@@ -54,6 +67,7 @@ exports.deactivateTaskHandler = async (req, res) => {
 
     // Find user first to construct new values
     const user = await User.findOne({ _id: id, role: 'taskhandler' });
+    
 
     if (!user) {
       return res.status(404).json({ message: 'Task handler not found or invalid role' });
@@ -67,6 +81,14 @@ exports.deactivateTaskHandler = async (req, res) => {
     };
 
     const updatedHandler = await User.findByIdAndUpdate(id, updatedFields, { new: true });
+
+     await TaskHandler.findOneAndUpdate(
+      { userId: id },
+      {
+        isActive: false,
+        username: `deactivated-${user._id}`,
+      }
+    );
 
     res.status(200).json({ message: 'Task handler deactivated', user: updatedHandler });
   } catch (error) {
@@ -306,7 +328,7 @@ exports.getDailyCollectionStats = async (req, res) => {
 
 exports.getManufacturers = async (req, res) => {
   try {
-    const manufacturers = await User.find({ role: 'manufacturer' }).select(
+    const manufacturers = await User.find({ role: 'manufacturer', isActive: true }).select(
       'username email companyLocation companyName companyRegNumber'
     );
     res.status(200).json(manufacturers);
@@ -336,6 +358,43 @@ exports.updateManufacturerDetails = async (req, res) => {
     res.status(500).json({ message: 'Server error updating manufacturer' });
   }
 };
+
+exports.deleteManufacturer = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findOne({ _id: userId, role: 'manufacturer' });
+    if (!user) {
+      return res.status(404).json({ message: "Manufacturer not found" });
+    }
+
+    const updated = await User.findByIdAndUpdate({ _id: userId }
+      , {
+        isActive: false,
+        username: `deleted-${user._id}`,
+        email: `${user._id}@deleted.com`,
+      }, { new: true });
+
+    res.status(200).json({ message: "Manufacturer deleted (soft)", deleted: updated });
+  } catch (err) {
+    console.error("Error deleting manufacturer:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getDeletedManufacturers = async (req, res) => {
+  try {
+    const deletedManufacturers = await User.find({
+      role: 'manufacturer',
+      isActive: false
+    }).select('username email companyLocation companyName companyRegNumber');
+
+    res.status(200).json(deletedManufacturers);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch deleted manufacturers' });
+  }
+};
+
 
 exports.checkFullBinsAndCollectors = async (req, res) => {
   try {
