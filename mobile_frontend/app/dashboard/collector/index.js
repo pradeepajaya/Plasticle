@@ -211,11 +211,40 @@ export default function CollectorDashboard() {
     }
   };
 
-  const toggleAvailability = () => {
+  /*const toggleAvailability = () => {
     setActivePersonal((prev) => !prev);
     setValidationMessage(`You are now ${!activePersonal ? "available" : "unavailable"}`);
     setTimeout(() => setValidationMessage(""), 3000); 
-    };
+    };*/
+
+    const toggleAvailability = async () => {
+  const newStatus = !activePersonal;
+  setActivePersonal(newStatus);
+  setValidationMessage(`You are now ${newStatus ? "available" : "unavailable"}`);
+  setTimeout(() => setValidationMessage(""), 3000);
+
+  try {
+    const response = await fetch(`${API_URL}/collector/toggle-availability`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, activePersonal: newStatus }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to update status");
+    }
+
+    console.log("Availability status updated:", data.message);
+  } catch (error) {
+    console.error("Error updating availability:", error);
+    setValidationMessage(`Error: ${error.message}`);
+    setTimeout(() => setValidationMessage(""), 3000);
+  }
+};
 
   if (!permission) return <View />;
   if (!permission.granted) {
