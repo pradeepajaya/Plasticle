@@ -143,6 +143,8 @@ const toggleAvailabilityStatus = async (req, res) => {
   }
 };
 
+
+
 // update collector profile information
 const updateProfile = async (req, res) => {
   try {
