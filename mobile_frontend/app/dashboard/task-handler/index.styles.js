@@ -63,39 +63,47 @@ export const styles = StyleSheet.create({
     
   },
   buttonContainer: {
-     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 5,
-    marginBottom: 100,
-    height: 120,
-  },
-  optionButton: {
-    width: width * 0.40,
-    padding: 20,
-    borderRadius: 15,
-    marginVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    flexDirection: 'row',
-  },
-  logoutButton: {
-    position: 'absolute',
-    top: 160,
-    right: 150,
-    backgroundColor: '#2E8B30',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 3,
-  },
+  flexDirection: 'column',  // Stack vertically for better mobile UX
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingHorizontal: 10,
+  marginBottom: 40,
+  gap: 20,  // space between buttons
+}
+,
+ optionButton: {
+  width: '100%',
+  minHeight: 60,
+  borderRadius: 12,
+  paddingVertical: 16,
+  paddingHorizontal: 20,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '#2E8B57',
+  elevation: 5,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.3,
+  shadowRadius: 4,
+},
+
+logoutButton: {
+  position: 'absolute',
+  top: -600,           // Adjust as needed (status bar safe)
+  right: 4,
+  backgroundColor: '#2E8B30',
+  padding: 10,
+  borderRadius: 20,
+  zIndex: 1,        // Ensure it's above other elements
+  elevation: 4,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 5 },
+  shadowOpacity: 0.2,
+  shadowRadius: 4,
+},
+
+
   cameraFullScreenContainer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 100,
