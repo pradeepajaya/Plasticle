@@ -23,7 +23,6 @@ router.delete('/manufacturers/:userId', adminController.deleteManufacturer);
 router.get('/check-status', adminController.checkFullBinsAndCollectors);
 
 
-router.get('/check-status', adminController.checkFullBinsAndCollectors);
 
 
 //sk
