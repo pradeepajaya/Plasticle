@@ -15,4 +15,6 @@ router.post("/generate-pdf", authenticateToken, manufacturerController.generateP
 // API to get manufacturer stats (total bottles produced and recycled)
 router.get("/stats", authenticateToken, manufacturerController.getStats);
 
+router.get("/monthly-report/:month", authenticateToken, manufacturerController.getManufacturerMonthlyReport);
+
 module.exports = router;
