@@ -1,6 +1,7 @@
 const QRCode = require("qrcode");
 const Bin = require("../models/Bin");
-const { v4: uuidv4 } = require('uuid');  
+const { v4: uuidv4 } = require('uuid'); 
+
 exports.createBin = async (req, res) => {
   try {
     const { location, capacity } = req.body;
@@ -39,7 +40,6 @@ exports.createBin = async (req, res) => {
   }
 };
 
-
 // Get bins grouped by city, and flag full + uncollected bins
 exports.getDueLocations = async (req, res) => {
   try {
@@ -69,3 +69,14 @@ exports.getDueLocations = async (req, res) => {
     res.status(500).json({ message: "Error fetching due locations", error });
   }
 };
+
+// GET all bins
+exports.getAllBins = async (req, res) => {
+  try {
+    const bins = await Bin.find({});
+    res.status(200).json(bins);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve bins", error });
+  }
+};
+

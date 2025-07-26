@@ -5,6 +5,8 @@ const taskHandlerSchema = new mongoose.Schema({
   username: { type: String, required: true },
   isActive: { type: Boolean, default: true },
   region: { type: String },
+  binAssigned: { type: Boolean, default: false },
+  assignedBins: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bin" }],
 });
 
-module.exports = mongoose.model("TaskHandler", taskHandlerSchema);
+module.exports = mongoose.models.TaskHandler || mongoose.model("TaskHandler", taskHandlerSchema);

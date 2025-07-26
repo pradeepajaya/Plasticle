@@ -99,7 +99,6 @@ function AddPost() {
           >
             <option value="blog">Blog</option>
             <option value="news">News</option>
-            <option value="initiative">Initiative</option>
           </select>
         </div>
         <button

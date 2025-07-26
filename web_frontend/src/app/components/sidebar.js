@@ -28,11 +28,19 @@ export default function Sidebar() {
 
 */
 
-
-
 'use client';
 import Link from 'next/link';
-import { Home, MapPin, Truck, Factory, PlusCircle, Settings } from 'lucide-react';
+import {
+  Home,
+  MapPin,
+  Truck,
+  Factory,
+  PlusCircle,
+  Settings,
+  Wrench,
+  BarChart2,
+  Trash2
+} from 'lucide-react';
 
 export default function Sidebar() {
   return (
@@ -42,10 +50,10 @@ export default function Sidebar() {
         <img
           src="/logoplasticle.png"
           alt="Admin Avatar"
-          className="w-10 h-10 rounded-full border border-white/30"
+          className="w-20 h-20 rounded-full border border-white/50"
         />
         <div>
-          <p className="font-semibold">Admin User</p>
+          <p className="font-semibold">PLASTICLE</p>
           <p className="text-xs text-emerald-200">Administrator</p>
         </div>
       </div>
@@ -71,14 +79,17 @@ export default function Sidebar() {
             <span>Manufacturers</span>
           </Link>
           <Link href="/machine" className="flex items-center space-x-2 hover:text-emerald-300 transition">
-            <Settings size={18} />
+            <Wrench size={18} />
             <span>Machines</span>
           </Link>
           <Link href="/stats" className="flex items-center space-x-2 hover:text-emerald-300 transition">
-            <Settings size={18} />
-            <span>Stat</span>
+            <BarChart2 size={18} />
+            <span>Statistics</span>
           </Link>
-
+          <Link href="/bin-allocation" className="flex items-center space-x-2 hover:text-emerald-300 transition">
+            <Trash2 size={18} />
+            <span>Custom Bin Allocation</span>
+          </Link>
         </nav>
       </div>
 
@@ -95,3 +106,4 @@ export default function Sidebar() {
     </div>
   );
 }
+

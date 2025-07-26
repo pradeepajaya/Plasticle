@@ -1,5 +1,5 @@
 const express = require("express");
-const { createBin, getDueLocations } = require("../controllers/binController"); 
+const { createBin, getDueLocations,  getAllBins } = require("../controllers/binController"); 
 
 const router = express.Router();
 
@@ -7,5 +7,7 @@ const router = express.Router();
 router.post("/createBin", createBin);
 
 router.get('/due-locations', getDueLocations);
+
+router.get('/getbins', getAllBins);
 
 module.exports = router;

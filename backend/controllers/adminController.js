@@ -437,14 +437,14 @@ exports.createMachine = async (req, res) => {
 
 
 //read
-exports.getMachine = async (req, res) => {
-  try {
-    const machines = await Machine.find();
-    res.json(machines);
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}
+// exports.getMachine = async (req, res) => {
+//   try {
+//     const machines = await Machine.find();
+//     res.json(machines);
+//   } catch (error) {
+//     res.status(500).json({ error: "Server error" });
+//   }
+// }
 
 //update
 exports.updateMachine = async (req, res) => {
@@ -512,9 +512,7 @@ exports.assignMachine = async (req, res) => {
       return res.status(400).json({ message: "machineId and taskHandlerId are required." });
     }
 
-    const machineToAssign = await Machine.findById(machineId);
-    //const user = await User.findById("taskHandlerId");
-
+ 
     // Find the machine by machineId
     const machine = await Machine.findById(machineId);
 
@@ -526,9 +524,9 @@ exports.assignMachine = async (req, res) => {
     }
 
     // Check if the machine is already assigned
-    if (machine.assignedTo) {
-      return res.status(400).json({ message: "Machine already assigned." });
-    }
+    // if (machine.assignedTo) {
+    //   return res.status(400).json({ message: "Machine already assigned." });
+    // }
 
     // Update the machine's assignedTo field with the task handler's ID
     const updatedMachine = await Machine.findByIdAndUpdate(
@@ -547,3 +545,35 @@ exports.assignMachine = async (req, res) => {
 }
 
 
+
+
+//filter machines by assigned or not assigned
+exports.assignedMachines = async (req, res) => {  
+  try {
+
+    // Find machines based on the assigned status
+    const machines = await Machine.find({ assignedTo: {$ne: null} });
+
+    // Return the filtered machines
+    res.json(machines);
+  } catch (error) {
+    console.error("Error filtering machines:", error);
+    res.status(500).json({ message: "Server error while filtering machines." });
+  }
+}
+
+
+//filter machines by assigned or not assigned
+exports.notAssignedMachines = async (req, res) => {  
+  try {
+
+    // Find machines based on the assigned status
+    const machines = await Machine.find({ assignedTo: {$eq: null} });
+
+    // Return the filtered machines
+    res.json(machines);
+  } catch (error) {
+    console.error("Error filtering machines:", error);
+    res.status(500).json({ message: "Server error while filtering machines." });
+  }
+}
