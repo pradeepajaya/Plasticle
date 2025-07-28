@@ -116,7 +116,7 @@ export default function VehicleArrivalPage() {
               <tr className="bg-gray-100">
                 <th className="border border-gray-300 px-4 py-2">Date</th>
                 <th className="border border-gray-300 px-4 py-2">Collectors</th>
-                <th className="border border-gray-300 px-4 py-2">Collected Bins</th> 
+                <th className="border border-gray-300 px-4 py-2">Collected Bins</th>
                 <th className="border border-gray-300 px-4 py-2">Bottles Collected</th>
                 <th className="border border-gray-300 px-4 py-2">Success Rate</th>
               </tr>
