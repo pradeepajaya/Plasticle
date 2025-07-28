@@ -215,7 +215,7 @@ const getCollectorAllocations = async (req, res) => {
     const bins = await Bin.find({
       collectorId: collector._id,
       collectionDate: { $ne: null },
-    }).select("binId collectionDate location city locationName");
+    }).select("binId collectionDate location city locationName collected");
     
     res.status(200).json(bins);
   } catch (error) {
@@ -296,4 +296,31 @@ const getCollectionCount = async (req, res) => {
   }
 };
 
-module.exports = { validateBin, updateCollectorStatus,  toggleAvailabilityStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, getCollectionCount, };
+// Inside collectorController.js
+const rejectBin = async (req, res) => {
+  try {
+    const { binId } = req.body;
+
+    const bin = await Bin.findByIdAndUpdate(binId, {
+      status: 'rejected',
+      collectorId: null,
+      collectionDate: null,
+    });
+
+    if (!bin) {
+      return res.status(404).json({ message: 'Bin not found' });
+    }
+
+    // ✅ Emit update to admin frontend via socket.io
+    const io = req.app.get('io');
+    io.emit('bin-rejected-update', { binId: bin._id });
+
+    return res.status(200).json({ message: 'Bin rejected and unassigned successfully' });
+  } catch (err) {
+    console.error('Reject bin error:', err);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+module.exports = { validateBin, updateCollectorStatus,  toggleAvailabilityStatus, updateProfile, updateProfilePicture, getProfilepicture, getCollectorAllocations, updateBinCollectionStatus, getFullBins, getCollectionCount, rejectBin };

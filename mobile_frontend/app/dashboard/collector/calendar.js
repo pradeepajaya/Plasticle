@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, TextInput, Alert, TouchableOpacity, Linking, } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -138,15 +138,22 @@ export default function CollectorCalendarScreen() {
   return (
     <LinearGradient colors={['#5ced73', '#ffffff']} style={styles.container}>
       <View style={styles.calendarWrapper}>
-        <Calendar
-          onDayPress={onDayPress}
-          markedDates={{
-            ...markedDates,
-            ...(selectedDate
-              ? { [selectedDate]: { selected: true, selectedColor: 'green' } }
-              : {}),
-          }}
-        />
+       <Calendar
+  onDayPress={onDayPress}
+  markedDates={Object.fromEntries(
+    Object.entries({
+      ...(markedDates || {}),
+      ...(selectedDate ? { [selectedDate]: {} } : {}),
+    }).map(([date, mark]) => [
+      date,
+      {
+        ...mark,
+        ...(date === selectedDate ? { selected: true, selectedColor: 'green' } : {}),
+      },
+    ])
+  )}
+/>
+
       </View>
 
       <View style={styles.allocationsContainer}>
@@ -163,7 +170,19 @@ export default function CollectorCalendarScreen() {
             renderItem={({ item }) => (
               <View style={styles.binItem}>
                 <Text style={styles.binText}>♻ Bin ID: {item.binId}</Text>
-                <Text style={styles.binText}>📍 Location: {item.location}</Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    Linking.openURL(
+                      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        item.location
+                      )}`
+                    )
+                  }
+                >
+                  <Text style={[styles.binText, styles.locationLink]}>
+                    📍 Location: {item.location}
+                  </Text>
+                </TouchableOpacity>
                 <Text style={styles.binText}>✅ Collected: {item.collected ? "Yes" : "No"}</Text>
 
                 {!item.collected ? (
@@ -226,6 +245,10 @@ const styles = StyleSheet.create({
   binText: {
     fontSize: 14,
     marginBottom: 4,
+  },
+  locationLink: {
+    color: '#1e88e5',
+    textDecorationLine: 'underline',
   },
   collectedText: {
     fontSize: 14,

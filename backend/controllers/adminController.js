@@ -58,10 +58,60 @@ exports.getTaskHandlers = async (req, res) => {
   }
 };
 
+//deactivate Task Handler with check bin status 
+exports.deactivateTaskHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the user with taskhandler role
+    const user = await User.findOne({ _id: id, role: 'taskhandler' });
+    if (!user) {
+      return res.status(404).json({ message: 'Task handler not found or invalid role' });
+    }
+
+    // Find the corresponding TaskHandler document
+    const taskHandler = await TaskHandler.findOne({ userId: id });
+    if (!taskHandler) {
+      return res.status(404).json({ message: 'Task handler record not found' });
+    }
+
+    // Check if bin is assigned
+    if (taskHandler.binAssigned) {
+      return res.status(400).json({
+        message: "Bin assigned for this task handler. Can't deactivate. Please check the bin allocation page."
+      });
+    }
+
+    // Prepare updated fields
+    const updatedFields = {
+      isActive: false,
+      username: `deactivated-${user._id}`,
+      email: `${user._id}@deactivated.com`,
+    };
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(id, updatedFields, { new: true });
+
+    // Update TaskHandler
+    await TaskHandler.findOneAndUpdate(
+      { userId: id },
+      {
+        isActive: false,
+        username: `deactivated-${user._id}`,
+      }
+    );
+
+    res.status(200).json({ message: 'Task handler deactivated', user: updatedUser });
+  } catch (error) {
+    console.error('Error deactivating task handler:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
 
 // deactivate Task Handler
-exports.deactivateTaskHandler = async (req, res) => {
+/*exports.deactivateTaskHandler = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -97,7 +147,7 @@ exports.deactivateTaskHandler = async (req, res) => {
   }
 };
 
-
+*/
 // Fetch Filled Bins with nearby Collectors
 exports.getFilledBinsWithCollectors = async (req, res) => {
   try {
