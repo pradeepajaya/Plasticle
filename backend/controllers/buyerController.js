@@ -171,6 +171,26 @@ const getStats = async (req, res) => {
     res.status(500).json({ message: "Server error while fetching stats" });
   }
 };
+// GET /api/buyer/leaderboard
+const getLeaderboard = async (req, res) => {
+  try {
+    const buyers = await Buyer.find({ totalBottlesCollected: { $gt: 0 } })
+      .sort({ totalBottlesCollected: -1 });
+
+    const leaderboard = buyers.map((buyer, index) => ({
+      rank: index + 1,
+      username: buyer.username || "Unknown",
+      province: buyer.province || "N/A",
+      totalBottlesCollected: buyer.totalBottlesCollected,
+    }));
+
+    res.status(200).json(leaderboard);
+  } catch (error) {
+    console.error("Error getting leaderboard:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 module.exports = {
   validateBinQRCode,
@@ -179,4 +199,5 @@ module.exports = {
   updateProfilePicture,
   getProfilepicture,
   getStats,
+  getLeaderboard,
 };
