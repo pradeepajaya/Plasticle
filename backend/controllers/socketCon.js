@@ -36,9 +36,9 @@ exports.watchChanges=(socket) => {
         // Only emit if new value is not null/empty
         if (newAssignedCollector !== null && newAssignedCollector !== '') {
           //userSocketMap[userId] = socket.id;
-          console.log("User socket map:", userSocketMap);
+          //console.log("User socket map:", userSocketMap);
           const socketId = userSocketMap[collectorUserId];
-          console.log("Socket ID for collector:", socketId);
+          //console.log("Socket ID for collector:", socketId);
           if(global._io && socketId) {
             global._io.to(socketId).emit('bin-assigned', {
                 binId: changedBinId,
@@ -48,7 +48,7 @@ exports.watchChanges=(socket) => {
 
       }
       }
-    }
+    } // Optional delay to ensure all updates are processed
   });
 
 

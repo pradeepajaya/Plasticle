@@ -387,6 +387,7 @@ import { Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { styles } from './settings.styles'; // Reuse buyer styles
+import socket from "../../utils/socket";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -430,9 +431,9 @@ export default function Settings() {
             gender: user.gender || '',
             hometown: user.province || '',
           });
-             if (user.dateOfBirth) {
-                                     setIsDobSet(true); // ✅ DOB already set
-                                                                               }
+          if (user.dateOfBirth) {
+            setIsDobSet(true); // DOB already set
+          }
         }
       } catch (err) {
         console.error("Error loading profile", err);
@@ -480,6 +481,7 @@ export default function Settings() {
     try {
       await AsyncStorage.removeItem("userToken");
       router.replace("/auth/login");
+      socket.disconnect();
     } catch (error) {
       console.error("Logout Error:", error);
       Alert.alert("Error", "Failed to log out.");

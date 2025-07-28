@@ -242,7 +242,7 @@ const assinedHandler = (machineId) => {
               </button>
 
               <button
-                className="bg-green-400 text-black px-2 py-1 rounded hover:bg-green-500 float-right w-40 flex justify-between items-center" 
+                className="bg-green-400 text-black px-2 py-1 rounded hover:bg-green-600 float-right w-40 flex justify-between items-center" 
                 onClick={() => {
                   setOpenDropdownId(openDropdownId === assignedMachines._id ? null : assignedMachines._id)
                  

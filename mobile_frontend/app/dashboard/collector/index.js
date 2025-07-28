@@ -78,9 +78,10 @@ export default function CollectorDashboard() {
       socket.emit("joinCollector", { userId }); 
     });
 
+    socket.off("bin-assigned");
     socket.on("bin-assigned", (data) => {
       console.log("Received bin assigning:", data);
-      Alert.alert("Bin Assigned", `Bin Location: ${data.locationName} assigned to you.`);
+      Alert.alert("Bin Assigned", `Bin has been assigned to you.\nPlease check map dashboard`);
     });
   
   }, [userId]); 

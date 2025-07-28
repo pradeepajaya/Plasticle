@@ -7,7 +7,10 @@ const machineSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     assignedTo: { type: String, required: false, default: null },
     scanNo: { type: Number, required: false, default: 0 },
-    });
+    startDate: { type: Date, required: false, default: null },
+    endDate: { type: Date, required: false, default: null },
+    assignedDate: { type: Date, required: false, default: null },
+});
 
 const Machine = mongoose.model("Machine", machineSchema);
 module.exports = Machine;

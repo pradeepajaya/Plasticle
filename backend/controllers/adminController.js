@@ -491,7 +491,7 @@ exports.deleteMachine = async (req, res) => {
 //get task handler
 exports.getTaskHandler = async (req, res) => {
   try {
-    const taskhandler = await User.find({ role: "taskhandler" });
+    const taskhandler = await User.find({ role: "taskhandler", isActive: true });
     res.json(taskhandler);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
