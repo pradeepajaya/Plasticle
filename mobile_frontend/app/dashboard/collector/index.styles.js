@@ -200,27 +200,27 @@ flipButton: {
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
     marginTop: 20,
     marginBottom: 5,
   },
   
   statCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(212, 234, 218, 0.98)',
-    borderRadius: 20,
-    padding: 18,
-    marginHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(46, 139, 87, 0.08)',
-  },
+  flex: 1,
+  alignItems: 'center', // Center align content vertically
+  justifyContent: 'center', // Center align content horizontally
+  backgroundColor: 'rgba(212, 234, 218, 0.98)',
+  borderRadius: 20,
+  paddingVertical: 20,
+  marginHorizontal: 8,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.15,
+  shadowRadius: 10,
+  elevation: 6,
+  borderWidth: 1,
+  borderColor: 'rgba(46, 139, 87, 0.08)',
+},
   
   statIconContainer: {
     width: 50,
@@ -233,26 +233,24 @@ flipButton: {
   },
   
   statTextContainer: {
-    flex: 1,
-  },
+  alignItems: 'center', // Center all text inside the container
+  justifyContent: 'center',
+},
   
   statLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#7A7A7A',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2E8B57',
-    textShadowColor: 'rgba(46, 139, 87, 0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
+  fontSize: 12,
+  fontWeight: '600',
+  color: '#7A7A7A',
+  textTransform: 'uppercase',
+  letterSpacing: 0.6,
+  textAlign: 'center',
+},
+ statValue: {
+  fontSize: 26,
+  fontWeight: 'bold',
+  color: '#2E8B57',
+  marginTop: 4,
+},
   
   // Fixed Message Overlay Styles
   messageOverlay: {
