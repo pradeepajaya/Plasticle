@@ -30,6 +30,7 @@ const io = socketIO(server, {
     methods: ["GET", "POST"]
   }
 });
+app.set('io', io);
 global._io = io;
 
 socketHandler(io);
