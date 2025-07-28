@@ -215,7 +215,7 @@ const getCollectorAllocations = async (req, res) => {
     const bins = await Bin.find({
       collectorId: collector._id,
       collectionDate: { $ne: null },
-    }).select("binId collectionDate location city locationName");
+    }).select("binId collectionDate location city locationName collected");
     
     res.status(200).json(bins);
   } catch (error) {

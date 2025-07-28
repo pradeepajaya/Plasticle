@@ -138,15 +138,22 @@ export default function CollectorCalendarScreen() {
   return (
     <LinearGradient colors={['#5ced73', '#ffffff']} style={styles.container}>
       <View style={styles.calendarWrapper}>
-        <Calendar
-          onDayPress={onDayPress}
-          markedDates={{
-            ...markedDates,
-            ...(selectedDate
-              ? { [selectedDate]: { selected: true, selectedColor: 'green' } }
-              : {}),
-          }}
-        />
+       <Calendar
+  onDayPress={onDayPress}
+  markedDates={Object.fromEntries(
+    Object.entries({
+      ...(markedDates || {}),
+      ...(selectedDate ? { [selectedDate]: {} } : {}),
+    }).map(([date, mark]) => [
+      date,
+      {
+        ...mark,
+        ...(date === selectedDate ? { selected: true, selectedColor: 'green' } : {}),
+      },
+    ])
+  )}
+/>
+
       </View>
 
       <View style={styles.allocationsContainer}>
