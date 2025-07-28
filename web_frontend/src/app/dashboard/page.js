@@ -218,7 +218,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeactivate = async (id) => {
+ /* const handleDeactivate = async (id) => {
     try {
       await deactivateTaskHandler(id);
       alert('Task handler deactivated');
@@ -227,7 +227,24 @@ export default function AdminDashboard() {
       console.error('Failed to deactivate handler', error);
       alert('Failed to deactivate task handler');
     }
-  };
+  };*/
+
+  const handleDeactivate = async (id) => {
+  try {
+    await deactivateTaskHandler(id);
+    alert('Task handler deactivated');
+    fetchHandlers(); // Refresh list
+  } catch (error) {
+    console.error('Failed to deactivate handler', error);
+
+    if (error?.response?.data?.message) {
+      alert(error.response.data.message); // Show server message
+    } else {
+      alert('Failed to deactivate task handler');
+    }
+  }
+};
+
 
 
   const handleLogout = () => {

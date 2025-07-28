@@ -155,7 +155,8 @@ const collectBin = async (req, res) => {
       {
         status: "active",
         currentFill: 0,
-        collected: true,
+        //collected: true,
+        collected: false,
         collectionDate: new Date(),
       },
       { new: true }
