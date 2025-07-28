@@ -1,17 +1,17 @@
-import { Stack } from "expo-router";
-import { Provider as PaperProvider } from "react-native-paper";
+/*import { Stack } from 'expo-router';
 
-export default function RootLayout() {
+export default function Layout() {
+  return <Stack  screenOptions={{ headerShown: false }} />;
+}
+*/
+
+import { Stack } from 'expo-router';
+import { Provider as PaperProvider } from 'react-native-paper';
+
+export default function Layout() {
   return (
     <PaperProvider>
-      <Stack
-        screenOptions={{ headerShown: false }}
-        initialRouteName="landing"  // Start with landing page first
-      >
-        <Stack.Screen name="landing" />
-        <Stack.Screen name="index" />
-        {/* add other screens or tabs if needed */}
-      </Stack>
+      <Stack screenOptions={{ headerShown: false }} />
     </PaperProvider>
   );
 }
