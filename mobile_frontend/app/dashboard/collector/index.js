@@ -30,6 +30,7 @@ export default function CollectorDashboard() {
   const [totalBinsCollected, setTotalBinsCollected] = useState(0);
   const [monthlyBinsCollected, setMonthlyBinsCollected] = useState(0);
   const [token, setToken] = useState(null); 
+  const [assignedBin, setAssignedBin] = useState(null);
 
 
 
@@ -263,6 +264,7 @@ export default function CollectorDashboard() {
       setValidationMessage(`Error: ${error.message}`);
       setTimeout(() => setValidationMessage(""), 3000);
     }
+
   };
 
   if (!permission) return <View />;
@@ -274,6 +276,25 @@ export default function CollectorDashboard() {
       </View>
     );
   }
+
+    const handleAcceptAssignment = () => {
+  setValidationMessage("Bin assignment accepted.");
+  setAssignedBin(null); // Close popup
+   setTimeout(() => setValidationMessage(""), 3000);
+};
+
+const handleRejectAssignment = () => {
+  if (!assignedBin || !userId) return;
+
+  socket.emit("bin-rejected", {
+    userId,
+    binId: assignedBin.binId,
+  });
+
+  setValidationMessage("Bin assignment rejected.");
+  setAssignedBin(null); // Close popup
+   setTimeout(() => setValidationMessage(""), 3000);
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -409,6 +430,61 @@ export default function CollectorDashboard() {
           <ActivityIndicator size="large" color="#2E8B57" />
         </View>
       )}
+
+      {assignedBin && (
+  <View style={{
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999
+  }}>
+    <View style={{
+      backgroundColor: "#fff",
+      padding: 20,
+      borderRadius: 10,
+      width: "80%",
+      alignItems: "center",
+    }}>
+      <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
+        New Bin Assigned, Continue Collection
+      </Text>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "#4CAF50",
+            padding: 10,
+            marginRight: 5,
+            borderRadius: 5,
+            alignItems: "center"
+          }}
+          onPress={handleAcceptAssignment}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Accept</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "#FF3B30",
+            padding: 10,
+            marginLeft: 5,
+            borderRadius: 5,
+            alignItems: "center"
+          }}
+          onPress={handleRejectAssignment}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Reject</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+)}
+
     </SafeAreaView>
   );
 }

@@ -7,6 +7,7 @@ import {
   getAvailableCollectors,
   allocateCollector,
 } from '../../services/api';
+import socket from '../../utils/socket';
 
 export default function DueLocationsPage() {
   const [locations, setLocations] = useState({});
@@ -58,6 +59,17 @@ export default function DueLocationsPage() {
   };
 
   fetchData();
+
+    // Socket listener
+    socket.on('bin-rejected-update', () => {
+      console.log('Bin rejected — refetching due locations...');
+      refetchBins();
+    });
+
+    return () => {
+      socket.off('bin-rejected-update');
+    };
+    
 }, []);
 
   const handleAllocateCollector = async (binObjectId, collectorId, selectedDate) => {

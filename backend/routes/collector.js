@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { validateBin, updateCollectorStatus, updatePreferredBins,toggleAvailabilityStatus } = require("../controllers/collectorController"); // Import from collectorController
+const { validateBin, updateCollectorStatus,toggleAvailabilityStatus } = require("../controllers/collectorController"); // Import from collectorController
 const authenticateToken = require("../middleware/auth");
 const collectorController = require("../controllers/collectorController");
 const adminController = require("../controllers/adminController");
@@ -28,5 +28,6 @@ router.get('/profile', authenticateToken, collectorController.getProfilepicture)
 router.get("/allocations", auth, collectorController.getCollectorAllocations);
 router.post("/update-bin-status", auth, collectorController.updateBinCollectionStatus);
 router.get("/full-bin-locations", auth, collectorController.getFullBins);
+router.post("/reject-bin", authenticateToken, collectorController.rejectBin);
 
 module.exports = router;

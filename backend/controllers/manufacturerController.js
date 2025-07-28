@@ -4,6 +4,7 @@ const PDFDocument = require("pdfkit");
 const Manufacturer = require("../models/Manufacturer");
 const Bottle = require("../models/Bottle");
 const User = require("../models/User");
+const mongoose = require("mongoose");
 
 // Helper function to validate base64 image
 const isValidBase64 = (str) => {
@@ -326,4 +327,86 @@ exports.getManufacturerStats = async (req, res) => {
             error: "Failed to fetch manufacturer stats"
         });
     }
+};
+
+
+exports.getManufacturerMonthlyReport = async (req, res) => {
+  try {
+    const userId = req.user.id; // from token
+    const year = req.params.year || new Date().getFullYear().toString(); // e.g., "2025"
+    
+    // Start and end date of the selected year
+    const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${parseInt(year) + 1}-01-01T00:00:00.000Z`);
+
+    // Fetch all bottles for this manufacturer within the selected year
+    const bottles = await Bottle.find({
+      manufacturerId: userId,
+      generatedAt: { $gte: startDate, $lt: endDate }
+    });
+
+    // Initialize report
+    const monthlyReport = {};
+    for (let month = 1; month <= 12; month++) {
+      const key = `${year}-${month.toString().padStart(2, "0")}`;
+      monthlyReport[key] = {
+        produced: 0,
+        recycled: 0,
+      };
+    }
+
+    // Populate monthly data
+    bottles.forEach((bottle) => {
+      const date = new Date(bottle.generatedAt);
+      const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+
+      if (monthlyReport[monthKey]) {
+        monthlyReport[monthKey].produced += 1;
+        if (bottle.status === "recycled") {
+          monthlyReport[monthKey].recycled += 1;
+        }
+      }
+    });
+
+    // Totals
+    let totalProduced = 0;
+    let totalRecycled = 0;
+    Object.values(monthlyReport).forEach((m) => {
+      totalProduced += m.produced;
+      totalRecycled += m.recycled;
+    });
+
+    const recycleRate = totalProduced > 0
+      ? `${Math.round((totalRecycled / totalProduced) * 100)}%`
+      : "0%";
+
+    // Sample suggestion logic
+    const suggestions = [];
+  if (totalRecycled < totalProduced * 0.5) {
+  suggestions.push("Use single-material bottles and minimize the use of colored plastics, complex labels, and non-recyclable closures to improve recycling rates.");
+} else if (totalRecycled >= totalProduced * 0.5 && totalRecycled < totalProduced * 0.8) {
+  suggestions.push("Good progress! Try increasing your recycling efforts by collaborating with collectors and promoting awareness.");
+} else if (totalRecycled >= totalProduced * 0.8 && totalRecycled < totalProduced * 0.95) {
+  suggestions.push("Great job! Consider exploring closed-loop recycling systems and investing in bottle take-back programs to further strengthen your sustainability efforts.");
+} else if (totalRecycled >= totalProduced * 0.95 && totalRecycled < totalProduced * 0.99) {
+  suggestions.push("Excellent progress! Keep optimizing your sustainability initiatives.");
+} else if (totalRecycled >= totalProduced * 0.99) {
+  suggestions.push("Excellent! Your production and recycling are nearly equal. Keep innovating with sustainable materials and expand your environmental initiatives.");
+}
+
+
+    res.json({
+      success: true,
+      year,
+      monthlyReport,
+      totalProduced,
+      totalRecycled,
+      recycleRate,
+      suggestions,
+    });
+
+  } catch (error) {
+    console.error("Report generation error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };

@@ -62,12 +62,17 @@ exports.watchChanges=(socket) => {
     }
   });
 
-
-
-
-
-
-
+  socket.on("bin-rejected", async ({ userId, binId }) => {
+  try {
+    await Bin.findByIdAndUpdate(binId, {
+      $unset: { collectorId: "" },
+      status: "full",
+    });
+    console.log(`Collector ${userId} rejected bin ${binId}`);
+  } catch (error) {
+    console.error("Error resetting rejected bin:", error);
+  }
+});
 
 
 
