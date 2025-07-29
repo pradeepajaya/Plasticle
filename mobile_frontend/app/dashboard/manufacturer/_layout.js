@@ -64,7 +64,6 @@ export default function ManufacturerLayout() {
           let iconName;
 
           if (route.name === "index") iconName = focused ? "leaf" : "leaf-outline";
-          else if (route.name === "analytics") iconName = focused ? "analytics" : "analytics-outline";
           else if (route.name === "ManufacturerReportScreen") iconName = focused ? "document-text" : "document-text-outline";
           else if (route.name === "settings") iconName = focused ? "settings" : "settings-outline";
 
@@ -76,7 +75,6 @@ export default function ManufacturerLayout() {
       })}
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
-      <Tabs.Screen name="analytics" options={{ title: "Analytics" }} />
       <Tabs.Screen name="ManufacturerReportScreen" options={{ title: "Report" }} />
       <Tabs.Screen name="settings" options={{ title: "Settings" }} />
     </Tabs>

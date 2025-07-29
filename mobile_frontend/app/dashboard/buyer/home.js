@@ -220,10 +220,10 @@ export default function BuyerHome() {
             {item.content}
           </Text>
         </ScrollView>
-        <View style={styles.communityFooter}>
+        {/*<View style={styles.communityFooter}>
           <Text style={styles.communityLikes}>❤️ {item.likes || 0} Likes</Text>
           <Text style={styles.communityTime}>{item.time || 'Recently'}</Text>
-        </View>
+        </View>*/}
       </View>
     </View>
   );
