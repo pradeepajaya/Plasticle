@@ -21,4 +21,6 @@ router.get('/profile', authenticateToken, buyerController.getProfilepicture);
 // Get buyer stats
 router.get("/stats", authenticateToken, buyerController.getStats);
 
+// Leaderboard route (fix here)
+router.get("/leaderboard", buyerController.getLeaderboard);
 module.exports = router;

@@ -27,16 +27,16 @@ exports.createTaskHandler = async (req, res) => {
     user = new User({ username, email, passwordHash, role, isVerified: true, });
     await user.save();
 
-  
 
-// ...
-const taskhandler = new TaskHandler({  // Capitalized constructor
-  userId: user._id,
-  username: user.username,
-  isActive: true,
-  region: "",
-});
-await taskhandler.save();
+
+    // ...
+    const taskhandler = new TaskHandler({  // Capitalized constructor
+      userId: user._id,
+      username: user.username,
+      isActive: true,
+      region: "",
+    });
+    await taskhandler.save();
 
 
     res.status(201).json({ message: "Task Handler Created" });
@@ -58,10 +58,60 @@ exports.getTaskHandlers = async (req, res) => {
   }
 };
 
+//deactivate Task Handler with check bin status 
+exports.deactivateTaskHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the user with taskhandler role
+    const user = await User.findOne({ _id: id, role: 'taskhandler' });
+    if (!user) {
+      return res.status(404).json({ message: 'Task handler not found or invalid role' });
+    }
+
+    // Find the corresponding TaskHandler document
+    const taskHandler = await TaskHandler.findOne({ userId: id });
+    if (!taskHandler) {
+      return res.status(404).json({ message: 'Task handler record not found' });
+    }
+
+    // Check if bin is assigned
+    if (taskHandler.binAssigned) {
+      return res.status(400).json({
+        message: "Bin assigned for this task handler. Can't deactivate. Please check the bin allocation page."
+      });
+    }
+
+    // Prepare updated fields
+    const updatedFields = {
+      isActive: false,
+      username: `deactivated-${user._id}`,
+      email: `${user._id}@deactivated.com`,
+    };
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(id, updatedFields, { new: true });
+
+    // Update TaskHandler
+    await TaskHandler.findOneAndUpdate(
+      { userId: id },
+      {
+        isActive: false,
+        username: `deactivated-${user._id}`,
+      }
+    );
+
+    res.status(200).json({ message: 'Task handler deactivated', user: updatedUser });
+  } catch (error) {
+    console.error('Error deactivating task handler:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
 
 // deactivate Task Handler
-exports.deactivateTaskHandler = async (req, res) => {
+/*exports.deactivateTaskHandler = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -97,7 +147,7 @@ exports.deactivateTaskHandler = async (req, res) => {
   }
 };
 
-
+*/
 // Fetch Filled Bins with nearby Collectors
 exports.getFilledBinsWithCollectors = async (req, res) => {
   try {
@@ -242,8 +292,10 @@ exports.getVehicleArrivalBasic = async (req, res) => {
     const collectedBins = await Bin.aggregate([
       {
         $match: {
-          collected: true,
-          vehicleId: { $exists: true, $ne: "" },
+          // Only bins that were previously filled and now collected (status active)
+          previousFill: { $gt: 0 },
+          status: "active",           // currently active (collected and reset)
+          vehicleId: { $exists: true, $ne: "" },  // has vehicleId assigned
           collectionDate: { $exists: true },
         },
       },
@@ -255,8 +307,8 @@ exports.getVehicleArrivalBasic = async (req, res) => {
             collectionDate: "$collectionDate",
           },
           totalBins: { $sum: 1 },
-          totalBottles: { $sum: "$previousFill" }, // ✅ use previousFill instead of currentFill
-          collectedLocations: { $addToSet: "$location" }, // ✅ get location
+          totalBottles: { $sum: "$previousFill" }, // sum the bottles before collection
+          collectedLocations: { $addToSet: "$location" },
         },
       },
       {
@@ -270,32 +322,62 @@ exports.getVehicleArrivalBasic = async (req, res) => {
           collectedLocations: 1,
         },
       },
+      {
+        $sort: { collectionDate: -1 },
+      },
     ]);
 
     res.status(200).json(collectedBins);
   } catch (err) {
     console.error("Error fetching vehicle arrival data:", err);
-    res.status(500).json({ message: "Error retrieving data" });
+    res.status(500).json({ message: "Error retrieving vehicle arrival data" });
   }
 };
-
 
 exports.getDailyCollectionStats = async (req, res) => {
   try {
     const stats = await Bin.aggregate([
       {
         $match: {
-          collectionDate: { $exists: true },
-        },
+          collectionDate: { $exists: true }
+        }
       },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$collectionDate" } },
           totalBinsAssigned: { $sum: 1 },
-          totalBinsCollected: { $sum: { $cond: ["$collected", 1, 0] } },
-          totalBottlesCollected: { $sum: { $cond: ["$collected", "$previousFill", 0] } },
+          totalBinsCollected: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ["$status", "active"] },
+                    { $eq: ["$currentFill", 0] },
+                    { $gt: ["$previousFill", 0] }
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          },
+          totalBottlesCollected: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ["$status", "active"] },
+                    { $eq: ["$currentFill", 0] },
+                    { $gt: ["$previousFill", 0] }
+                  ]
+                },
+                "$previousFill",
+                0
+              ]
+            }
+          },
           collectors: { $addToSet: "$collectorId" },
-        },
+        }
       },
       {
         $project: {
@@ -309,13 +391,13 @@ exports.getDailyCollectionStats = async (req, res) => {
               { $eq: ["$totalBinsAssigned", 0] },
               0,
               { $multiply: [{ $divide: ["$totalBinsCollected", "$totalBinsAssigned"] }, 100] }
-            ],
-          },
-        },
+            ]
+          }
+        }
       },
       {
-        $sort: { date: 1 },
-      },
+        $sort: { date: 1 }
+      }
     ]);
 
     res.json(stats);
@@ -553,7 +635,7 @@ exports.assignMachine = async (req, res) => {
       return res.status(400).json({ message: "machineId and taskHandlerId are required." });
     }
 
- 
+
     // Find the machine by machineId
     const machine = await Machine.findById(machineId);
 
@@ -589,11 +671,11 @@ exports.assignMachine = async (req, res) => {
 
 
 //filter machines by assigned or not assigned
-exports.assignedMachines = async (req, res) => {  
+exports.assignedMachines = async (req, res) => {
   try {
 
     // Find machines based on the assigned status
-    const machines = await Machine.find({ assignedTo: {$ne: null} });
+    const machines = await Machine.find({ assignedTo: { $ne: null } });
 
     // Return the filtered machines
     res.json(machines);
@@ -605,11 +687,11 @@ exports.assignedMachines = async (req, res) => {
 
 
 //filter machines by assigned or not assigned
-exports.notAssignedMachines = async (req, res) => {  
+exports.notAssignedMachines = async (req, res) => {
   try {
 
     // Find machines based on the assigned status
-    const machines = await Machine.find({ assignedTo: {$eq: null} });
+    const machines = await Machine.find({ assignedTo: { $eq: null } });
 
     // Return the filtered machines
     res.json(machines);
