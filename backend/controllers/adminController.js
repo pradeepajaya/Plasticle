@@ -446,14 +446,14 @@ exports.createMachine = async (req, res) => {
 
 
 //read
-// exports.getMachine = async (req, res) => {
-//   try {
-//     const machines = await Machine.find();
-//     res.json(machines);
-//   } catch (error) {
-//     res.status(500).json({ error: "Server error" });
-//   }
-// }
+exports.getMachine = async (req, res) => {
+  try {
+    const machines = await Machine.find();
+    res.json(machines);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+}
 
 //update
 exports.updateMachine = async (req, res) => {

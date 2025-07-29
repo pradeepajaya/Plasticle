@@ -34,6 +34,7 @@ router.get("/getTaskHandler", adminController.getTaskHandler);
 
 router.get("/assignedMachines", adminController.assignedMachines); 
 router.get("/notAssignedMachines", adminController.notAssignedMachines); 
+router.get("/getMachine", adminController.getMachine); 
 
 router.put("/assignMachine", adminController.assignMachine);
 
