@@ -73,7 +73,8 @@ await collector.save();
       { binId: binId },
       { 
         status: "active",  
-        currentFill: 0     
+        currentFill: 0,
+        collected: false     
       },
       { new: true } 
     );
@@ -242,7 +243,7 @@ const updateBinCollectionStatus = async (req, res) => {
       {
         status: "active",
         currentFill: 0,
-        collected: true,
+        collected: false,
         vehicleId: vehicleId || "",
         previousFill, 
       },
@@ -311,7 +312,7 @@ const rejectBin = async (req, res) => {
       return res.status(404).json({ message: 'Bin not found' });
     }
 
-    // ✅ Emit update to admin frontend via socket.io
+    //  Emit update to admin frontend via socket.io
     const io = req.app.get('io');
     io.emit('bin-rejected-update', { binId: bin._id });
 
