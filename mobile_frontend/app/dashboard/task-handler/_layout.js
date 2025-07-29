@@ -63,8 +63,7 @@ export default function TaskHandlerLayout() {
 
           if (route.name === "index") iconName = focused ? "leaf" : "leaf-outline";
           else if (route.name === "settings") iconName = focused ? "trash" : "trash-outline";
-          else if (route.name === "analytics") iconName = focused ? "bar-chart" : "bar-chart-outline";
-
+          
           return <Ionicons name={iconName} size={focused ? 26 : 22} color={color} />;
         },
         tabBarActiveTintColor: "#2eec38ff",    // forest green
@@ -74,7 +73,6 @@ export default function TaskHandlerLayout() {
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
       <Tabs.Screen name="settings" options={{ title: "Waste Management" }} />
-      <Tabs.Screen name="analytics" options={{ title: "Eco Analytics" }} />
     </Tabs>
   );
 }
