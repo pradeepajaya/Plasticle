@@ -59,7 +59,7 @@ export default function VehicleArrivalPage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-r from-green-700 via-emerald-500 to-green-600 py-6 px-10">
-      <a href="/dashboard" className="text-white text-sm underline hover:text-gray-200 block mb-4">
+      <a href="/dashboard" className="text-green-600 text-sm underline hover:text-green-700 block mb-4">
         &larr; Back to Dashboard
       </a>
 
