@@ -91,92 +91,234 @@ function AdminManufacturerList() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start py-10 bg-gradient-to-br from-green-900 via-emerald-700 to-green-600">
-      <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-lg mb-10">
-        <h2 className="text-3xl font-bold text-center mb-6 text-green-800">Manufacturer List</h2>
-        {loading ? (
-          <p className="text-center">Loading...</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm sm:text-base">
-              <thead className="bg-lime-400 text-green-900">
-                <tr>
-                  <th className="border p-3">Username</th>
-                  <th className="border p-3">Email</th>
-                  <th className="border p-3">Company Name</th>
-                  <th className="border p-3">Company Location</th>
-                  <th className="border p-3">Company Reg. Number</th>
-                  <th className="border p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {manufacturers.map((m) => (
-                  <tr key={m._id} className="text-center hover:bg-green-50">
-                    <td className="border p-3">{m.username}</td>
-                    <td className="border p-3">{m.email}</td>
-                    <td className="border p-3">{m.companyName}</td>
-                    <td className="border p-3">{m.companyLocation || '-'}</td>
-                    <td className="border p-3">{m.companyRegNumber || '-'}</td>
-                    <td className="border p-3 flex justify-center gap-2">
-                      <button
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
-                        onClick={() => openUpdateModal(m)}
-                      >
-                        Update
-                      </button>
-                      <button
-                        onClick={() => handleDelete(m._id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {manufacturers.length === 0 && (
-                  <tr>
-                    <td colSpan="6" className="p-4 text-center text-gray-500">
-                      No manufacturers found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+    <div className="min-h-screen bg-gradient-to-br from-green-900 via-emerald-700 to-green-600">
+      {/* Header Section */}
+      <div className="bg-white/10 backdrop-blur-sm border-b border-white/20">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
+              Manufacturer Management
+            </h1>
+            <p className="text-xl text-white/90 font-light">
+              Manage manufacturer accounts and company information
+            </p>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Deleted Accounts Section */}
-      <div className="w-full max-w-6xl bg-white p-6 rounded-lg shadow-lg">
-        <h3 className="text-xl font-semibold mb-4 text-red-700 text-center underline">Deleted Accounts</h3>
-        {deletedManufacturers.length === 0 ? (
-          <p className="text-center text-gray-500">No deleted manufacturers.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm sm:text-base">
-              <thead className="bg-gray-200 text-gray-700">
-                <tr>
-                  <th className="border p-3">UserID</th>
-                  <th className="border p-3">Email</th>
-                  <th className="border p-3">Company Name</th>
-                  <th className="border p-3">Company Location</th>
-                  <th className="border p-3">Company Reg. Number</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deletedManufacturers.map((m) => (
-                  <tr key={m._id} className="text-center text-gray-500">
-                    <td className="border p-3">{m.username}</td>
-                    <td className="border p-3">{m.email}</td>
-                    <td className="border p-3">{m.companyName || '-'}</td>
-                    <td className="border p-3">{m.companyLocation || '-'}</td>
-                    <td className="border p-3">{m.companyRegNumber || '-'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Active Manufacturers</p>
+                <p className="text-3xl font-bold text-green-700">{manufacturers.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+            </div>
           </div>
-        )}
+
+          <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Deleted Accounts</p>
+                <p className="text-3xl font-bold text-red-600">{deletedManufacturers.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Manufacturers Section */}
+        <div className="bg-white/95 backdrop-blur rounded-2xl shadow-xl border border-white/30 overflow-hidden mb-8">
+          <div className="bg-gradient-to-r from-green-700 to-emerald-600 px-6 py-6">
+            <div className="flex items-center space-x-3">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Active Manufacturers</h2>
+                <p className="text-green-100 mt-1">Manage registered manufacturer accounts</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
+                <span className="ml-3 text-lg text-gray-600">Loading manufacturers...</span>
+              </div>
+            ) : manufacturers.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Manufacturers Found</h3>
+                <p className="text-gray-600">No manufacturer accounts are currently registered.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 rounded-tl-lg">
+                        👤 Username
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                        ✉️ Email
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                        🏢 Company Name
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                        📍 Location
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                        🔢 Reg. Number
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 rounded-tr-lg">
+                        ⚙️ Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {manufacturers.map((m, index) => (
+                      <tr key={m._id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-green-50 transition-colors duration-200`}>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                              <span className="text-green-700 font-semibold text-sm">
+                                {m.username?.charAt(0)?.toUpperCase() || 'U'}
+                              </span>
+                            </div>
+                            <span className="font-medium text-gray-900">{m.username}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-gray-700">{m.email}</td>
+                        <td className="px-6 py-4">
+                          <span className="font-medium text-gray-900">{m.companyName}</span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-700">{m.companyLocation || '-'}</td>
+                        <td className="px-6 py-4 text-gray-700">
+                          <span className="font-mono text-sm">{m.companyRegNumber || '-'}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex justify-center space-x-2">
+                            <button
+                              className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+                              onClick={() => openUpdateModal(m)}
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              Update
+                            </button>
+                            <button
+                              onClick={() => handleDelete(m._id)}
+                              className="inline-flex items-center px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Deleted Accounts Section */}
+        <div className="bg-white/95 backdrop-blur rounded-2xl shadow-xl border border-white/30 overflow-hidden">
+          <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-6">
+            <div className="flex items-center space-x-3">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Deleted Accounts</h2>
+                <p className="text-red-100 mt-1">Previously deleted manufacturers for record keeping</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {deletedManufacturers.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Deleted Accounts</h3>
+                <p className="text-gray-600">No manufacturers have been deleted yet.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 rounded-tl-lg">
+                        🆔 UserID
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                        ✉️ Email
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                        🏢 Company Name
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                        📍 Location
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 rounded-tr-lg">
+                        🔢 Reg. Number
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {deletedManufacturers.map((m, index) => (
+                      <tr key={m._id} className={`${index % 2 === 0 ? 'bg-red-50' : 'bg-white'} opacity-75`}>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                              <span className="text-red-600 font-semibold text-sm">
+                                {m.username?.charAt(0)?.toUpperCase() || 'D'}
+                              </span>
+                            </div>
+                            <span className="font-medium text-gray-600">{m.username}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600">{m.email}</td>
+                        <td className="px-6 py-4 text-gray-600">{m.companyName || '-'}</td>
+                        <td className="px-6 py-4 text-gray-600">{m.companyLocation || '-'}</td>
+                        <td className="px-6 py-4 text-gray-600">
+                          <span className="font-mono text-sm">{m.companyRegNumber || '-'}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Update Modal */}
