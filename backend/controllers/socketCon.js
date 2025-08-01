@@ -25,8 +25,8 @@ exports.watchChanges=(socket) => {
         //const newAssignedCollector = updatedFields.collectorId;
 
         const changedBinId = change.documentKey._id;
-        const bin = await Bin.findById(changedBinId, { locationName: 1, collectorId:1, _id: 0 });
-        console.log("Location Name:", bin ? bin.locationName : "Bin not found");
+        const bin = await Bin.findById(changedBinId, { location: 1, locationName:1, collectorId:1, _id: 0 });
+        console.log("Location Name:", bin ? bin.location : "Bin not found");
         
         const newAssignedCollector = bin.collectorId.toString();
         const collectorId = await Collector.findById(newAssignedCollector).select('userId');
@@ -35,18 +35,19 @@ exports.watchChanges=(socket) => {
 
         // Only emit if new value is not null/empty
         if (newAssignedCollector !== null && newAssignedCollector !== '') {
-          //userSocketMap[userId] = socket.id;
-          //console.log("User socket map:", userSocketMap);
+          
           const socketId = userSocketMap[collectorUserId];
           //console.log("Socket ID for collector:", socketId);
           if(global._io && socketId) {
             global._io.to(socketId).emit('bin-assigned', {
-                binId: changedBinId,
-                locationName: bin.locationName,            
+              binId: changedBinId,
+              location: bin.location || bin.locationName,            
             });
-        }
+            //console.log(bin.location)
+            //console.log(`Notification emitted for ${collectorUserId} with ${socketId}`)
+          }
 
-      }
+        }
       }
     } // Optional delay to ensure all updates are processed
   });

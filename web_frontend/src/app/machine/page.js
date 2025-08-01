@@ -266,7 +266,7 @@ export default function MachinesPage() {
                             {machine.name}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Releasing {machine.startDays == 0 ? "today" : machine.startDays + "days"}
+                            Releasing {machine.startDays == 0 ? "today" : machine.startDays + " days"}
                           </p>
                         </div>
                       ))
@@ -286,7 +286,7 @@ export default function MachinesPage() {
                             {machine.name}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Closing in {machine.endDays} days
+                            Closing in {machine.endDays == 0 ? "today" : machine.endDays + " days"}
                           </p>
                         </div>
                       ))
