@@ -8,6 +8,68 @@ import {
 } from '../../services/api';
 import socket from '../../utils/socket';
 
+// Helper function to check if a string looks like coordinates
+const looksLikeCoordinates = (str) => {
+  if (typeof str !== 'string') return false;
+  const coordPattern = /^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/;
+  return coordPattern.test(str.trim());
+};
+
+// Helper function to convert coordinates to location name
+const getLocationNameFromCoordinates = async (coordinates) => {
+  try {
+    if (!looksLikeCoordinates(coordinates)) {
+      return coordinates;
+    }
+
+    const [lat, lng] = coordinates.split(',').map(coord => parseFloat(coord.trim()));
+    
+    if (isNaN(lat) || isNaN(lng)) {
+      return coordinates;
+    }
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'BinManagementSystem/1.0'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      return coordinates;
+    }
+
+    const data = await response.json();
+    
+    if (data && data.display_name) {
+      const address = data.address || {};
+      const locationParts = [];
+      
+      if (address.road) locationParts.push(address.road);
+      if (address.suburb) locationParts.push(address.suburb);
+      if (address.city || address.town || address.village) {
+        locationParts.push(address.city || address.town || address.village);
+      }
+      if (address.state) locationParts.push(address.state);
+      
+      if (locationParts.length > 0) {
+        return locationParts.join(', ');
+      }
+      
+      return data.display_name.length > 100 
+        ? data.display_name.substring(0, 100) + '...'
+        : data.display_name;
+    }
+    
+    return coordinates;
+  } catch (error) {
+    console.error('Error converting coordinates:', error);
+    return coordinates;
+  }
+};
+
 export default function DueLocationsPage() {
   const [locations, setLocations] = useState({});
   const [collectors, setCollectors] = useState([]);
@@ -17,6 +79,47 @@ export default function DueLocationsPage() {
   const [selectedDates, setSelectedDates] = useState({});
   const [allocatedCollectors, setAllocatedCollectors] = useState({});
   const [showModal, setShowModal] = useState(false);
+  const [locationNames, setLocationNames] = useState({}); // Store converted location names
+
+  // Function to convert coordinates to location names for all areas
+  const convertCoordinatesToNames = async (locationsData) => {
+    const namePromises = {};
+    
+    for (const [city, areas] of Object.entries(locationsData)) {
+      for (const area of areas) {
+        const areaKey = area._id || area.binId || JSON.stringify(area.area);
+        const areaText = typeof area.area === 'string' ? area.area : JSON.stringify(area.area);
+        
+        if (looksLikeCoordinates(areaText)) {
+          namePromises[areaKey] = getLocationNameFromCoordinates(areaText);
+        }
+      }
+    }
+    
+    const resolvedNames = {};
+    for (const [key, promise] of Object.entries(namePromises)) {
+      try {
+        resolvedNames[key] = await promise;
+      } catch (error) {
+        console.error(`Error converting coordinates for ${key}:`, error);
+      }
+    }
+    
+    setLocationNames(resolvedNames);
+  };
+
+  const refetchBins = async () => {
+    try {
+      const resLocations = await getDueLocations();
+      if (resLocations?.data) {
+        setLocations(resLocations.data);
+        // Convert coordinates to location names
+        await convertCoordinatesToNames(resLocations.data);
+      }
+    } catch (err) {
+      console.error('Failed to refetch due locations:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +134,9 @@ export default function DueLocationsPage() {
           setLocations(resLocations.data);
           allBins = Object.values(resLocations.data).flat();
           fullBins = allBins.filter((bin) => bin.isCritical === true);
+          
+          // Convert coordinates to location names
+          await convertCoordinatesToNames(resLocations.data);
         }
 
         if (resCollectors?.data) {
@@ -113,6 +219,25 @@ export default function DueLocationsPage() {
     .filter((bin) => bin.isCritical === true).length;
 
   const totalBins = Object.values(locations).flat().length;
+
+  // Helper function to get display location name
+  const getDisplayLocationName = (area) => {
+    const binObjectId = area._id || area.binId || 'unknown-bin';
+    const areaText = typeof area.area === 'string' ? area.area : JSON.stringify(area.area);
+    
+    // If we have a converted location name, use it
+    if (locationNames[binObjectId]) {
+      return locationNames[binObjectId];
+    }
+    
+    // If area has displayLocation field (from backend), use it
+    if (area.displayLocation) {
+      return area.displayLocation;
+    }
+    
+    // Otherwise use the original area text
+    return areaText;
+  };
 
   return (
    <div className="bg-gradient-to-br from-green-900 via-emerald-700 to-green-600">
@@ -230,7 +355,7 @@ export default function DueLocationsPage() {
                       .sort((a, b) => (b.isCritical === true) - (a.isCritical === true))
                       .map((area, index) => {
                         const binObjectId = area._id || area.binId || 'unknown-bin';
-                        const areaText = typeof area.area === 'string' ? area.area : JSON.stringify(area.area);
+                        const displayLocationName = getDisplayLocationName(area);
                         const isCritical = area.isCritical;
 
                         return (
@@ -246,7 +371,7 @@ export default function DueLocationsPage() {
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex-1">
                                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                                  {areaText}
+                                  {displayLocationName}
                                 </h3>
                                 <div className="flex items-center space-x-3">
                                   {allocatedCollectors[binObjectId] ? (
@@ -359,7 +484,7 @@ export default function DueLocationsPage() {
                                     />
                                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
                                       </svg>
                                     </div>
                                   </div>
