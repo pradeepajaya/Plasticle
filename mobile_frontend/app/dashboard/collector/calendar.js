@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ActivityIndicator, FlatList,
-  TextInput, Alert,  TouchableOpacity, Linking,
+  TextInput, Alert, TouchableOpacity, Linking,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -144,6 +144,15 @@ export default function CollectorCalendarScreen() {
 
   return (
     <LinearGradient colors={['#f6faf6ff', '#4faa4cff']} style={styles.container}>
+      <View style={styles.calendarHeader}>
+        <Text style={styles.calendarTitle}> Your Collection Calendar{'    '}</Text>
+        <TouchableOpacity style={styles.refreshBtn} onPress={() => {
+          setLoading(true);
+          fetchAllocations();
+        }}>
+          <Text style={styles.refreshText}>♻️</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.calendarWrapper}>
         <Calendar
           onDayPress={onDayPress}
@@ -181,19 +190,19 @@ export default function CollectorCalendarScreen() {
                       <Text style={styles.statusText}>{isCollected ? 'Collected' : 'Pending'}</Text>
                     </View>
                   </View>
-                <TouchableOpacity
-                  onPress={() =>
-                    Linking.openURL(
-                      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        item.location
-                      )}`
-                    )
-                  }
-                >
-                  <Text style={[styles.binText, styles.locationLink]}>
-                    📍 Location: {item.location}
-                  </Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      Linking.openURL(
+                        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          item.location
+                        )}`
+                      )
+                    }
+                  >
+                    <Text style={[styles.binText, styles.locationLink]}>
+                      📍 Location: {item.location}
+                    </Text>
+                  </TouchableOpacity>
                   <Text style={styles.detail}><Text style={styles.label}>📅 Date:</Text> {selectedDate}</Text>
 
                   {!isCollected && (
@@ -309,11 +318,35 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   noAllocations: {
-  color: '#1c462dff', 
-  fontSize: 16,
-  fontWeight: '500',
-  textAlign: 'center',
-  marginVertical: 10,
-},
+    color: '#1c462dff',
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  calendarHeader: {
+    marginTop: 20,
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  calendarTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2e5e2eff',
+    textAlign: 'center',
+  },
+  refreshIcon: {
+    fontSize: 30,
+    color: '#2e7d32',
+  },
+  calendarWrapper: {
+    marginTop: 10, // moved calendar up
+    borderRadius: 10,
+    overflow: 'hidden',
+    elevation: 2,
+  },
 
 });

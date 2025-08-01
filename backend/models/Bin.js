@@ -3,11 +3,12 @@ const mongoose = require("mongoose");
 
 const binSchema = new mongoose.Schema({
   binId: { type: String, required: true, unique: true },
-  location: { type: String, required: true },
+  location: { type: mongoose.Schema.Types.Mixed, required: true },
   capacity: { type: Number, required: true },
   currentFill: { type: Number, default: 0 },
   status: { type: String, enum: ["active", "full", "inactive", "assigned"], default: "active" },
-  locationName: { type: String },   
+  locationName: { type: String, default: null },  
+  city: { type: String, default: null }, 
   collectionDate: { type: Date },
   collectorId: { type: mongoose.Schema.Types.ObjectId, ref: "Collector" },
   collected: { type: Boolean, default: false }, 
