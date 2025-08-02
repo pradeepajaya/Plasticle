@@ -76,10 +76,14 @@ export default function DueLocationsPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [selectedCollectors, setSelectedCollectors] = useState({});
-  const [selectedDates, setSelectedDates] = useState({});
   const [allocatedCollectors, setAllocatedCollectors] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [locationNames, setLocationNames] = useState({}); // Store converted location names
+
+  // Get today's date in YYYY-MM-DD format
+  const getTodaysDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
 
   // Function to convert coordinates to location names for all areas
   const convertCoordinatesToNames = async (locationsData) => {
@@ -175,20 +179,21 @@ export default function DueLocationsPage() {
     
   }, []);
 
-  const handleAllocateCollector = async (binObjectId, collectorId, selectedDate) => {
-    if (!collectorId || !binObjectId || !selectedDate) {
-      alert('Please select a collector and a date.');
+  const handleAllocateCollector = async (binObjectId, collectorId) => {
+    if (!collectorId || !binObjectId) {
+      alert('Please select a collector.');
       return;
     }
 
+    const todaysDate = getTodaysDate();
     setLoading(true);
     try {
-      const res = await allocateCollector(binObjectId, collectorId, selectedDate);
+      const res = await allocateCollector(binObjectId, collectorId, todaysDate);
       if (
         res?.status === 200 ||
         res?.data?.message === 'Collector allocated successfully'
       ) {
-        alert('Collector allocated successfully!');
+        alert('Collector allocated successfully for today!');
 
         const collector = collectors.find((c) => c._id === collectorId);
         const collectorName =
@@ -202,7 +207,6 @@ export default function DueLocationsPage() {
         }));
 
         setSelectedCollectors((prev) => ({ ...prev, [binObjectId]: '' }));
-        setSelectedDates((prev) => ({ ...prev, [binObjectId]: '' }));
       } else {
         alert('Failed to allocate collector.');
       }
@@ -265,8 +269,6 @@ export default function DueLocationsPage() {
           </div>
         </div>
       )}
-
-
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -407,12 +409,12 @@ export default function DueLocationsPage() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                                 </svg>
                                 <h4 className="text-lg font-semibold text-gray-800">
-                                  Assign Collection Task
+                                  Assign Collection Task for Today
                                 </h4>
                               </div>
                               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
                                 {/* Collector Dropdown */}
-                                <div className="lg:col-span-5">
+                                <div className="lg:col-span-6">
                                   <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Select Collector
                                   </label>
@@ -464,29 +466,22 @@ export default function DueLocationsPage() {
                                   </div>
                                 </div>
 
-                                {/* Date Picker */}
-                                <div className="lg:col-span-4">
+                                {/* Today's Date Display */}
+                                <div className="lg:col-span-3">
                                   <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Collection Date
                                   </label>
-                                  <div className="relative">
-                                    <input
-                                      type="date"
-                                      className="w-full px-4 py-3 pl-10 rounded-xl border-2 border-gray-300 bg-white text-gray-900 focus:ring-3 focus:ring-green-200 focus:border-green-800 transition-all duration-200 hover:border-green-600 shadow-sm"
-                                      value={selectedDates[binObjectId] || ''}
-                                      min={new Date().toISOString().split('T')[0]}
-                                      onChange={(e) =>
-                                        setSelectedDates((prev) => ({
-                                          ...prev,
-                                          [binObjectId]: e.target.value,
-                                        }))
-                                      }
-                                    />
+                                  <div className="w-full px-4 py-3 pl-10 rounded-xl border-2 border-green-300 bg-green-50 text-green-800 font-semibold shadow-sm">
                                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
                                       </svg>
                                     </div>
+                                    Today ({new Date().toLocaleDateString('en-US', { 
+                                      weekday: 'short', 
+                                      month: 'short', 
+                                      day: 'numeric' 
+                                    })})
                                   </div>
                                 </div>
 
@@ -496,14 +491,12 @@ export default function DueLocationsPage() {
                                     onClick={() =>
                                       handleAllocateCollector(
                                         binObjectId,
-                                        selectedCollectors[binObjectId],
-                                        selectedDates[binObjectId]
+                                        selectedCollectors[binObjectId]
                                       )
                                     }
                                     disabled={
                                       loading ||
-                                      !selectedCollectors[binObjectId] ||
-                                      !selectedDates[binObjectId]
+                                      !selectedCollectors[binObjectId]
                                     }
                                     className="w-full px-6 py-3 bg-gradient-to-r from-green-800 to-green-700 text-white rounded-xl hover:from-green-900 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transform hover:scale-105 disabled:hover:scale-100 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl disabled:shadow-md flex items-center justify-center space-x-2"
                                   >
@@ -520,14 +513,12 @@ export default function DueLocationsPage() {
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                         </svg>
-                                        <span>Assign Task</span>
+                                        <span>Assign Today</span>
                                       </>
                                     )}
                                   </button>
                                 </div>
                               </div>
-                              
-                              
                             </div>
                           </div>
                         );

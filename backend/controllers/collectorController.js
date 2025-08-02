@@ -72,7 +72,8 @@ await collector.save();
     const binUpdate = await Bin.findOneAndUpdate(
       { binId: binId },
       { 
-        status: "active",  
+        status: "active",
+        previousFill: req.body.previousFill || bin.currentFill,  
         currentFill: 0,
         collected: false     
       },
