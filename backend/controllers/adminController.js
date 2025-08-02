@@ -149,6 +149,7 @@ exports.deactivateTaskHandler = async (req, res) => {
 
 */
 // Fetch Filled Bins with nearby Collectors
+// Fetch Filled Bins with nearby Collectors
 exports.getFilledBinsWithCollectors = async (req, res) => {
   try {
     const filledBins = await Bin.find({ status: "full", collected: { $ne: true } });
@@ -247,7 +248,8 @@ exports.allocateCollector = async (req, res) => {
 
     bin.collectorId = collectorId;
     bin.status = "assigned";
-    bin.collectionDate = new Date(collectionDate);
+    bin.collectionDate = new Date(`${collectionDate}T12:00:00`);
+
 
     await bin.save();
 
@@ -292,11 +294,15 @@ exports.getVehicleArrivalBasic = async (req, res) => {
     const collectedBins = await Bin.aggregate([
       {
         $match: {
-          // Only bins that were previously filled and now collected (status active)
-          previousFill: { $gt: 0 },
-          status: "active",           // currently active (collected and reset)
-          vehicleId: { $exists: true, $ne: "" },  // has vehicleId assigned
+          // Look for bins that have been collected (have vehicleId and collectionDate)
+          vehicleId: { $exists: true, $ne: "" },
           collectionDate: { $exists: true },
+          status: "active",
+          // Either currentFill is 0 (just collected) OR previousFill exists
+          $or: [
+            { currentFill: 0, previousFill: { $exists: true, $gt: 0 } },
+            { currentFill: 0 } // Recently collected bins
+          ]
         },
       },
       {
@@ -304,10 +310,20 @@ exports.getVehicleArrivalBasic = async (req, res) => {
           _id: {
             vehicleId: "$vehicleId",
             collectorId: "$collectorId",
-            collectionDate: "$collectionDate",
+            collectionDate: {
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$collectionDate"
+              }
+            }
           },
           totalBins: { $sum: 1 },
-          totalBottles: { $sum: "$previousFill" }, // sum the bottles before collection
+          // Use previousFill if available, otherwise use a default value
+          totalBottles: { 
+            $sum: { 
+              $ifNull: ["$previousFill", 50] // Default bottles per bin if previousFill not available
+            } 
+          },
           collectedLocations: { $addToSet: "$location" },
         },
       },
@@ -499,6 +515,7 @@ exports.checkFullBinsAndCollectors = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
 
 //code from SK 
 //machine crud operations
