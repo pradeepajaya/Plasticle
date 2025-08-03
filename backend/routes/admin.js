@@ -21,6 +21,9 @@ router.put('/manufacturers/:userId', adminController.updateManufacturerDetails);
 router.get('/manufacturers/deleted', adminController.getDeletedManufacturers);
 router.delete('/manufacturers/:userId', adminController.deleteManufacturer);
 router.get('/check-status', adminController.checkFullBinsAndCollectors);
+router.get('/assigned-collectors', auth, adminController.getAssignedCollectors);
+router.get('/allocations-detailed', auth, adminController.getAllocationsDetailed);
+router.post('/unassign-bin', auth, adminController.unassignBin);
 
 
 

@@ -33,6 +33,7 @@ import Link from 'next/link';
 import {
   Home,
   MapPin,
+  Calendar,
   Truck,
   Factory,
   PlusCircle,
@@ -69,6 +70,10 @@ export default function Sidebar() {
           <Link href="/duelocations" className="flex items-center space-x-2 hover:text-emerald-300 transition">
             <MapPin size={18} />
             <span>Due Locations</span>
+          </Link>
+           <Link href="/AllocationChecks" className="flex items-center space-x-2 hover:text-emerald-300 transition">
+            <Calendar size={18} />
+            <span>Allocations</span>
           </Link>
           <Link href="/vehiclearrival" className="flex items-center space-x-2 hover:text-emerald-300 transition">
             <Truck size={18} />
