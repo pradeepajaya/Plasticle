@@ -133,9 +133,6 @@ export default function CollectorDashboard() {
       setAssignData(data)
       setShowNotification(true)
 
-
-
-
       //}else{
         //Alert.alert("Bin Assigned", `Bin has been assigned to you.\nPlease check calendar for more...`);
 

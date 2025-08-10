@@ -9,4 +9,6 @@ const taskHandlerSchema = new mongoose.Schema({
   assignedBins: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bin" }],
 });
 
-module.exports = mongoose.models.TaskHandler || mongoose.model("TaskHandler", taskHandlerSchema);
+//module.exports = mongoose.models.TaskHandler || mongoose.model("TaskHandler", taskHandlerSchema);
+const TaskHandler = mongoose.models.TaskHandler || mongoose.model("TaskHandler", taskHandlerSchema);
+module.exports = TaskHandler;
