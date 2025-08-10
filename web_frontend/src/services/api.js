@@ -37,3 +37,11 @@ export const checkFullBinsAndCollectors = () =>
 
 export const getDeletedManufacturers = async () =>
   API.get(`admin/manufacturers/deleted`);
+
+//Allocation Management
+export const getAssignedCollectors = () => API.get('/admin/assigned-collectors');
+
+export const getAllocationsDetailed = () => API.get('/admin/allocations-detailed');
+
+export const unassignBin = (binId, collectorId) => 
+  API.post('/admin/unassign-bin', { binId, collectorId });

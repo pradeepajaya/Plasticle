@@ -149,6 +149,7 @@ exports.deactivateTaskHandler = async (req, res) => {
 
 */
 // Fetch Filled Bins with nearby Collectors
+// Fetch Filled Bins with nearby Collectors
 exports.getFilledBinsWithCollectors = async (req, res) => {
   try {
     const filledBins = await Bin.find({ status: "full", collected: { $ne: true } });
@@ -247,7 +248,8 @@ exports.allocateCollector = async (req, res) => {
 
     bin.collectorId = collectorId;
     bin.status = "assigned";
-    bin.collectionDate = new Date(collectionDate);
+    bin.collectionDate = new Date(`${collectionDate}T12:00:00`);
+
 
     await bin.save();
 
@@ -292,11 +294,15 @@ exports.getVehicleArrivalBasic = async (req, res) => {
     const collectedBins = await Bin.aggregate([
       {
         $match: {
-          // Only bins that were previously filled and now collected (status active)
-          previousFill: { $gt: 0 },
-          status: "active",           // currently active (collected and reset)
-          vehicleId: { $exists: true, $ne: "" },  // has vehicleId assigned
+          // Look for bins that have been collected (have vehicleId and collectionDate)
+          vehicleId: { $exists: true, $ne: "" },
           collectionDate: { $exists: true },
+          status: "active",
+          // Either currentFill is 0 (just collected) OR previousFill exists
+          $or: [
+            { currentFill: 0, previousFill: { $exists: true, $gt: 0 } },
+            { currentFill: 0 } // Recently collected bins
+          ]
         },
       },
       {
@@ -304,10 +310,20 @@ exports.getVehicleArrivalBasic = async (req, res) => {
           _id: {
             vehicleId: "$vehicleId",
             collectorId: "$collectorId",
-            collectionDate: "$collectionDate",
+            collectionDate: {
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$collectionDate"
+              }
+            }
           },
           totalBins: { $sum: 1 },
-          totalBottles: { $sum: "$previousFill" }, // sum the bottles before collection
+          // Use previousFill if available, otherwise use a default value
+          totalBottles: { 
+            $sum: { 
+              $ifNull: ["$previousFill", 50] // Default bottles per bin if previousFill not available
+            } 
+          },
           collectedLocations: { $addToSet: "$location" },
         },
       },
@@ -499,6 +515,198 @@ exports.checkFullBinsAndCollectors = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+// Fetch Assigned Collectors with their Assigned Bins
+exports.getAssignedCollectors = async (req, res) => {
+  try {
+    // Find all bins that have been assigned to collectors
+    const assignedBins = await Bin.find({ 
+      status: "assigned", 
+      collectorId: { $exists: true, $ne: null } 
+    }).populate({
+      path: 'collectorId',
+      select: 'userId location',
+      populate: {
+        path: 'userId',
+        select: 'username email nickname',
+        model: 'User'
+      }
+    });
+
+    if (!assignedBins.length) {
+      return res.status(200).json([]);
+    }
+
+    // Group bins by collector
+    const collectorAllocations = {};
+    
+    assignedBins.forEach(bin => {
+      const collectorId = bin.collectorId._id.toString();
+      
+      if (!collectorAllocations[collectorId]) {
+        collectorAllocations[collectorId] = {
+          collectorId: bin.collectorId._id,
+          collectorDetails: {
+            userId: bin.collectorId.userId._id,
+            username: bin.collectorId.userId.username,
+            email: bin.collectorId.userId.email,
+            nickname: bin.collectorId.userId.nickname || bin.collectorId.userId.username,
+            location: bin.collectorId.location
+          },
+          assignedBins: [],
+          totalBins: 0,
+          totalBottles: 0
+        };
+      }
+      
+      // Add bin details to the collector's assigned bins
+      collectorAllocations[collectorId].assignedBins.push({
+        binId: bin.binId,
+        location: bin.location,
+        locationName: bin.locationName,
+        city: bin.city,
+        capacity: bin.capacity,
+        currentFill: bin.currentFill,
+        collectionDate: bin.collectionDate,
+        coordinates: bin.location?.coordinates || null
+      });
+      
+      collectorAllocations[collectorId].totalBins += 1;
+      collectorAllocations[collectorId].totalBottles += bin.currentFill;
+    });
+
+    // Convert object to array and sort by collection date
+    const result = Object.values(collectorAllocations).map(allocation => ({
+      ...allocation,
+      assignedBins: allocation.assignedBins.sort((a, b) => 
+        new Date(a.collectionDate) - new Date(b.collectionDate)
+      )
+    }));
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error fetching assigned collectors:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Alternative function to get detailed allocation information
+exports.getAllocationsDetailed = async (req, res) => {
+  try {
+    const allocations = await Bin.aggregate([
+      {
+        $match: {
+          status: "assigned",
+          collectorId: { $exists: true, $ne: null }
+        }
+      },
+      {
+        $lookup: {
+          from: "collectors",
+          localField: "collectorId",
+          foreignField: "_id",
+          as: "collectorInfo"
+        }
+      },
+      {
+        $unwind: "$collectorInfo"
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "collectorInfo.userId",
+          foreignField: "_id",
+          as: "userInfo"
+        }
+      },
+      {
+        $unwind: "$userInfo"
+      },
+      {
+        $group: {
+          _id: "$collectorId",
+          collectorDetails: {
+            $first: {
+              collectorId: "$collectorInfo._id",
+              userId: "$userInfo._id",
+              username: "$userInfo.username",
+              email: "$userInfo.email",
+              nickname: { $ifNull: ["$userInfo.nickname", "$userInfo.username"] },
+              collectorLocation: "$collectorInfo.location"
+            }
+          },
+          assignedBins: {
+            $push: {
+              binId: "$binId",
+              binObjectId: "$_id",
+              location: "$location",
+              locationName: "$locationName",
+              city: "$city",
+              capacity: "$capacity",
+              currentFill: "$currentFill",
+              collectionDate: "$collectionDate",
+              coordinates: "$location.coordinates"
+            }
+          },
+          totalBins: { $sum: 1 },
+          totalBottles: { $sum: "$currentFill" },
+          earliestCollection: { $min: "$collectionDate" },
+          latestCollection: { $max: "$collectionDate" }
+        }
+      },
+      {
+        $sort: { earliestCollection: 1 }
+      }
+    ]);
+
+    res.status(200).json(allocations);
+  } catch (err) {
+    console.error("Error fetching detailed allocations:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+// Unassign Collector from Bin (Only Admins)
+exports.unassignBin = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access Denied" });
+  }
+
+  const { binId, collectorId } = req.body;
+
+  if (!binId || !collectorId) {
+    return res.status(400).json({ message: "Bin ID and Collector ID are required" });
+  }
+
+  try {
+    // Find the bin
+    const bin = await Bin.findOne({ binId, status: "assigned", collectorId });
+    if (!bin) {
+      return res.status(404).json({ message: "Assigned bin not found" });
+    }
+
+    // Find the collector
+    const collector = await Collector.findById(collectorId);
+    if (!collector) {
+      return res.status(404).json({ message: "Collector not found" });
+    }
+
+    // Update bin status back to full and remove collector assignment
+    bin.collectorId = null;
+    bin.status = "full";
+    bin.collectionDate = null;
+    await bin.save();
+
+    // Make collector available again
+    collector.activePersonal = true;
+    await collector.save();
+
+    res.status(200).json({ message: "Bin unassigned successfully" });
+  } catch (err) {
+    console.error("Error unassigning bin:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 //code from SK 
 //machine crud operations
