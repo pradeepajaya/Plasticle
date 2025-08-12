@@ -1,7 +1,7 @@
 const Bin = require('../models/Bin');
 const Collector = require('../models/Collector');
+const TaskHandler = require('../models/TaskHandler');
 const userSocketMap = {};
-
 
 
 
@@ -25,30 +25,53 @@ exports.watchChanges=(socket) => {
         //const newAssignedCollector = updatedFields.collectorId;
 
         const changedBinId = change.documentKey._id;
-        const bin = await Bin.findById(changedBinId, { locationName: 1, collectorId:1, _id: 0 });
-        console.log("Location Name:", bin ? bin.locationName : "Bin not found");
+        const bin = await Bin.findById(changedBinId, { location: 1, locationName:1, collectorId:1, _id: 0 });
+        console.log("Location Name:", bin ? bin.location : "Bin not found");
         
-        const newAssignedCollector = bin.collectorId.toString();
-        const collectorId = await Collector.findById(newAssignedCollector).select('userId');
-        const collectorUserId = collectorId?.userId?.toString();
-        console.log("New assigned collector:", collectorUserId);
+
+        
+        const newAssignedCollector = bin.collectorId;
+                  
+
+        
 
         // Only emit if new value is not null/empty
-        if (newAssignedCollector !== null && newAssignedCollector !== '') {
-          //userSocketMap[userId] = socket.id;
-          console.log("User socket map:", userSocketMap);
+        if (newAssignedCollector !== null && newAssignedCollector !== '' && newAssignedCollector !== undefined) {
+          const newAssignedCollectorId = newAssignedCollector.toString();
+          const collectorId = await Collector.findById(newAssignedCollectorId).select('userId');
+          
+          const collectorUserId = collectorId?.userId?.toString();
+          console.log("New assigned collector:", collectorUserId);
           const socketId = userSocketMap[collectorUserId];
-          console.log("Socket ID for collector:", socketId);
+          //console.log("Socket ID for collector:", socketId);
+
           if(global._io && socketId) {
             global._io.to(socketId).emit('bin-assigned', {
-                binId: changedBinId,
-                locationName: bin.locationName,            
+              binId: changedBinId,
+              location: bin.location || bin.locationName,            
             });
-        }
+            //console.log(bin.location)
+            console.log(`Notification emitted for ${collectorUserId} with ${socketId}`)
+          }
 
+        }else{
+          const TaskHandlerDoc = await  TaskHandler.findOne({ assignedBins: changedBinId });
+          const taskHandlerId =TaskHandlerDoc.userId.toString();
+          const socketId = userSocketMap[taskHandlerId];
+          console.log(taskHandlerId)
+          if(global._io && socketId) {
+            global._io.to(socketId).emit('bin-assigned', {
+              binId: changedBinId,
+              location: bin.location || bin.locationName,            
+            });
+            
+            console.log(`Notification emitted for ${taskHandlerId} with ${socketId}`)
+          }
+
+
+        }
       }
-      }
-    }
+    } // Optional delay to ensure all updates are processed
   });
 
 
@@ -63,33 +86,20 @@ exports.watchChanges=(socket) => {
   });
 
   socket.on("bin-rejected", async ({ userId, binId }) => {
-  try {
-    await Bin.findByIdAndUpdate(binId, {
-      $unset: { collectorId: "" },
-      status: "full",
-    });
-    console.log(`Collector ${userId} rejected bin ${binId}`);
-  } catch (error) {
-    console.error("Error resetting rejected bin:", error);
-  }
-});
-
-
+    try {
+      await Bin.findByIdAndUpdate(binId, {
+        $unset: { collectorId: "" },
+        status: "full",
+      });
+      console.log(`Collector ${userId} rejected bin ${binId}`);
+    } catch (error) {
+      console.error("Error resetting rejected bin:", error);
+    }
+  });
 
 
 }
 
-exports.handleJoin = (socket) => {
-  
-};
-
-exports.handleDisconnect = (socket) => {
-  
-};
-
-// exports.getSocketIdByUserId = (userId) => {
-//   return userSocketMap[userId];
-// };
 
 
 

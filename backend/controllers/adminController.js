@@ -713,13 +713,22 @@ exports.unassignBin = async (req, res) => {
 //create
 exports.createMachine = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, startDate, endDate } = req.body;
+    if(!startDate){
+      startDate = new Date(); 
+    }
+    if (!name || !description) {
+      return res.status(400).json({ error: "Name and description are required" });
+    }
+    
     const newMachine = new Machine({
       name,
       description,
+      startDate,
+      endDate
     });
     await newMachine.save();
-    res.send('Machine created');
+    res.status(200).send('Machine created');
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
@@ -727,34 +736,66 @@ exports.createMachine = async (req, res) => {
 
 
 //read
-// exports.getMachine = async (req, res) => {
-//   try {
-//     const machines = await Machine.find();
-//     res.json(machines);
-//   } catch (error) {
-//     res.status(500).json({ error: "Server error" });
-//   }
-// }
+exports.getMachine = async (req, res) => {
+  try {
+    const machines = await Machine.find();
+    res.json(machines);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+}
 
 //update
 exports.updateMachine = async (req, res) => {
   try {
-    const { id, name, description } = req.body;
+    const { id, name, description, startDate, endDate } = req.body;
+    console.log("Update Machine Request:", req.body);
 
-    const updatedMachine = await Machine.findByIdAndUpdate(id, {
+    // Validate required fields
+    if (!id) {
+      return res.status(400).json({ error: "Machine ID is required" });
+    }
+    if (!name) {
+      return res.status(400).json({ error: "Name is required" });
+    }
+
+    // Prepare update object
+    const updateData = {
       name,
-      description,
-    }, { new: true });
+      description: description || undefined, // Set to undefined to keep existing if not provided
+    };
+
+    // Handle dates - convert to Date objects if provided
+    if (startDate) {
+      updateData.startDate = new Date(startDate);
+    }
+    if (endDate) {
+      updateData.endDate = new Date(endDate);
+    }
+
+    // Perform the update
+    const updatedMachine = await Machine.findByIdAndUpdate(
+      id,
+      updateData,
+      { 
+        new: true, // Return the updated document
+        runValidators: true // Ensure validations are run
+      }
+    );
 
     if (!updatedMachine) {
       return res.status(404).json({ error: "Machine not found" });
     }
+
     res.json(updatedMachine);
+  } catch (error) {
+    console.error("Update Machine Error:", error);
+    res.status(500).json({ 
+      error: "Server error",
+      message: error.message // Include the error message for debugging
+    });
   }
-  catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
-}
+};
 
 //delete
 exports.deleteMachine = async (req, res) => {
@@ -781,7 +822,7 @@ exports.deleteMachine = async (req, res) => {
 //get task handler
 exports.getTaskHandler = async (req, res) => {
   try {
-    const taskhandler = await User.find({ role: "taskhandler" });
+    const taskhandler = await User.find({ role: "taskhandler", isActive: true });
     res.json(taskhandler);
   } catch (error) {
     res.status(500).json({ error: "Server error" });

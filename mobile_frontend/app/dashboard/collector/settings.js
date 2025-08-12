@@ -10,6 +10,7 @@ import { Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { styles } from './settings.styles'; // Reuse buyer styles
+import socket from "../../utils/socket";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -53,9 +54,9 @@ export default function Settings() {
             gender: user.gender || '',
             hometown: user.province || '',
           });
-             if (user.dateOfBirth) {
-                                     setIsDobSet(true); // ✅ DOB already set
-                                                                               }
+          if (user.dateOfBirth) {
+            setIsDobSet(true); // DOB already set
+          }
         }
       } catch (err) {
         console.error("Error loading profile", err);
@@ -103,6 +104,8 @@ export default function Settings() {
     try {
       await AsyncStorage.removeItem("userToken");
       router.replace("/auth/login");
+      socket.disconnect();
+      console.log("Socket Disconnected");
     } catch (error) {
       console.error("Logout Error:", error);
       Alert.alert("Error", "Failed to log out.");
@@ -226,17 +229,17 @@ export default function Settings() {
 
             <Text style={styles.inputLabel}>Date of Birth</Text>
             <Text style={styles.inputLabel}>Date of Birth</Text>
-<TouchableOpacity
-  onPress={() => {
-    if (!isDobSet) setShowDatePicker(true);
-    else Alert.alert("Not Allowed", "Date of Birth cannot be changed once set.");
-  }}
-  style={[styles.input, isDobSet && { backgroundColor: '#e0e0e0' }]}
->
-  <Text style={{ color: '#333' }}>
-    {form.dateOfBirth ? form.dateOfBirth.toDateString() : 'Select your birth date'}
-  </Text>
-</TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                if (!isDobSet) setShowDatePicker(true);
+                else Alert.alert("Not Allowed", "Date of Birth cannot be changed once set.");
+              }}
+              style={[styles.input, isDobSet && { backgroundColor: '#e0e0e0' }]}
+            >
+              <Text style={{ color: '#333' }}>
+                {form.dateOfBirth ? form.dateOfBirth.toDateString() : 'Select your birth date'}
+              </Text>
+            </TouchableOpacity>
 
             {showDatePicker && (
               <DateTimePicker
@@ -268,35 +271,35 @@ export default function Settings() {
             </View>
 
             <Text style={styles.inputLabel}>Province</Text>
-<View style={styles.pickerContainer}>
-  <Picker
-    selectedValue={form.province}
-    onValueChange={(itemValue) => setForm({ ...form, province: itemValue })}
-    style={styles.picker}
-  >
-    <Picker.Item label="Select your province" value="" />
-    <Picker.Item label="Central" value="Central" />
-    <Picker.Item label="Eastern" value="Eastern" />
-    <Picker.Item label="North Central" value="North Central" />
-    <Picker.Item label="Northern" value="Northern" />
-    <Picker.Item label="North Western" value="North Western" />
-    <Picker.Item label="Sabaragamuwa" value="Sabaragamuwa" />
-    <Picker.Item label="Southern" value="Southern" />
-    <Picker.Item label="Uva" value="Uva" />
-    <Picker.Item label="Western" value="Western" />
-  </Picker>
-</View>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={form.province}
+                onValueChange={(itemValue) => setForm({ ...form, province: itemValue })}
+                style={styles.picker}
+              >
+                <Picker.Item label="Select your province" value="" />
+                <Picker.Item label="Central" value="Central" />
+                <Picker.Item label="Eastern" value="Eastern" />
+                <Picker.Item label="North Central" value="North Central" />
+                <Picker.Item label="Northern" value="Northern" />
+                <Picker.Item label="North Western" value="North Western" />
+                <Picker.Item label="Sabaragamuwa" value="Sabaragamuwa" />
+                <Picker.Item label="Southern" value="Southern" />
+                <Picker.Item label="Uva" value="Uva" />
+                <Picker.Item label="Western" value="Western" />
+              </Picker>
+            </View>
 
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]} 
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setModalVisible(false)}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.saveButton]} 
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
                 onPress={handleUpdate}
               >
                 <Text style={styles.saveButtonText}>Save Changes</Text>
